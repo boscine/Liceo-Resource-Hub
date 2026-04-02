@@ -1,7 +1,7 @@
  
 # Liceo Resource Hub
 ## Grand Archive & Context Synchronization Point
-> Paste this document at the start of any AI session to synchronize project state and resume development.
+ 
 
 ---
 
