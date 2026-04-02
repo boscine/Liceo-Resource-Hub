@@ -1,17 +1,6 @@
 <div class="detail-page">
-  <header class="app-nav">
-    <div class="nav-inner">
-      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
-      <nav class="nav-links">
-        <a routerLink="/feed" class="active">Requests</a>
-        <a routerLink="/post/create">Create</a>
-      </nav>
-      <div class="nav-actions">
-        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
-        <button class="icon-btn avatar-btn" routerLink="/profile">{{ user.display_name?.charAt(0)?.toUpperCase() || 'U' }}</button>
-      </div>
-    </div>
-  </header>
+  <app-navbar active="feed"></app-navbar>
+
 
   <main class="detail-main">
     <div class="detail-inner">

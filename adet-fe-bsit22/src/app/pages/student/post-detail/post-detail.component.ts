@@ -3,11 +3,12 @@ import { CommonModule }      from '@angular/common';
 import { RouterModule }      from '@angular/router';
 import { FormsModule }       from '@angular/forms';
 import { AuthService }       from '../../../core/services/auth.service';
+import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, NavbarComponent],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.scss'],
 })

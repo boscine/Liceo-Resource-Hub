@@ -1,11 +1,9 @@
-// src/routes/api.routes.ts
 import { Hono } from 'hono';
-import { PrismaClient } from '@prisma/client';
 import { AuthVariables } from '../middleware/auth.middleware';
+import prisma from '../lib/prisma';
 
 // Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
-const prisma = new PrismaClient();
 
 // ── GET /api/v1/categories ────────────────────────────────────────────────────
 // Note: Path is just '/' or '/categories' because prefix is handled in index.ts

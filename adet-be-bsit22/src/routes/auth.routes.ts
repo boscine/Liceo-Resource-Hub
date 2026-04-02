@@ -1,10 +1,9 @@
 import { Hono } from 'hono';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 const auth = new Hono();
-const prisma = new PrismaClient();
 
 // POST /api/auth/login
  

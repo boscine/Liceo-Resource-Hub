@@ -1,0 +1,124 @@
+@use 'design-system';
+
+// Icon buttons – base
+.icon-btn {
+  background: none; border: none; cursor: pointer;
+  padding: 0.5rem; color: var(--primary); border-radius: 50%;
+  transition: background 0.2s; display: flex; align-items: center;
+  &:hover { background: var(--surface-container-low); }
+}
+
+// Avatar pill
+.avatar-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary); color: white;
+  font-size: 0.75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  &.active { box-shadow: 0 0 0 2px var(--secondary-container); }
+}
+
+// Logout button – subtle red on hover
+.logout-nav-btn {
+  color: var(--outline) !important;
+  &:hover { background: rgba(186,26,26,0.08) !important; color: var(--error) !important; }
+}
+
+// ── Notification wrapper ──────────────────────────────────────────────────────
+.notif-wrapper {
+  position: relative;
+
+  .notif-btn { position: relative; }
+
+  .notif-badge {
+    position: absolute; top: 4px; right: 4px;
+    min-width: 17px; height: 17px;
+    background: var(--error); color: white;
+    font-size: 0.6rem; font-weight: 700;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px; pointer-events: none;
+    animation: pop-in 0.2s ease;
+  }
+
+  // ── Panel ────────────────────────────────────────────────────────────────
+  .notif-panel {
+    position: absolute; top: calc(100% + 0.75rem); right: 0;
+    width: 360px;
+    background: var(--surface-container-lowest);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 16px 48px rgba(25,28,29,0.14), 0 0 0 1px var(--outline-variant);
+    z-index: 200; overflow: hidden;
+    animation: slide-down 0.18s ease;
+
+    .notif-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 1.25rem 0.75rem;
+      border-bottom: 1px solid var(--surface-container-high);
+
+      .notif-panel-title {
+        font-family: var(--font-headline);
+        font-size: 1rem; font-weight: 700; color: var(--on-surface);
+      }
+
+      .mark-all-btn {
+        background: none; border: none; cursor: pointer;
+        font-family: var(--font-body); font-size: 0.72rem; font-weight: 600;
+        color: var(--primary); text-transform: uppercase; letter-spacing: 0.06em; padding: 0;
+        &:hover { text-decoration: underline; }
+      }
+    }
+
+    .notif-list {
+      max-height: 320px; overflow-y: auto;
+
+      .notif-item {
+        display: flex; align-items: flex-start; gap: 0.75rem;
+        padding: 0.9rem 1.25rem; cursor: pointer;
+        transition: background 0.15s; position: relative;
+
+        &:hover { background: var(--surface-container-low); }
+        &.unread { background: rgba(87,0,0,0.04); }
+
+        .notif-icon { font-size: 20px; color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+
+        .notif-body {
+          flex: 1; min-width: 0;
+          .notif-text {
+            font-size: 0.82rem; color: var(--on-surface); line-height: 1.5;
+            b { font-weight: 700; }
+          }
+          .notif-time {
+            display: block; font-size: 0.7rem; color: var(--outline);
+            margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.06em;
+          }
+        }
+
+        .notif-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          background: var(--primary); flex-shrink: 0; margin-top: 6px;
+        }
+      }
+    }
+
+    .notif-panel-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--surface-container-high);
+      text-align: center;
+      a {
+        font-family: var(--font-body); font-size: 0.75rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--primary); text-decoration: none;
+        &:hover { text-decoration: underline; }
+      }
+    }
+  }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  from { transform: scale(0.5); }
+  to   { transform: scale(1); }
+}

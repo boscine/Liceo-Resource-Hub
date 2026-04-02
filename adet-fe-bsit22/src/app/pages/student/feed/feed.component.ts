@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { RouterModule }      from '@angular/router';
-import { AuthService }       from '../../../core/services/auth.service';
+import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss'],
 })
@@ -25,18 +25,22 @@ export class FeedComponent implements OnInit {
     { id: 5, status: 'OPEN',      title: 'Law Review Notes: Constitutional Law',            description: 'Requesting comprehensive notes or flashcards for the upcoming Bar review simulations.',              category: 'NOTES',       timeAgo: '1 day ago',    resolved: false },
   ];
 
-  isLoggedIn = false;
-  isAdmin = false;
-  user: any = {};
+  constructor() {}
 
-  constructor(private auth: AuthService) {}
+  ngOnInit() {}
 
-  ngOnInit() {
-    this.isLoggedIn = this.auth.isLoggedIn();
-    this.isAdmin = this.auth.isAdmin();
-    if (this.isLoggedIn) {
-      this.user = this.auth.getUser() || {};
-    }
+  /** Posts filtered by the active category chip and the search query */
+  get filteredPosts() {
+    const cat = this.activeCategory.toUpperCase();
+    const q   = this.searchQuery.trim().toUpperCase();
+    return this.posts.filter(p => {
+      const matchCat = cat === 'ALL RESOURCES' || p.category.toUpperCase() === cat;
+      const matchQ   = !q ||
+        p.title.toUpperCase().includes(q) ||
+        p.description.toUpperCase().includes(q) ||
+        p.category.toUpperCase().includes(q);
+      return matchCat && matchQ;
+    });
   }
 
   setCategory(cat: string) { this.activeCategory = cat; }

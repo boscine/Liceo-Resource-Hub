@@ -1,26 +1,15 @@
 <div class="feed-page">
 
+
   <!-- NAV -->
-  <header class="app-nav">
-    <div class="nav-inner">
-      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
-      <nav class="nav-links">
-        <a routerLink="/feed" class="active">Requests</a>
-        <a routerLink="/post/create">Create</a>
-        <a routerLink="/admin" *ngIf="isAdmin">Dashboard</a>
-      </nav>
-      <div class="nav-actions">
-        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
-        <button class="icon-btn avatar-btn" routerLink="/profile">{{ user.display_name?.charAt(0)?.toUpperCase() || 'U' }}</button>
-      </div>
-    </div>
-  </header>
+  <app-navbar active="feed"></app-navbar>
+
 
   <div class="feed-layout">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-      <div class="activity-card" *ngIf="isLoggedIn">
+      <div class="activity-card">
         <h3>Your Activity</h3>
         <div class="activity-row"><span>ACTIVE REQUESTS</span><strong>04</strong></div>
         <div class="activity-row"><span>FULFILLED</span><strong>2</strong></div>
@@ -58,8 +47,8 @@
       </div>
 
       <!-- Posts Grid -->
-      <div class="posts-grid">
-        <div class="post-card" *ngFor="let post of posts">
+      <div class="posts-grid" *ngIf="filteredPosts.length > 0">
+        <div class="post-card" *ngFor="let post of filteredPosts">
           <div class="post-top">
             <span class="post-status" [ngClass]="getStatusClass(post.status)">{{ post.status }}</span>
             <span class="post-time">{{ post.timeAgo }}</span>
@@ -79,6 +68,13 @@
             </span>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredPosts.length === 0">
+        <span class="material-symbols-outlined">search_off</span>
+        <p>No requests found for <strong>{{ activeCategory }}</strong><span *ngIf="searchQuery"> matching "{{ searchQuery }}"</span>.</p>
+        <button class="empty-reset-btn" (click)="activeCategory = 'All Resources'; searchQuery = ''">Clear filters</button>
       </div>
 
       <!-- Pagination -->

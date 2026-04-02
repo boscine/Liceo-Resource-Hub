@@ -1,6 +1,11 @@
 import { Context, Next } from 'hono';
 import jwt from 'jsonwebtoken';
 
+export type AuthVariables = {
+  userId: number;
+  role: string;
+};
+
 export const authenticate = async (c: Context, next: Next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
@@ -22,3 +27,6 @@ export const adminOnly = async (c: Context, next: Next) => {
   }
   await next();
 };
+
+// Alias for use in index.ts route protection
+export const verifyToken = authenticate;

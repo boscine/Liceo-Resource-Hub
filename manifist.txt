@@ -1,0 +1,76 @@
+### **Liceo Resource Hub: Technical Manifest**
+
+This `.md` file serves as the **Grand Archive** for your project. It maps the connection between your **Hono + Prisma** backend and your **Angular "Academic Curator"** frontend.
+
+---
+
+### **1. Project Architecture**
+The **Liceo Resource Hub** follows a "Stateless Servant" pattern. The frontend handles the beauty (Tailwind/Angular), while the backend handles the truth (Hono/Prisma).
+
+| Layer | Technology | Responsibility |
+| :--- | :--- | :--- |
+| **Frontend** | Angular 18 + Tailwind | "Academic Curator" UI & Routing |
+| **API** | Hono | Lightning-fast JSON endpoints |
+| **ORM** | Prisma | Translating TypeScript to Database logic |
+| **Database** | Localhost (PostgreSQL/MySQL) | Storing User & Resource data |
+
+---
+
+### **2. Directory Mapping**
+Based on your `src` structure, here is the official file organization:
+
+```text
+src/
+├── app/
+│   ├── core/
+│   │   ├── services/           <-- API Communication (Hono calls)
+│   │   │   ├── auth.service.ts
+│   │   │   └── resource.service.ts
+│   │   └── models/             <-- Prisma Schema mirrors
+│   │       ├── user.model.ts
+│   │       └── resource.model.ts
+│   ├── pages/
+│   │   ├── auth/               <-- Entry Portals
+│   │   │   ├── login/
+│   │   │   └── register/
+│   │   ├── student/            <-- Student Realm
+│   │   │   ├── feed/           <-- Main Resource Grid
+│   │   │   └── post-create/    <-- "Adelante" Submission
+│   │   └── admin/              <-- High Curator Realm
+│   │       └── dashboard/
+│   ├── app.routes.ts           <-- The Navigation Map
+│   └── app.config.ts           <-- The Engine Room
+└── styles/                     <-- Global Aesthetics
+    ├── _variables.scss         <-- Maroon & Gold Hex Codes
+    └── main.scss
+```
+
+---
+
+### **3. The Backend Bridge (Localhost)**
+To ensure Hono and Angular speak the same language on your local machine:
+
+* **API Origin:** `http://localhost:3000/api`
+* **Proxy Rule:** Redirects `/api` requests from Angular (`:4200`) to Hono (`:3000`).
+* **CORS Policy:** Hono must allow `origin: 'http://localhost:4200'`.
+
+---
+
+### **4. Connection Logic**
+The flow of a single **Resource Request**:
+1.  **User** logs in via `login.component.ts`.
+2.  **AuthService** sends a `POST` to Hono.
+3.  **Hono** verifies the email via `prisma.user.findUnique()`.
+4.  **Token** is returned and stored in `localStorage`.
+5.  **Router** navigates the student to `/feed`.
+
+---
+
+### **5. Future "Vercel" Deployment Notes**
+* **Build Command:** `ng build --configuration production`
+* **Env Variables:** Move `localhost` strings to Vercel "Environment Variables" panel.
+* **Rewrites:** Use `vercel.json` to handle Angular's SPA routing.
+
+---
+
+> **Design System Note:** All components must maintain the **Maroon (#570000)** and **Gold (#735c00)** palette to uphold the Liceo de Cagayan University identity.

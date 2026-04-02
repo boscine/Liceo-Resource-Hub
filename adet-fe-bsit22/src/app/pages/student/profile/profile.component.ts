@@ -1,15 +1,14 @@
-// src/app/pages/student/profile/profile.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { RouterModule }      from '@angular/router';
 import { AuthService }       from '../../../core/services/auth.service';
+import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
@@ -29,7 +28,7 @@ export class ProfileComponent implements OnInit { // Ensure 'export' is here
     if (user) {
       // Use type casting (user as any) if the interface still complains
       const userData = user as any; 
-      this.displayName = userData.displayName || userData.name || 'User';
+      this.displayName = userData.display_name || userData.displayName || userData.name || 'User';
       this.email = userData.email || '';
       
       if (userData.contacts && userData.contacts.length > 0) {

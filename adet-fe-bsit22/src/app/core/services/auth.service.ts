@@ -14,7 +14,8 @@ export interface TokenPayload { // Add 'export' so it's accessible elsewhere
   exp: number;
   email?: string;
   name?: string;
-  displayName?: string;
+  displayName?: string;   // camelCase fallback
+  display_name?: string;  // ← actual field the backend signs
   contacts?: { type: string; value: string }[];
 }
 
