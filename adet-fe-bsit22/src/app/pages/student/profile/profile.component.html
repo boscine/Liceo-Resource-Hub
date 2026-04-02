@@ -1,0 +1,89 @@
+<div class="profile-page">
+  <header class="app-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
+      <nav class="nav-links"><a routerLink="/feed">Requests</a><a routerLink="/post/create">Create</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn logout-btn" (click)="logout()" routerLink="/login">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="profile-main">
+    <div class="profile-inner">
+
+      <div class="profile-header">
+        <div class="avatar-large">{{ displayName[0] }}</div>
+        <div>
+          <h1>{{ displayName }}</h1>
+          <p>{{ email }}</p>
+        </div>
+      </div>
+
+      <div class="success-toast" *ngIf="saved">
+        <span class="material-symbols-outlined">check_circle</span> Profile saved successfully!
+      </div>
+
+      <div class="profile-grid">
+
+        <!-- ACCOUNT INFO -->
+        <section class="profile-card">
+          <h2>Account Information</h2>
+          <div class="field">
+            <label class="field-label" for="displayName">Display Name</label>
+            <input class="input-academic" id="displayName" type="text" [(ngModel)]="displayName" name="displayName"/>
+          </div>
+          <div class="field">
+            <label class="field-label" for="email">University Email</label>
+            <input class="input-academic" id="email" type="email" [(ngModel)]="email" name="email" disabled/>
+            <p class="field-note">Email cannot be changed.</p>
+          </div>
+        </section>
+
+        <!-- CONTACT INFO -->
+        <section class="profile-card">
+          <h2>Contact Information</h2>
+          <p class="section-desc">Your contacts are shown to logged-in students when they view your posts.</p>
+
+          <div class="contact-list">
+            <div class="contact-item" *ngFor="let c of contacts; let i = index">
+              <span class="contact-badge">{{ c.type }}</span>
+              <span class="contact-val">{{ c.value }}</span>
+              <button class="remove-btn" (click)="removeContact(i)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="add-contact">
+            <select class="input-academic contact-type-select" [(ngModel)]="newContact.type" name="contactType">
+              <option *ngFor="let t of contactTypes" [value]="t">{{ t }}</option>
+            </select>
+            <input class="input-academic" type="text" [(ngModel)]="newContact.value" name="contactValue"
+              placeholder="e.g., m.me/yourname or 09XXXXXXXXX"/>
+            <button class="add-btn" (click)="addContact()">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="profile-actions">
+        <button class="btn-primary save-btn" (click)="onSave()" [disabled]="saving">
+          <span *ngIf="!saving">Save Changes</span>
+          <span *ngIf="!saving" class="material-symbols-outlined">save</span>
+          <span *ngIf="saving" class="spinner"></span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-brand">Liceo de Cagayan University<span>© 2024 The Academic Curator.</span></div>
+    <div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+  </footer>
+</div>

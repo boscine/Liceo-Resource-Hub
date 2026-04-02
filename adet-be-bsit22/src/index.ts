@@ -3,21 +3,26 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import 'dotenv/config';
 
-// 1. Remove .js and ensure names match
 import authRoutes from './routes/auth.routes';
 import apiRoutes from './routes/api.routes';
-import { verifyToken } from './middleware/auth.middleware'; // Matches the export now!
+import { verifyToken, AuthVariables } from './middleware/auth.middleware';
 
-const app = new Hono();
+const app = new Hono<{ Variables: AuthVariables }>();
 
-app.use('*', cors({ origin: 'http://localhost:4200' }));
+// 1. Global Middleware
+app.use('*', cors({ 
+  origin: 'http://localhost:4200',
+  credentials: true 
+}));
 
-// ── Routes ─────────────────────────────────────────────────────────────────────
-app.route('/api/auth', authRoutes);   // public  → login, register (no token needed)
-app.use('/api/v1/*', verifyToken);    // 🔒 only protect /api/v1/* routes
-app.route('/api/v1', apiRoutes);      // protected routes
+// 2. Public Authentication Routes
+app.route('/api/auth', authRoutes);
 
+// 3. Protected API Routes
+// Middleware runs only for these routes
+app.use('/api/v1/*', verifyToken); 
+app.route('/api/v1', apiRoutes); 
 
 serve({ fetch: app.fetch, port: 3000 }, () =>
-  console.log('API running → http://localhost:3000')
+  console.log('Liceo Resource Hub API → http://localhost:3000')
 );

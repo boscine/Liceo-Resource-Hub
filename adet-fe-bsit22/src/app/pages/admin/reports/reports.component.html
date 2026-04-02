@@ -1,0 +1,82 @@
+<div class="reports-page">
+  <header class="app-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
+      <nav class="nav-links"><a routerLink="/feed">Requests</a><a routerLink="/admin" class="active">Dashboard</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
+        <button class="icon-btn avatar-btn">A</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="reports-main">
+    <div class="page-header">
+      <div>
+        <h1 class="serif">Reports Queue</h1>
+        <p>Review posts reported by students and take appropriate action.</p>
+      </div>
+      <a routerLink="/admin" class="back-link">
+        <span class="material-symbols-outlined">arrow_back</span> Back to Dashboard
+      </a>
+    </div>
+
+    <div class="tabs">
+      <button *ngFor="let tab of tabs" [class.active]="activeTab === tab" (click)="setTab(tab)">
+        {{ tab }}
+       <span *ngIf="tab === 'PENDING'">{{ reports.length }}</span>
+      </button>
+    </div>
+
+    <div class="reports-list">
+      <div class="report-card" *ngFor="let report of getFiltered()">
+        <div class="report-header">
+          <div class="report-meta">
+            <span class="reason-badge">{{ report.reason }}</span>
+            <span class="report-time">{{ report.timeAgo }}</span>
+          </div>
+          <span class="reporter">Reported by {{ report.reportedBy }}</span>
+        </div>
+
+        <div class="post-ref">
+          <span class="post-ref-label">Post</span>
+          <a [routerLink]="['/post', report.postId]" class="post-ref-title serif-italic">
+            {{ report.postTitle }}
+            <span class="material-symbols-outlined">open_in_new</span>
+          </a>
+          <span class="post-ref-id">{{ report.postId }}</span>
+        </div>
+
+        <div class="report-details" *ngIf="report.details">
+          <p>"{{ report.details }}"</p>
+        </div>
+
+        <div class="report-actions" *ngIf="report.status === 'pending'">
+          <button class="btn-dismiss" (click)="dismiss(report)">
+            <span class="material-symbols-outlined">close</span> Dismiss
+          </button>
+          <button class="btn-review" (click)="review(report)">
+            <span class="material-symbols-outlined">check</span> Mark Reviewed
+          </button>
+          <a [routerLink]="['/admin/posts']" class="btn-action">
+            <span class="material-symbols-outlined">flag</span> Go to Post
+          </a>
+        </div>
+
+        <div class="resolved-badge" *ngIf="report.status !== 'pending'">
+          <span class="material-symbols-outlined">{{ report.status === 'reviewed' ? 'check_circle' : 'cancel' }}</span>
+          {{ report.status | titlecase }}
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="getFiltered().length === 0">
+        <span class="material-symbols-outlined">inbox</span>
+        <p>No {{ activeTab.toLowerCase() }} reports.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-brand">The Academic Curator.<span>© 2024 Liceo de Cagayan University.</span></div>
+  </footer>
+</div>

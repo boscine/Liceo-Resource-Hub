@@ -1,0 +1,110 @@
+<div class="admin-posts-page">
+  <header class="app-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
+      <nav class="nav-links">
+        <a routerLink="/feed">Requests</a>
+        <a routerLink="/admin" class="active">Dashboard</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
+        <button class="icon-btn avatar-btn">A</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1 class="serif">Post Management</h1>
+        <p>Review, flag, and remove posts that violate platform rules.</p>
+      </div>
+      <a routerLink="/admin" class="back-link">
+        <span class="material-symbols-outlined">arrow_back</span> Back to Dashboard
+      </a>
+    </div>
+
+    <div class="toolbar">
+      <div class="tabs">
+        <button *ngFor="let tab of tabs" [class.active]="activeTab === tab" (click)="setTab(tab)">
+          {{ tab }}
+        </button>
+      </div>
+      <div class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Filter by ID or title..."/>
+      </div>
+    </div>
+
+    <div class="posts-table">
+      <div class="table-header">
+        <span>Request</span>
+        <span>Author</span>
+        <span>Reports</span>
+        <span>Status</span>
+        <span>Actions</span>
+      </div>
+
+      <div class="table-row" *ngFor="let post of getFiltered()"
+        [class.row-flagged]="post.flagged"
+        [class.row-removed]="post.removed">
+        <div class="col-request">
+          <span class="post-id">{{ post.id }}</span>
+          <span class="post-title serif-italic">{{ post.title }}</span>
+          <span class="post-time">{{ post.timeAgo }}</span>
+        </div>
+        <div class="col-author">
+          <span class="author-name">{{ post.author }}</span>
+          <span class="author-college">{{ post.college }}</span>
+        </div>
+        <div class="col-reports">
+          <span class="report-count" [class.high]="post.reports >= 3">
+            {{ post.reports }}
+          </span>
+        </div>
+        <div class="col-status">
+          <span class="status-chip"
+            [class.chip-active]="post.status === 'active'"
+            [class.chip-flagged]="post.status === 'flagged'"
+            [class.chip-removed]="post.status === 'removed'">
+            {{ post.status | uppercase }}
+          </span>
+        </div>
+        <div class="col-actions">
+          <button class="action-btn approve" *ngIf="post.flagged" (click)="flag(post)" title="Unflag">
+            <span class="material-symbols-outlined">check_circle</span>
+          </button>
+          <button class="action-btn flag" *ngIf="!post.removed && !post.flagged" (click)="flag(post)" title="Flag">
+            <span class="material-symbols-outlined">flag</span>
+          </button>
+          <button class="action-btn remove" *ngIf="!post.removed" (click)="remove(post)" title="Remove">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+          <button class="action-btn restore" *ngIf="post.removed" (click)="restore(post)" title="Restore">
+            <span class="material-symbols-outlined">restore</span>
+          </button>
+          <a [routerLink]="['/post', post.id]" class="action-btn view" title="View Post">
+            <span class="material-symbols-outlined">open_in_new</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="getFiltered().length === 0">
+        <span class="material-symbols-outlined">inbox</span>
+        <p>No posts found.</p>
+      </div>
+    </div>
+
+    <div class="pagination-row">
+      <span class="showing-text">SHOWING {{ getFiltered().length }} POSTS</span>
+      <div class="page-btns">
+        <button class="page-btn"><span class="material-symbols-outlined">chevron_left</span></button>
+        <button class="page-btn active-page"><span class="material-symbols-outlined">chevron_right</span></button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-brand">The Academic Curator.<span>© 2024 Liceo de Cagayan University.</span></div>
+  </footer>
+</div>

@@ -1,4 +1,5 @@
-@use '../../../../styles/design-system';
+@use 'design-system';
+
 .admin-page { min-height: 100vh; display: flex; flex-direction: column; }
 .icon-btn { background: none; border: none; cursor: pointer; padding: 0.5rem; color: var(--primary); border-radius: 50%; transition: background 0.2s; display: flex; &:hover { background: var(--surface-container-low); } }
 .avatar-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }

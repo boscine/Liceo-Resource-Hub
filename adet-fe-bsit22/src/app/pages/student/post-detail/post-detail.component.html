@@ -1,0 +1,111 @@
+<div class="detail-page">
+  <header class="app-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
+      <nav class="nav-links">
+        <a routerLink="/feed" class="active">Requests</a>
+        <a routerLink="/post/create">Create</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
+        <button class="icon-btn"><span class="material-symbols-outlined">account_circle</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="detail-main">
+    <div class="detail-inner">
+
+      <a routerLink="/feed" class="breadcrumb">
+        <span class="material-symbols-outlined">arrow_back</span> Back to Requests
+      </a>
+
+      <div class="detail-grid">
+
+        <!-- POST CARD -->
+        <article class="post-card">
+          <div class="post-top">
+            <span class="post-status">{{ post.status }}</span>
+            <span class="post-meta">{{ post.category }} · {{ post.timeAgo }}</span>
+          </div>
+          <h1 class="post-title serif-italic">{{ post.title }}</h1>
+          <div class="author-row">
+            <div class="author-avatar">{{ post.author[0] }}</div>
+            <div>
+              <p class="author-name">{{ post.author }}</p>
+              <p class="author-college">{{ post.college }}</p>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <p class="post-description">{{ post.description }}</p>
+          <div class="divider"></div>
+
+          <!-- REPORT -->
+          <button class="report-btn" (click)="toggleReport()">
+            <span class="material-symbols-outlined">flag</span>
+            Report this post
+          </button>
+
+          <div class="report-form" *ngIf="showReportForm">
+            <h4>Report Post</h4>
+            <div class="field">
+              <label class="field-label" for="reason">Reason</label>
+              <select class="input-academic" [(ngModel)]="reportReason" id="reason" name="reason">
+                <option value="" disabled selected>Select a reason</option>
+                <option *ngFor="let r of reasons" [value]="r">{{ r }}</option>
+              </select>
+            </div>
+            <div class="field" style="margin-top:1rem">
+              <label class="field-label" for="details">Additional Details (optional)</label>
+              <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details" rows="3" placeholder="Provide more context..."></textarea>
+            </div>
+            <div class="report-actions">
+              <button class="btn-cancel" (click)="toggleReport()">Cancel</button>
+              <button class="btn-report" (click)="submitReport()">Submit Report</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- CONTACT SIDEBAR -->
+        <aside class="contact-sidebar">
+          <div class="contact-card">
+            <h3>Contact Author</h3>
+            <p *ngIf="!isLoggedIn" class="contact-locked">
+              <span class="material-symbols-outlined">lock</span>
+              Log in to reveal contact information.
+            </p>
+            <div *ngIf="isLoggedIn && !showContact" class="contact-hidden">
+              <div class="contact-blur">
+                <span class="contact-type">{{ post.contact.type }}</span>
+                <span class="contact-value-blur">••••••••••••••••</span>
+              </div>
+              <button class="btn-reveal" (click)="revealContact()">
+                <span class="material-symbols-outlined">visibility</span>
+                Reveal Contact
+              </button>
+            </div>
+            <div *ngIf="isLoggedIn && showContact" class="contact-revealed">
+              <span class="contact-type">{{ post.contact.type }}</span>
+              <a class="contact-value" href="https://{{ post.contact.value }}" target="_blank">
+                {{ post.contact.value }}
+                <span class="material-symbols-outlined">open_in_new</span>
+              </a>
+            </div>
+            <p class="contact-note">Contact details are only visible to verified Liceo students.</p>
+          </div>
+
+          <div class="privacy-notice">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">visibility_off</span>
+            <p>Your identity is not revealed when you view contact information.</p>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-brand">Liceo de Cagayan University<span>© 2024 The Academic Curator.</span></div>
+    <div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">University Portal</a></div>
+  </footer>
+</div>

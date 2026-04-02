@@ -1,4 +1,5 @@
-@use '../../../../styles/design-system';
+@use 'design-system';
+
 .register-page { min-height: 100vh; display: flex; flex-direction: column; position: relative; }
 
 .icon-btn { background: none; border: none; cursor: pointer; color: var(--on-surface-variant); display: flex; padding: 0.5rem; border-radius: 50%; transition: background 0.2s; &:hover { background: var(--surface-container-low); } }
