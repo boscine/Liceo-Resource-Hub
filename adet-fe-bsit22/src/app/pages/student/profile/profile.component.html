@@ -22,11 +22,11 @@
         <section class="profile-card">
           <h2>Account Information</h2>
           <div class="field">
-            <label class="field-label" for="displayName">Display Name</label>
+            <label class="field-label" for="displayName">Display Name <span class="req">*</span></label>
             <input class="input-academic" id="displayName" type="text" [(ngModel)]="displayName" name="displayName"/>
           </div>
           <div class="field">
-            <label class="field-label" for="email">University Email</label>
+            <label class="field-label" for="email">University Email <span class="req">*</span></label>
             <input class="input-academic" id="email" type="email" [(ngModel)]="email" name="email" disabled/>
             <p class="field-note">Email cannot be changed.</p>
           </div>
@@ -48,9 +48,12 @@
           </div>
 
           <div class="add-contact">
-            <select class="input-academic contact-type-select" [(ngModel)]="newContact.type" name="contactType">
-              <option *ngFor="let t of contactTypes" [value]="t">{{ t }}</option>
-            </select>
+            <div class="select-wrap">
+              <select class="input-academic contact-type-select" [(ngModel)]="newContact.type" name="contactType">
+                <option *ngFor="let t of contactTypes" [value]="t">{{ t }}</option>
+              </select>
+              <span class="material-symbols-outlined select-icon">expand_more</span>
+            </div>
             <input class="input-academic" type="text" [(ngModel)]="newContact.value" name="contactValue"
               placeholder="e.g., m.me/yourname or 09XXXXXXXXX"/>
             <button class="add-btn" (click)="addContact()">

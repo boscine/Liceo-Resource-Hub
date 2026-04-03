@@ -4,11 +4,10 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"] 
   },
-  "include": ["src", "prisma.config.ts", ".env"]
+  "include": ["src/**/*.ts", "prisma/**/*.ts", "*.ts"]
 }

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { RouterModule }      from '@angular/router';
+import { ApiService }    from '../../../core/services/api.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -16,29 +17,62 @@ export class FeedComponent implements OnInit {
   activeCategory = 'All Resources';
   categories     = ['All Resources', 'Textbooks', 'Lab Tools', 'Lecture Notes', 'Art Supplies', 'Calculator', 'USB / Storage', 'Other'];
 
-  // Placeholder posts until backend is connected
-  posts = [
-    { id: 1, status: 'OPEN',      title: 'Organic Chemistry 4th Ed. (Smith)',               description: 'Looking for a physical copy to borrow for the midterms. Prepared to trade for Physics volume 1...', category: 'TEXTBOOKS',   timeAgo: '2 hours ago',  resolved: false },
-    { id: 2, status: 'FULFILLED', title: 'Arduino Starter Kit Components',                  description: 'Need a breadboard and jumper wires for the upcoming robotics lab. Any spare kits available?',       category: 'LAB TOOLS',   timeAgo: 'Yesterday',    resolved: true  },
-    { id: 3, status: 'URGENT',    title: 'Anatomy & Physiology Dissection Kit',              description: 'Urgent request for the CON clinical laboratory sessions starting this Friday. Will return in excellent condition.', category: 'MEDICAL', timeAgo: '5 hours ago', resolved: false },
-    { id: 4, status: 'OPEN',      title: 'Digital Illustration Stylus (Wacom compatible)',  description: 'My stylus stopped working right before the final plates. Does anyone have a spare Intuos compatible...', category: 'ART SUPPLIES', timeAgo: '12 hours ago', resolved: false },
-    { id: 5, status: 'OPEN',      title: 'Law Review Notes: Constitutional Law',            description: 'Requesting comprehensive notes or flashcards for the upcoming Bar review simulations.',              category: 'NOTES',       timeAgo: '1 day ago',    resolved: false },
-  ];
+  loading = true;
+  posts: any[] = [];
 
-  constructor() {}
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.loadCategories();
+    this.loadPosts();
+  }
+
+  loadCategories() {
+    this.api.get<any[]>('/categories').subscribe({
+      next: (data) => {
+        const names = data.map(c => c.name);
+        this.categories = ['All Resources', ...names];
+        this.cdr.detectChanges(); // Ensure UI updates on initial load
+      },
+      error: (err) => console.error('Failed to load categories', err)
+    });
+  }
+
+  loadPosts() {
+    this.loading = true;
+    this.api.get<any[]>('/posts').subscribe({
+      next: (data) => {
+        this.posts = data;
+        this.loading = false;
+        this.cdr.detectChanges(); // Force UI refresh
+      },
+      error: (err) => {
+        console.error('Failed to load posts', err);
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   /** Posts filtered by the active category chip and the search query */
   get filteredPosts() {
-    const cat = this.activeCategory.toUpperCase();
-    const q   = this.searchQuery.trim().toUpperCase();
+    const cat = (this.activeCategory || 'All Resources').toUpperCase();
+    const q   = (this.searchQuery || '').trim().toUpperCase();
+    
     return this.posts.filter(p => {
-      const matchCat = cat === 'ALL RESOURCES' || p.category.toUpperCase() === cat;
+      // Safety checks: if post or needed fields are missing, skip or return false
+      if (!p || !p.title) return false;
+
+      const pCategory = (p.category || 'OTHER').toUpperCase();
+      const pTitle = (p.title || '').toUpperCase();
+      const pDesc = (p.description || '').toUpperCase();
+
+      const matchCat = cat === 'ALL RESOURCES' || pCategory === cat;
       const matchQ   = !q ||
-        p.title.toUpperCase().includes(q) ||
-        p.description.toUpperCase().includes(q) ||
-        p.category.toUpperCase().includes(q);
+        pTitle.includes(q) ||
+        pDesc.includes(q) ||
+        pCategory.includes(q);
+        
       return matchCat && matchQ;
     });
   }

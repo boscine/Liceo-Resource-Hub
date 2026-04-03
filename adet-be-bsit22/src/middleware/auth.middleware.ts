@@ -13,10 +13,15 @@ export const authenticate = async (c: Context, next: Next) => {
   }
   try {
     const payload = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as any;
-    c.set('userId', payload.userId);
-    c.set('role', payload.role);      // ← add this
+    console.log(`[AuthMiddleware] Decoded payload:`, payload); // Debug payload
+
+    // Support both id and userId depending on how old the token is
+    const validUserId = payload.id || payload.userId;
+    c.set('userId', validUserId);
+    c.set('role', payload.role);
     await next();
-  } catch {
+  } catch (error) {
+    console.error(`[AuthMiddleware] JWT Verification Failed!`, error);
     return c.json({ message: 'Invalid token' }, 401);
   }
 };

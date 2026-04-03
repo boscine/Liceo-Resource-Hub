@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt           from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -19,7 +19,7 @@ async function main() {
 
   for (const name of categories) {
     await prisma.category.upsert({
-      where:  { name },
+      where: { name },
       update: {},
       create: { name },
     });
@@ -28,18 +28,18 @@ async function main() {
 
   // ── Admin account ──────────────────────────────────────────────────────────
   // Change email and password before deploying
-  const adminEmail    = 'admin@liceo.edu.ph';
+  const adminEmail = 'admin@liceo.edu.ph';
   const adminPassword = 'Admin@1234';
 
   await prisma.user.upsert({
-    where:  { email: adminEmail },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email:        adminEmail,
+      email: adminEmail,
       passwordHash: bcrypt.hashSync(adminPassword, 10),
-      displayName:  'System Admin',
-      role:         'admin',
-      status:       'active',
+      displayName: 'System Admin',
+      role: 'admin',
+      status: 'active',
     },
   });
   console.log('✅ Admin account seeded');

@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule }  from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AuthService }  from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ApiService } from '../../../core/services/api.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 @Component({
   selector: 'app-post-create',
@@ -20,29 +21,42 @@ export class PostCreateComponent {
   isAdmin = false;
   user: any = {};
 
-  categories = [
-    { id: '1', name: 'Textbook' },
-    { id: '2', name: 'Notes' },
-    { id: '3', name: 'Drafting Tools' },
-    { id: '4', name: 'Laboratory Equipment' },
-    { id: '5', name: 'Art Supplies' },
-    { id: '6', name: 'Calculator' },
-    { id: '7', name: 'USB / Storage' },
-    { id: '8', name: 'Other' },
-  ];
+  categories: any[] = [];
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, private api: ApiService) { }
 
   ngOnInit() {
     this.isAdmin = this.auth.isAdmin();
     if (this.auth.isLoggedIn()) {
       this.user = this.auth.getUser() || {};
     }
+
+    // Fetch actual categories from DB
+    this.api.get<any[]>('/categories').subscribe({
+      next: (cats) => this.categories = cats,
+      error: (err) => console.error('Failed to load categories', err)
+    });
   }
 
   onSubmit() {
     this.loading = true;
-    // TODO: connect to API
-    setTimeout(() => { this.loading = false; this.success = true; }, 1000);
+
+    const payload = {
+      title: this.title,
+      categoryId: this.categoryId,
+      description: this.description
+    };
+
+    this.api.post('/posts', payload).subscribe({
+      next: () => {
+        this.loading = false;
+        this.success = true;
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error('Failed to create post', err);
+        alert('Failed to submit request. Please try again.');
+      }
+    });
   }
 }
