@@ -22,7 +22,7 @@ A web-based academic resource-sharing platform for **Liceo de Cagayan University
 | Frontend | Angular 18 (Standalone Components, SCSS, RxJS, jwt-decode) |
 | Backend | Hono (TypeScript, ESM, tsx watch) |
 | ORM | Prisma v7.6+ |
-| Database | MySQL — `adet_bsitdb22`, password: `12345` | (this is only local mysql)
+| Database | MySQL — `adet_bsitdb22`, password: `12345` (this is only local mysql) |  
 | Auth | JWT (jsonwebtoken) + bcryptjs |
 | Adapter | `@prisma/adapter-mariadb` + `mariadb` (required in Prisma v7) |
 
