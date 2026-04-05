@@ -17,3 +17,5 @@ Stop-Process -Name "ng" -Force -ErrorAction SilentlyContinue
 # If you prefer to be precise, we can filter by window title, but killing 'node' is usually enough.
 
 Write-Host "✅ All services stopped." -ForegroundColor Green
+Start-Sleep -Seconds 5
+exit

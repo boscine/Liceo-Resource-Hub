@@ -1,4 +1,3 @@
-// ── Prisma Client & MySQL Connection ──────────────────────────────────────────
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -8,72 +7,64 @@ datasource db {
   provider = "mysql"
 }
 
-// ── USER ───────────────────────────────────────────────────────────────────────
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  displayName  String    @map("display_name")
-  role         Role      @default(student)
-  status       UserStatus @default(active)
-  lastLogin    DateTime? @map("last_login")
-  createdAt    DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  contacts      Contact[]
-  posts         Post[]
-  reports       PostReport[]   @relation("Reporter")
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  passwordHash   String          @map("password_hash")
+  displayName    String          @map("display_name")
+  role           Role            @default(student)
+  status         user_status     @default(pending)
+  verificationToken     String?         @map("verification_token")
+  verificationExpiresAt DateTime?       @map("verification_expires_at")
+  lastLogin      DateTime?       @map("last_login")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  contacts       Contact[]
   passwordResets PasswordReset[]
+  posts          Post[]
+  reports        PostReport[]    @relation("Reporter")
 
   @@map("user")
 }
 
-// ── CONTACT ────────────────────────────────────────────────────────────────────
 model Contact {
   id     Int         @id @default(autoincrement())
   userId Int         @map("user_id")
   type   ContactType
   value  String
-
-  // Relations
   user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "contact_user_id_fkey")
   @@map("contact")
 }
 
-// ── CATEGORY ───────────────────────────────────────────────────────────────────
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
   posts     Post[]
 
   @@map("category")
 }
 
-// ── POST ───────────────────────────────────────────────────────────────────────
 model Post {
-  id         Int        @id @default(autoincrement())
-  userId     Int        @map("user_id")
-  categoryId Int        @map("category_id")
-  title      String
-  description String    @db.Text
-  status     PostStatus @default(open)
-  isFlagged  Boolean    @default(false) @map("is_flagged")
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
+  id          Int          @id @default(autoincrement())
+  userId      Int          @map("user_id")
+  categoryId  Int          @map("category_id")
+  title       String
+  description String       @db.Text
+  status      PostStatus   @default(open)
+  isFlagged   Boolean      @default(false) @map("is_flagged")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  category    Category     @relation(fields: [categoryId], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports     PostReport[]
 
-  // Relations
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category   Category    @relation(fields: [categoryId], references: [id])
-  reports    PostReport[]
-
+  @@index([categoryId], map: "post_category_id_fkey")
+  @@index([userId], map: "post_user_id_fkey")
   @@map("post")
 }
 
-// ── POST_REPORT ────────────────────────────────────────────────────────────────
 model PostReport {
   id         Int          @id @default(autoincrement())
   postId     Int          @map("post_id")
@@ -82,17 +73,14 @@ model PostReport {
   details    String?      @db.Text
   status     ReportStatus @default(pending)
   createdAt  DateTime     @default(now()) @map("created_at")
-
-  // Relations
   post       Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
   reporter   User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
 
-  // One report per user per post
   @@unique([postId, reporterId])
+  @@index([reporterId], map: "post_report_reporter_id_fkey")
   @@map("post_report")
 }
 
-// ── PASSWORD_RESET ─────────────────────────────────────────────────────────────
 model PasswordReset {
   id        Int       @id @default(autoincrement())
   userId    Int       @map("user_id")
@@ -100,23 +88,52 @@ model PasswordReset {
   expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
-
-  // Relations
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "password_reset_user_id_fkey")
   @@map("password_reset")
 }
 
-// ── ENUMS ──────────────────────────────────────────────────────────────────────
+model accounts {
+  account_id     Int                    @id @default(autoincrement())
+  account_holder String                 @db.VarChar(100)
+  account_type   accounts_account_type?
+  balance        Decimal                @default(0.00) @db.Decimal(15, 2)
+  interest_rate  Decimal                @db.Decimal(5, 4)
+  created_at     DateTime?              @default(now()) @db.DateTime(0)
+}
+
+model departments {
+  dept_id   Int         @id @default(autoincrement())
+  dept_name String      @db.VarChar(50)
+  employees employees[]
+  projects  projects[]
+}
+
+model employees {
+  emp_id      Int          @id @default(autoincrement())
+  first_name  String?      @db.VarChar(50)
+  last_name   String?      @db.VarChar(50)
+  dept_id     Int?
+  salary      Decimal?     @db.Decimal(10, 2)
+  departments departments? @relation(fields: [dept_id], references: [dept_id], onDelete: Cascade, map: "fk_dept")
+
+  @@index([dept_id], map: "fk_dept")
+}
+
+model projects {
+  project_id   Int          @id @default(autoincrement())
+  project_name String?      @db.VarChar(100)
+  dept_id      Int?
+  budget       Int?
+  departments  departments? @relation(fields: [dept_id], references: [dept_id], onDelete: Cascade, onUpdate: NoAction, map: "projects_ibfk_1")
+
+  @@index([dept_id], map: "dept_id")
+}
+
 enum Role {
   student
   admin
-}
-
-enum UserStatus {
-  active
-  suspended
-  banned
 }
 
 enum ContactType {
@@ -146,4 +163,17 @@ enum ReportStatus {
   pending
   reviewed
   dismissed
+}
+
+enum accounts_account_type {
+  Savings
+  Checking
+  Business
+}
+
+enum user_status {
+  active
+  pending
+  suspended
+  banned
 }

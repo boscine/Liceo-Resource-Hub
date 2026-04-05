@@ -15,6 +15,7 @@
       <div class="success-toast" *ngIf="saved">
         <span class="material-symbols-outlined">check_circle</span> Profile saved successfully!
       </div>
+      
 
       <div class="profile-grid">
 
@@ -65,6 +66,10 @@
       </div>
 
       <div class="profile-actions">
+        <div class="error-text" *ngIf="saveError">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ saveError }}</span>
+        </div>
         <button class="btn-primary save-btn" (click)="onSave()" [disabled]="saving">
           <span *ngIf="!saving">Save Changes</span>
           <span *ngIf="!saving" class="material-symbols-outlined">save</span>

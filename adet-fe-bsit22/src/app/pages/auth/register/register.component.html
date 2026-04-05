@@ -5,7 +5,7 @@
     <div class="nav-inner">
       <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
       <div class="nav-actions">
-        <button class="icon-btn">
+        <button class="icon-btn" (click)="toggleHelp()">
           <span class="material-symbols-outlined">help_outline</span>
         </button>
       </div>
@@ -22,13 +22,14 @@
         <div class="editorial-content">
           <span class="editorial-tag serif-italic">The Academic Curator</span>
           <h2>Join the legacy of shared knowledge.</h2>
-          <p>A dedicated atelier for Liceo de Cagayan University scholars to curate and exchange educational resources, bridging the gap between physical and digital learning.</p>
+          <p>A dedicated atelier for Liceo de Cagayan University scholars to curate and exchange educational resources,
+            bridging the gap between physical and digital learning.</p>
         </div>
         <div class="editorial-footer">
           <div class="heritage-badge">
             <span class="material-symbols-outlined">auto_stories</span>
           </div>
-          <span>Liceo Heritage Portal</span>
+          <span>Liceo Resource Hub</span>
         </div>
       </div>
 
@@ -42,16 +43,21 @@
 
         <div class="error-box" *ngIf="error">
           <span class="material-symbols-outlined">error</span>
-          {{ error }}
+          <span>
+            {{ error }}
+            <a *ngIf="isDuplicateEmail" routerLink="/login" style="color: inherit; font-weight: 700; text-decoration: underline; margin-left: 0.5rem;">Log in here</a>
+          </span>
         </div>
 
         <form (ngSubmit)="onSubmit()" #regForm="ngForm" class="reg-form">
 
           <div class="field">
             <label class="field-label" for="displayName">Full Name</label>
-            <input class="input-academic" id="displayName" type="text"
-              [(ngModel)]="displayName" name="displayName"
-              placeholder="Juan Dela Cruz" required/>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined input-icon">person</span>
+              <input class="input-academic" id="displayName" type="text" [(ngModel)]="displayName" name="displayName"
+                placeholder="Juan Dela Cruz" required />
+            </div>
           </div>
 
           <div class="field">
@@ -59,10 +65,16 @@
               University Email
               <span class="field-hint-inline">@liceo.edu.ph only</span>
             </label>
-            <input class="input-academic" id="email" type="email"
-              [(ngModel)]="email" name="email"
-              placeholder="username@liceo.edu.ph" required/>
-            <p class="field-hint">
+            <div class="input-wrap">
+              <span class="material-symbols-outlined input-icon">mail</span>
+              <input class="input-academic" id="email" type="email" [(ngModel)]="email" name="email"
+                placeholder="username@liceo.edu.ph" [class.field-error]="email && !isLiceoEmail(email)" required />
+            </div>
+            <p class="field-hint" *ngIf="email && !isLiceoEmail(email)" style="color: var(--error); opacity: 1;">
+              <span class="material-symbols-outlined" style="font-size:12px">warning</span>
+              Invalid university domain. Use <strong>@liceo.edu.ph</strong>.
+            </p>
+            <p class="field-hint" *ngIf="!email || isLiceoEmail(email)">
               <span class="material-symbols-outlined" style="font-size:12px">info</span>
               Only official Liceo university emails are permitted for verification.
             </p>
@@ -71,26 +83,40 @@
           <div class="pw-grid">
             <div class="field">
               <label class="field-label" for="password">Password</label>
-              <input class="input-academic" id="password" type="password"
-                [(ngModel)]="password" name="password"
-                placeholder="••••••••" required/>
+              <div class="input-wrap">
+                <span class="material-symbols-outlined input-icon">lock</span>
+                <input class="input-academic" id="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password"
+                  placeholder="••••••••" [class.field-error]="isLowStrength" required />
+                <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+                  <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
+              <p class="field-hint" *ngIf="isLowStrength" style="color: var(--error); opacity: 1;">
+                <span class="material-symbols-outlined" style="font-size:12px">warning</span>
+                Password should be 8+ characters.
+              </p>
             </div>
             <div class="field">
               <label class="field-label" for="confirm">Confirm</label>
-              <input class="input-academic" id="confirm" type="password"
-                [(ngModel)]="confirmPassword" name="confirm"
-                placeholder="••••••••" required/>
+              <div class="input-wrap">
+                <span class="material-symbols-outlined input-icon">verified_user</span>
+                <input class="input-academic" id="confirm" [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmPassword" name="confirm"
+                  placeholder="••••••••" [class.field-error]="confirmPassword && password !== confirmPassword" required />
+                <button type="button" class="toggle-pw" (click)="showConfirmPassword = !showConfirmPassword">
+                  <span class="material-symbols-outlined">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <div class="tos-row">
-            <input type="checkbox" id="tos" [(ngModel)]="agreedToTos" name="tos"/>
+            <input type="checkbox" id="tos" [(ngModel)]="agreedToTos" name="tos" />
             <label for="tos">
               I agree to the <a href="#">Terms of Service</a> and Privacy Policy for material exchange.
             </label>
           </div>
 
-          <button type="submit" class="btn-primary" [disabled]="loading || !regForm.valid">
+          <button type="submit" class="btn-primary" [disabled]="loading || !regForm.valid || !isLiceoEmail(email) || isLowStrength">
             <span *ngIf="!loading">Register</span>
             <span *ngIf="!loading" class="material-symbols-outlined">arrow_forward</span>
             <span *ngIf="loading" class="spinner"></span>
@@ -106,6 +132,32 @@
 
     </div>
   </main>
+
+  <!-- HELP MODAL -->
+  <div class="modal-overlay" *ngIf="showHelp" (click)="toggleHelp()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="material-symbols-outlined">help_center</span>
+        <h3>Registration Help</h3>
+        <button class="close-btn" (click)="toggleHelp()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <section>
+          <h4>Why a University Email?</h4>
+          <p>The Liceo Resource Hub is a private atelier. To ensure the safety of our scholars and the authenticity of shared resources, we strictly verify <strong>@liceo.edu.ph</strong> domains.</p>
+        </section>
+        <section>
+          <h4>Need a Portal Account?</h4>
+          <p>If you don't have your official university email yet, please contact the <strong>Liceo ICT Department</strong> or your college registrar for your credentials.</p>
+        </section>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" (click)="toggleHelp()">Understood</button>
+      </div>
+    </div>
+  </div>
 
   <!-- BG DECORATION -->
   <div class="bg-decoration">

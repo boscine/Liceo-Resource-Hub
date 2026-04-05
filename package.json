@@ -1,0 +1,15 @@
+{
+  "name": "adet-mainproject-bsit22",
+  "version": "1.0.0",
+  "description": "Integrated Academic Material Exchange Platform for Liceo de Cagayan University",
+  "scripts": {
+    "start": "wscript.exe start.vbs",
+    "stop": "wscript.exe stop-dev.vbs",
+    "be:start": "cd adet-be-bsit22 && npm start",
+    "be:dev": "cd adet-be-bsit22 && npm run dev",
+    "fe:start": "cd adet-fe-bsit22 && npm start",
+    "install:all": "cd adet-be-bsit22 && npm install && cd ../adet-fe-bsit22 && npm install"
+  },
+  "author": "ADET-BSIT22 Team",
+  "license": "ISC"
+}

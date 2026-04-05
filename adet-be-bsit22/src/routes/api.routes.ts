@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { AuthVariables } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
+import { updateProfile } from '../controllers/profile.controller';
 
 // Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
@@ -49,6 +50,43 @@ router.get('/posts', async (c) => {
   }
 });
 
+// ── GET /api/v1/posts/:id ─────────────────────────────────────────────────────
+router.get('/posts/:id', async (c) => {
+  const id = parseInt(c.req.param('id'), 10);
+  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        category: { select: { name: true } },
+        user: { select: { displayName: true } }
+      }
+    });
+
+    if (!post) return c.json({ message: 'Post not found' }, 404);
+
+    const formattedPost = {
+      id: post.id,
+      title: post.title,
+      description: post.description,
+      status: post.status.toUpperCase(),
+      category: post.category.name.toUpperCase(),
+      author: post.user.displayName,
+      timeAgo: getTimeAgo(post.createdAt),
+      resolved: post.status === 'fulfilled' || post.status === 'closed',
+      createdAt: post.createdAt,
+      college: 'College of Arts & Sciences', // Placeholder as it's not in the schema yet
+      contact: { type: 'Messenger', value: 'contact' } // Placeholder
+    };
+
+    return c.json(formattedPost);
+  } catch (error) {
+    console.error('Failed to fetch post:', error);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
 // ── GET /api/v1/categories ────────────────────────────────────────────────────
 // Note: Path is just '/' or '/categories' because prefix is handled in index.ts
 router.get('/categories', async (c) => {
@@ -74,6 +112,8 @@ router.get('/profile', async (c) => {
     return c.json({ message: 'User not found' }, 404);
   }
 });
+
+router.put('/profile', updateProfile);
 
 // ── POST /api/v1/posts ────────────────────────────────────────────────────────
 router.post('/posts', async (c) => {
@@ -107,6 +147,59 @@ router.post('/posts', async (c) => {
   } catch (error) {
     console.error('Failed to create post:', error);
     return c.json({ message: 'Internal server error while creating post' }, 500);
+  }
+});
+
+// ── PUT /api/v1/posts/:id ─────────────────────────────────────────────────────
+router.put('/posts/:id', async (c) => {
+  const id = parseInt(c.req.param('id'), 10);
+  const userId = c.get('userId');
+
+  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
+
+  try {
+    const { title, categoryId, description, status } = await c.req.json();
+
+    // Check ownership
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post) return c.json({ message: 'Post not found' }, 404);
+    if (post.userId !== userId) return c.json({ message: 'Forbidden' }, 403);
+
+    const updatedPost = await prisma.post.update({
+      where: { id },
+      data: {
+        title: title ?? post.title,
+        categoryId: categoryId ? parseInt(categoryId, 10) : post.categoryId,
+        description: description ?? post.description,
+        status: status ?? post.status
+      }
+    });
+
+    return c.json(updatedPost);
+  } catch (error) {
+    console.error('Failed to update post:', error);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
+// ── DELETE /api/v1/posts/:id ──────────────────────────────────────────────────
+router.delete('/posts/:id', async (c) => {
+  const id = parseInt(c.req.param('id'), 10);
+  const userId = c.get('userId');
+
+  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
+
+  try {
+    // Check ownership
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post) return c.json({ message: 'Post not found' }, 404);
+    if (post.userId !== userId) return c.json({ message: 'Forbidden' }, 403);
+
+    await prisma.post.delete({ where: { id } });
+    return c.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete post:', error);
+    return c.json({ message: 'Internal server error' }, 500);
   }
 });
 

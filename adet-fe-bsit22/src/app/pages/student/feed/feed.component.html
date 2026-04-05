@@ -1,25 +1,29 @@
 <div class="feed-page">
 
-
-  <!-- NAV -->
-  <app-navbar active="feed"></app-navbar>
-
+  <app-navbar [active]="'feed'"></app-navbar>
 
   <div class="feed-layout">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-      <div class="activity-card">
+      <div class="activity-card" *ngIf="isLoggedIn">
         <h3>Your Activity</h3>
-        <div class="activity-row"><span>ACTIVE REQUESTS</span><strong>04</strong></div>
-        <div class="activity-row"><span>FULFILLED</span><strong>2</strong></div>
+        <div class="activity-row"><span>ACTIVE REQUESTS</span><strong>{{ activeCount }}</strong></div>
+        <div class="activity-row"><span>FULFILLED</span><strong>{{ fulfilledCount }}</strong></div>
       </div>
 
-      <div class="quick-nav">
+      <div class="quick-nav" *ngIf="isLoggedIn">
         <p class="quick-nav-label">Quick Navigation</p>
-        <a href="#"><span class="material-symbols-outlined">bookmark</span> Saved Items</a>
-        <a href="#"><span class="material-symbols-outlined">history</span> Recent History</a>
-        <a href="#"><span class="material-symbols-outlined">school</span> Department Guides</a>
+        <a (click)="setViewMode('all')" [class.active]="viewMode === 'all'">
+          <span class="material-symbols-outlined">{{ viewMode === 'all' ? 'home' : 'list_alt' }}</span>
+          All Feed
+        </a>
+        <a (click)="setViewMode('requests')" [class.active]="viewMode === 'requests'">
+          <span class="material-symbols-outlined">person</span> Your Requests
+        </a>
+        <a (click)="setViewMode('saved')" [class.active]="viewMode === 'saved'">
+          <span class="material-symbols-outlined">bookmark</span> Saved Items
+        </a>
       </div>
     </aside>
 
@@ -28,8 +32,15 @@
 
       <div class="feed-header">
         <div>
-          <h1 class="serif">Material Requests</h1>
-          <p>The central exchange for academic tools, literature, and scholarly resources within Liceo.</p>
+          <h1 class="serif">
+            <span *ngIf="viewMode === 'all'">Material Requests</span>
+            <span *ngIf="viewMode === 'requests'">Your Requests</span>
+            <span *ngIf="viewMode === 'saved'">Saved Materials</span>
+          </h1>
+          <p *ngIf="viewMode === 'all'">The central exchange for academic tools, literature, and scholarly resources within Liceo.</p>
+          <p *ngIf="viewMode !== 'all'" (click)="setViewMode('all')" class="back-link">
+            <span class="material-symbols-outlined">arrow_back</span> Return to all requests
+          </p>
         </div>
         <div class="search-box">
           <span class="material-symbols-outlined">search</span>
@@ -47,54 +58,116 @@
       </div>
 
       <!-- Posts Grid -->
-      <div class="posts-grid" *ngIf="filteredPosts.length > 0">
-        <div class="post-card" *ngFor="let post of filteredPosts">
+      <div class="posts-grid" *ngIf="!loading">
+        <div class="post-card" *ngFor="let post of paginatedPosts">
           <div class="post-top">
             <span class="post-status" [ngClass]="getStatusClass(post.status)">{{ post.status }}</span>
-            <span class="post-time">{{ post.timeAgo }}</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="post-time">{{ post.timeAgo }}</span>
+              <button class="icon-btn" style="padding: 0.25rem;" (click)="toggleSave(post)" [title]="isSaved(post) ? 'Remove from Saved' : 'Save Request'">
+                <span class="material-symbols-outlined" 
+                      [style.font-variation-settings]="isSaved(post) ? '\'FILL\' 1' : '\'FILL\' 0'"
+                      [style.color]="isSaved(post) ? '#570000' : 'var(--outline)'">bookmark</span>
+              </button>
+            </div>
           </div>
           <h3 class="post-title serif-italic">{{ post.title }}</h3>
+          <p class="post-author" *ngIf="post.author">By {{ post.author }}</p>
           <p class="post-desc">{{ post.description }}</p>
+          
           <div class="post-footer">
             <span class="post-category">
               <span class="material-symbols-outlined">bookmark</span>
               {{ post.category }}
             </span>
-            <a [routerLink]="['/post', post.id]" class="view-details" *ngIf="!post.resolved">
-              View Details <span class="material-symbols-outlined">arrow_forward</span>
-            </a>
-            <span class="resolved-badge" *ngIf="post.resolved">
+            
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              
+              <!-- Regular Delete Button -->
+              <button class="view-details" style="background: rgba(186,26,26,0.06); padding: 0.4rem 0.6rem; border: none; cursor: pointer; color: var(--error);" *ngIf="viewMode === 'requests'" title="Delete Request" (click)="deletePost(post.id)">
+                <span class="material-symbols-outlined" style="font-size:16px; margin: 0;">delete</span>
+              </button>
+
+              <!-- Edit Popup Button Drop-in -->
+              <button class="view-details" style="background: rgba(87,0,0,0.06); padding: 0.4rem 0.6rem; border: none; cursor: pointer; color: var(--primary);" *ngIf="viewMode === 'requests'" title="Edit Request" (click)="startEdit(post)">
+                <span class="material-symbols-outlined" style="font-size:16px; margin: 0;">edit</span>
+              </button>
+
+              <!-- Standard View Details -->
+              <a [routerLink]="['/post', post.id]" class="view-details" *ngIf="!post.resolved || viewMode === 'requests'">
+                View Details <span class="material-symbols-outlined">arrow_forward</span>
+              </a>
+            </div>
+            
+            <span class="resolved-badge" *ngIf="post.resolved && viewMode !== 'requests'">
               <span class="material-symbols-outlined">check_circle</span> Resolved
             </span>
           </div>
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div class="empty-state" *ngIf="filteredPosts.length === 0">
-        <span class="material-symbols-outlined">search_off</span>
-        <p>No requests found for <strong>{{ activeCategory }}</strong><span *ngIf="searchQuery"> matching "{{ searchQuery }}"</span>.</p>
-        <button class="empty-reset-btn" (click)="activeCategory = 'All Resources'; searchQuery = ''">Clear filters</button>
-      </div>
-
       <!-- Pagination -->
-      <div class="pagination">
-        <button class="page-btn"><span class="material-symbols-outlined">chevron_left</span></button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <span class="page-ellipsis">...</span>
-        <button class="page-btn">12</button>
-        <button class="page-btn next-btn">
-          Next Archive <span class="material-symbols-outlined">chevron_right</span>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        
+        <ng-container *ngIf="visiblePages[0] > 1">
+          <button class="page-btn" (click)="goToPage(1)">1</button>
+          <span class="page-ellipsis" *ngIf="visiblePages[0] > 2">...</span>
+        </ng-container>
+
+        <button class="page-btn" *ngFor="let page of visiblePages" 
+                [class.active]="currentPage === page" 
+                (click)="goToPage(page)">
+          {{ page }}
+        </button>
+
+        <ng-container *ngIf="visiblePages[visiblePages.length - 1] < totalPages">
+          <span class="page-ellipsis" *ngIf="visiblePages[visiblePages.length - 1] < totalPages - 1">...</span>
+          <button class="page-btn" (click)="goToPage(totalPages)">{{ totalPages }}</button>
+        </ng-container>
+
+        <button class="page-btn next-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+          Next Page <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
 
     </main>
   </div>
 
+  <!-- EDIT MODAL -->
+  <div class="editor-overlay" *ngIf="activeEditPost" (click)="cancelEdit()">
+    <div class="editor-modal" (click)="$event.stopPropagation()">
+      <div class="editor-header">
+        <h2 class="serif-italic">Edit Request Details</h2>
+        <button class="icon-btn close-btn" (click)="cancelEdit()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="editor-body">
+        <div class="field">
+          <label class="field-label">Request Title</label>
+          <input type="text" [(ngModel)]="activeEditPost.editTitle" class="input-academic" placeholder="Request title..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Specific Details</label>
+          <textarea [(ngModel)]="activeEditPost.editDescription" class="input-academic" rows="5" placeholder="Describe the item condition or duration of use..."></textarea>
+        </div>
+      </div>
+      <div class="editor-footer">
+        <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+        <button class="btn-primary" (click)="saveEdit()" [disabled]="activeEditPost.saving">
+          <span *ngIf="!activeEditPost.saving">Save Updates Form</span>
+          <span *ngIf="!activeEditPost.saving" class="material-symbols-outlined" style="font-size:18px;">cloud_upload</span>
+          <span *ngIf="activeEditPost.saving" class="spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- FAB -->
-  <a routerLink="/post/create" class="fab">
+  <a routerLink="/post/create" class="fab" [class.fab-raised]="isNearBottom">
     <span class="material-symbols-outlined">add</span>
     Request Material
   </a>

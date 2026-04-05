@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { RouterModule }      from '@angular/router';
 import { AuthService }       from '../../../core/services/auth.service';
+import { ApiService }        from '../../../core/services/api.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -19,9 +20,13 @@ export class ProfileComponent implements OnInit { // Ensure 'export' is here
   newContact  = { type: 'messenger', value: '' };
   saving      = false;
   saved       = false;
+  saveError   = '';
   contactTypes = ['messenger', 'phone', 'other'];
 
-  constructor(private auth: AuthService) {}
+  initialDisplayName = '';
+  initialContactsStr = '';
+
+  constructor(private auth: AuthService, private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     const user = this.auth.getUser();
@@ -33,7 +38,11 @@ export class ProfileComponent implements OnInit { // Ensure 'export' is here
       
       if (userData.contacts && userData.contacts.length > 0) {
         this.contacts = [...userData.contacts];
+      } else {
+        this.contacts = [];
       }
+      this.initialDisplayName = this.displayName;
+      this.initialContactsStr = JSON.stringify(this.contacts);
     }
   }
 
@@ -49,12 +58,35 @@ export class ProfileComponent implements OnInit { // Ensure 'export' is here
   }
 
   onSave() {
+    this.saveError = '';
+    
+    // Validate if anything changed
+    const currentContactsStr = JSON.stringify(this.contacts);
+    if (this.displayName.trim() === this.initialDisplayName.trim() && currentContactsStr === this.initialContactsStr) {
+      this.saveError = 'No changes detected. Please modify your information before saving.';
+      return;
+    }
+
     this.saving = true;
-    setTimeout(() => {
-      this.saving = false;
-      this.saved = true;
-      setTimeout(() => (this.saved = false), 3000);
-    }, 800);
+    this.api.put('/profile', { displayName: this.displayName, contacts: this.contacts }).subscribe({
+      next: () => {
+        this.saving = false;
+        this.saved = true;
+        this.initialDisplayName = this.displayName;
+        this.initialContactsStr = currentContactsStr;
+        
+        setTimeout(() => {
+          this.saved = false;
+          this.cdr.detectChanges();
+        }, 3000);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.saving = false;
+        this.saveError = err.error?.message || 'Failed to update profile. Please try again.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   logout() {

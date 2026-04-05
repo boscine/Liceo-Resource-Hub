@@ -10,7 +10,7 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd adet-be-bsit22
 
 # 2. Start Frontend (Angular)
 Write-Host "Starting Angular Frontend (Memory Limit: 1536MB)..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd adet-fe-bsit22; `$env:NODE_OPTIONS='--max-old-space-size=1536'; npx ng serve --configuration=development --proxy-config proxy.conf.json --live-reload=false --progress=false" -WindowStyle Normal
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd adet-fe-bsit22; `$env:NODE_OPTIONS='--max-old-space-size=1536'; npx ng serve --configuration=development --proxy-config proxy.conf.json --live-reload=false" -WindowStyle Normal
 
 # 3. Optional: MySQL Connection Check (if mysql-cli is in PATH)
 Write-Host "Checking MySQL Connection (adet_bsitdb22)..." -ForegroundColor Yellow

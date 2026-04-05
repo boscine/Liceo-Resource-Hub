@@ -1,9 +1,6 @@
 <div class="create-page">
 
-
-  <!-- NAV -->
-  <app-navbar active="create"></app-navbar>
-
+  <app-navbar [active]="'create'"></app-navbar>
 
   <main class="create-main">
     <div class="create-inner">
@@ -28,14 +25,14 @@
         <form (ngSubmit)="onSubmit()" #createForm="ngForm" class="create-form">
 
           <div class="field">
-            <label class="field-label" for="title">Request Title <span class="req">*</span></label>
+            <label class="field-label" for="title">Request Title</label>
             <input class="input-academic" id="title" type="text"
               [(ngModel)]="title" name="title"
               placeholder="e.g., 'Need Calculus Textbook (12th Ed)'" required/>
           </div>
 
           <div class="field">
-            <label class="field-label" for="category">Academic Category <span class="req">*</span></label>
+            <label class="field-label" for="category">Academic Category</label>
             <div class="select-wrap">
               <select class="input-academic" id="category"
                 [(ngModel)]="categoryId" name="category" required>
@@ -47,7 +44,7 @@
           </div>
 
           <div class="field">
-            <label class="field-label" for="description">Details <span class="req">*</span></label>
+            <label class="field-label" for="description">Details</label>
             <textarea class="input-academic" id="description"
               [(ngModel)]="description" name="description"
               placeholder="Describe the item, condition needed, or duration of use..."

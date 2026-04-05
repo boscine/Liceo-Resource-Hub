@@ -1,6 +1,5 @@
 <div class="detail-page">
-  <app-navbar active="feed"></app-navbar>
-
+  <app-navbar [active]="'feed'"></app-navbar>
 
   <main class="detail-main">
     <div class="detail-inner">
@@ -9,12 +8,26 @@
         <span class="material-symbols-outlined">arrow_back</span> Back to Requests
       </a>
 
-      <div class="detail-grid">
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="loading">
+        <span class="spinner"></span>
+        <p>Curating details...</p>
+      </div>
+
+      <!-- Post Hidden / Not Found -->
+      <div class="not-found" *ngIf="!loading && !post">
+        <span class="material-symbols-outlined">sentiment_dissatisfied</span>
+        <h2>Request Not Found</h2>
+        <p>This academic request might have been moved, resolved, or is temporarily unavailable.</p>
+        <button class="btn-primary" routerLink="/feed">Return to Library</button>
+      </div>
+
+      <div class="detail-grid" *ngIf="!loading && post">
 
         <!-- POST CARD -->
         <article class="post-card">
           <div class="post-top">
-            <span class="post-status">{{ post.status }}</span>
+            <span class="post-status" [ngClass]="'status-' + post.status.toLowerCase()">{{ post.status }}</span>
             <span class="post-meta">{{ post.category }} · {{ post.timeAgo }}</span>
           </div>
           <h1 class="post-title serif-italic">{{ post.title }}</h1>
@@ -29,11 +42,16 @@
           <p class="post-description">{{ post.description }}</p>
           <div class="divider"></div>
 
-          <!-- REPORT -->
-          <button class="report-btn" (click)="toggleReport()">
-            <span class="material-symbols-outlined">flag</span>
-            Report this post
-          </button>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button class="report-btn" (click)="toggleReport()" *ngIf="!(isLoggedIn && (user.displayName === post.author || user.display_name === post.author || user.name === post.author))">
+              <span class="material-symbols-outlined">flag</span>
+              Report this post
+            </button>
+
+            <a [routerLink]="['/post/edit', post.id]" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && (user.displayName === post.author || user.display_name === post.author || user.name === post.author)">
+              <span class="material-symbols-outlined">edit</span> Edit Request Status
+            </a>
+          </div>
 
           <div class="report-form" *ngIf="showReportForm">
             <h4>Report Post</h4>

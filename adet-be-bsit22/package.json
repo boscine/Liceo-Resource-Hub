@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "tsx watch -r dotenv/config src/index.ts",
     "build": "tsc",
-    "start": "dotenv -e .env -- node dist/index.js",
+    "start": "dotenv -e .env -- tsx src/index.ts",
     "db:migrate": "prisma migrate dev --name init --url \"mysql://root:12345@localhost:3306/adet_bsitdb22\"",
     "db:seed": "dotenv -e .env -- tsx prisma/seed.ts",
     "db:studio": "prisma studio"
@@ -14,7 +14,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
     "dotenv-cli": "^11.0.0",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.12",

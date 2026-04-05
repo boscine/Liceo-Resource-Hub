@@ -9,7 +9,7 @@
   --primary-container:        #800000;
   --on-primary:               #ffffff;
   --on-primary-container:     #ff8371;
-  --secondary:                #735c00;
+  --secondary:                #9c7c00; /* Updated: A more 'Pleasant Gold' for labels and accents */
   --secondary-container:      #fed65b;
   --on-secondary-container:   #745c00;
   --surface:                  #f8f9fa;
@@ -71,7 +71,7 @@ body {
   background-color: var(--surface-container-low);
   border: none;
   border-bottom: 2px solid rgba(226, 191, 185, 0.3);
-  padding: 0.75rem 0;
+  padding: 0.85rem 1rem;
   font-family: var(--font-body);
   font-size: 0.9rem;
   color: var(--on-surface);
@@ -81,6 +81,36 @@ body {
 
   &::placeholder { color: var(--surface-dim); font-weight: 300; }
   &:focus { border-bottom-color: var(--primary); }
+  &.field-error { border-bottom-color: var(--error) !important; }
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: 0.85rem;
+    font-size: 18px;
+    color: var(--outline);
+    pointer-events: none;
+    & + .input-academic { padding-left: 2.75rem; }
+  }
+
+  .toggle-pw {
+    position: absolute;
+    right: 0.85rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--outline);
+    display: flex;
+    padding: 0;
+    transition: color 0.2s;
+    &:hover { color: var(--primary); }
+    .material-symbols-outlined { font-size: 18px; }
+  }
 }
 
 /* ── Shared Button Styles ─────────────────────────────────────────────────────── */
@@ -107,6 +137,48 @@ body {
   &:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
   &:active:not(:disabled) { transform: scale(0.98); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* ── Shared Modal Styles ──────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(25, 28, 29, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-card {
+  width: 100%; max-width: 440px;
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+.modal-header {
+  padding: 1.5rem; display: flex; align-items: center; gap: 1rem;
+  background: var(--primary-container); color: white;
+  h3 { font-family: var(--font-headline); font-size: 1.25rem; font-weight: 700; flex: 1; margin: 0; }
+  .close-btn { background: none; border: none; color: white; cursor: pointer; opacity: 0.7; transition: 0.2s; &:hover { opacity: 1; } }
+}
+
+.modal-body {
+  padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;
+  section {
+    h4 { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+    p { font-size: 0.85rem; color: var(--on-surface-variant); line-height: 1.6; }
+  }
+}
+
+.modal-footer {
+  padding: 1rem 2rem 2rem;
+  button { width: 100%; }
 }
 
 /* ── Shared Nav ───────────────────────────────────────────────────────────────── */

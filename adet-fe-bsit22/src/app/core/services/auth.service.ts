@@ -32,8 +32,14 @@ export class AuthService {
   }
 
   register(email: string, password: string, displayName: string) {
-    return this.http.post<{ token: string }>('/api/auth/register', { email, password, displayName })
-      .pipe(tap(res => localStorage.setItem(TOKEN_KEY, res.token)));
+    return this.http.post<{ message: string; email: string }>('/api/auth/register', { email, password, displayName });
+  }
+
+  verify(email: string, code: string) {
+    return this.http.post<{ token: string; role: string; message: string }>('/api/auth/verify', { email, code })
+      .pipe(tap(res => {
+        localStorage.setItem(TOKEN_KEY, res.token);
+      }));
   }
 
   logout() { localStorage.removeItem(TOKEN_KEY); }

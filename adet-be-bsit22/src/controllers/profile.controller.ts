@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import prisma from '../client'; // This points to your src/client.ts
+import prisma from '../lib/prisma';
 
 export const getProfile = async (c: Context) => {
   // Get the ID from your verifyToken middleware
@@ -27,6 +27,42 @@ export const getProfile = async (c: Context) => {
     return c.json(user);
   } catch (error) {
     console.error(error);
+    return c.json({ message: 'Internal Server Error' }, 500);
+  }
+};
+
+export const updateProfile = async (c: Context) => {
+  const userId = c.get('userId') || c.get('jwtPayload')?.id; 
+
+  if (!userId) {
+    return c.json({ message: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const { displayName, contacts } = await c.req.json();
+    
+    if (!displayName) {
+      return c.json({ message: 'Display name is required' }, 400);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: Number(userId) },
+      data: {
+        displayName,
+        contacts: {
+          deleteMany: {},
+          create: Array.isArray(contacts) ? contacts.map((contact: any) => ({
+            type: contact.type,
+            value: contact.value,
+          })) : []
+        }
+      },
+      include: { contacts: true }
+    });
+
+    return c.json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (error) {
+    console.error('Failed to update profile:', error);
     return c.json({ message: 'Internal Server Error' }, 500);
   }
 };

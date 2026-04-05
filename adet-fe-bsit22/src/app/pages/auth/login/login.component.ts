@@ -1,9 +1,9 @@
-import { Component }    from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule }  from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { Router }       from '@angular/router';
-import { AuthService }  from '../../../core/services/auth.service';
+import { Component, ChangeDetectorRef }    from '@angular/core';
+import { CommonModule }                   from '@angular/common';
+import { FormsModule }                    from '@angular/forms';
+import { RouterModule }                   from '@angular/router';
+import { Router }                         from '@angular/router';
+import { AuthService }                    from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -20,18 +20,43 @@ export class LoginComponent {
   loading      = false;
   showPassword = false;
   isAdmin      = false;
+  showHelp     = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
+
+  toggleHelp() {
+    this.showHelp = !this.showHelp;
+  }
 
   onSubmit() {
     this.error   = '';
     this.loading = true;
-    this.isAdmin = this.auth.isAdmin();
+    
     this.auth.login(this.email, this.password).subscribe({
-      next: () => this.router.navigate([this.auth.isAdmin() ? '/admin' : '/feed']),
+      next: () => {
+        this.loading = false;
+        this.isAdmin = this.auth.isAdmin();
+        this.cdr.detectChanges();
+        this.router.navigate([this.isAdmin ? '/admin' : '/feed']);
+      },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.message || 'Invalid credentials. Please try again.';
+        console.error('[Login Error Detail]:', err);
+        
+        // Handle check if user is pending verification
+        if (err.status === 403 && err.error?.pending) {
+          this.router.navigate(['/verify'], { queryParams: { email: err.error.email } });
+          return;
+        }
+
+        // Handle different error response formats
+        if (typeof err.error === 'string') {
+          this.error = err.error;
+        } else {
+          this.error = err.error?.message || err.message || 'Invalid credentials. Please try again.';
+        }
+        
+        this.cdr.detectChanges(); // Ensure the error message appears immediately
       }
     });
   }
