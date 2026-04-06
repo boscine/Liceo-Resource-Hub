@@ -17,17 +17,35 @@
 
       <div class="profile-content">
         <!-- Display Name Section -->
-        <div class="info-group">
-          <div class="group-label">
-            <span class="material-symbols-outlined label-icon">badge</span>
-            <span>Display Name</span>
-          </div>
+        <div class="field">
+          <label class="field-label" for="displayName">
+            <span>Display Name <span class="req">*</span></span>
+            <span class="material-symbols-outlined field-icon">badge</span>
+          </label>
           <input 
+            id="displayName"
+            name="displayName"
             type="text" 
             [(ngModel)]="displayName" 
-            placeholder="Your name for posts"
-            class="input-academic name-input"
+            placeholder="Your scholarship name" 
+            class="input-academic"
             maxlength="30">
+          <p class="field-note">Visible on your academic requests and research posts.</p>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="primaryEmail">
+            <span>Primary Email</span>
+            <span class="material-symbols-outlined field-icon-lock">lock</span>
+          </label>
+          <input 
+            id="primaryEmail"
+            name="primaryEmail"
+            type="email" 
+            [value]="email" 
+            class="input-academic" 
+            disabled>
+          <p class="field-note">Institutional email used for authentication.</p>
         </div>
 
         <!-- Contacts Section -->
@@ -57,24 +75,36 @@
 
           <!-- Add Contact Box -->
           <div class="add-contact-box">
+            <div class="field-label" id="newMethodLabel">
+              <span>Add New Method</span>
+              <span class="material-symbols-outlined field-icon">add_circle</span>
+            </div>
             <div class="add-contact-inputs">
               <div class="select-wrap">
                 <span class="material-symbols-outlined selection-icon">
                   {{ newContact.type.toLowerCase() === 'messenger' ? 'chat' : (newContact.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
                 </span>
-                <select class="input-academic contact-type-select" [(ngModel)]="newContact.type" name="contactType">
+                <select 
+                  id="contactType"
+                  name="contactType"
+                  class="input-academic" 
+                  [(ngModel)]="newContact.type" 
+                  aria-labelledby="newMethodLabel">
                   <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
                 </select>
-                <span class="material-symbols-outlined select-arrow">expand_more</span>
+                <span class="material-symbols-outlined select-icon">expand_more</span>
               </div>
               
               <div class="input-wrap">
                 <input 
+                  id="contactValue"
+                  name="contactValue"
                   type="text" 
                   [(ngModel)]="newContact.value" 
-                  placeholder="ID, @username, or digits..." 
+                  placeholder="Value..." 
                   class="input-academic contact-val-input"
-                  (keyup.enter)="newContact.value.trim() ? addContact() : null">
+                  (keyup.enter)="addContact()"
+                  aria-label="New contact value">
                 <button class="add-btn-premium" (click)="addContact()" [disabled]="!newContact.value.trim()">
                   <span class="material-symbols-outlined">add</span>
                 </button>
