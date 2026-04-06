@@ -14,10 +14,11 @@ const routes: Routes = [
   { path: 'reset-password', loadComponent: () => import('./pages/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent), canActivate: [GuestGuard] },
 
   // Student
-  { path: 'feed', loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent), canActivate: [AuthGuard] }, { path: 'post/create', loadComponent: () => import('./pages/student/post-create/post-create.component').then(m => m.PostCreateComponent), canActivate: [AuthGuard] },
+  { path: 'feed', loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent), canActivate: [AuthGuard] },   { path: 'post/create', loadComponent: () => import('./pages/student/post-create/post-create.component').then(m => m.PostCreateComponent), canActivate: [AuthGuard] },
   { path: 'post/:id', loadComponent: () => import('./pages/student/post-detail/post-detail.component').then(m => m.PostDetailComponent), canActivate: [AuthGuard] },  
   { path: 'post/:id/edit', loadComponent: () => import('./pages/student/post-edit/post-edit.component').then(m => m.PostEditComponent), canActivate: [AuthGuard] },
   { path: 'profile', loadComponent: () => import('./pages/student/profile/profile.component').then(m => m.ProfileComponent), canActivate: [AuthGuard] },
+  { path: 'profile/:id', loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent), canActivate: [AuthGuard] },
 
   // Admin
   {

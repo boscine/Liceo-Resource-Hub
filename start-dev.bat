@@ -17,7 +17,7 @@ mysqladmin -u root -p12345 ping >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo MySQL is ONLINE.
 ) else (
-    echo [ERROR] MySQL is OFFLINE or password '13245' is incorrect.
+    echo [ERROR] MySQL is OFFLINE or password '12345' is incorrect.
 )
 
-pause
+REM pause

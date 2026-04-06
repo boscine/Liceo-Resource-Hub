@@ -13,14 +13,15 @@ import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
-export class ProfileComponent implements OnInit { // Ensure 'export' is here
+export class ProfileComponent implements OnInit {
   displayName = '';
   email       = '';
-  contacts: any[] = []; // Initialized as empty array
-  newContact  = { type: 'messenger', value: '' };
+  contacts: Array<{type: string, value: string}> = [];
+  newContact: {type: string, value: string} = { type: 'messenger', value: '' };
   saving      = false;
   saved       = false;
   saveError   = '';
+  contactError = '';
   contactTypes = ['messenger', 'phone', 'other'];
 
   initialDisplayName = '';
@@ -29,28 +30,66 @@ export class ProfileComponent implements OnInit { // Ensure 'export' is here
   constructor(private auth: AuthService, private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    const user = this.auth.getUser();
-    if (user) {
-      // Use type casting (user as any) if the interface still complains
-      const userData = user as any; 
-      this.displayName = userData.display_name || userData.displayName || userData.name || 'User';
-      this.email = userData.email || '';
-      
-      if (userData.contacts && userData.contacts.length > 0) {
-        this.contacts = [...userData.contacts];
-      } else {
-        this.contacts = [];
+    this.fetchProfile();
+  }
+
+  fetchProfile() {
+    this.api.get<any>('/profile').subscribe({
+      next: (user) => {
+        if (user) {
+          this.displayName = user.displayName || user.display_name || user.name || 'User';
+          this.email = user.email || '';
+          this.contacts = user.contacts ? [...user.contacts] : [];
+          
+          this.initialDisplayName = this.displayName;
+          this.initialContactsStr = JSON.stringify(this.contacts);
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load profile data:', err);
+        const tokenUser = this.auth.getUser() as any;
+        if (tokenUser) {
+          this.displayName = tokenUser.display_name || 'User';
+          this.email = tokenUser.email || '';
+        }
+        this.cdr.detectChanges();
       }
-      this.initialDisplayName = this.displayName;
-      this.initialContactsStr = JSON.stringify(this.contacts);
-    }
+    });
   }
 
   addContact() {
-    if (this.newContact.value) {
-      this.contacts.push({ ...this.newContact });
-      this.newContact = { type: 'messenger', value: '' };
+    this.contactError = '';
+    const val = this.newContact.value?.trim();
+    if (!val) return;
+
+    if (val.length < 3) {
+      this.contactError = 'Contact value is too short.';
+      return;
     }
+
+    const exists = this.contacts.find((c: {type: string, value: string}) => 
+      c.type.toLowerCase() === this.newContact.type.toLowerCase() && 
+      c.value.toLowerCase() === val.toLowerCase()
+    );
+    
+    if (exists) {
+      this.contactError = 'This contact method already exists.';
+      return;
+    }
+
+    if (this.newContact.type === 'phone') {
+      const numericOnly = val.replace(/\D/g, '');
+      if (numericOnly.length < 7) {
+        this.contactError = 'Please enter a valid phone number (at least 7 digits).';
+        return;
+      }
+    }
+
+    this.contacts.push({ type: this.newContact.type, value: val });
+    this.newContact = { type: 'messenger', value: '' };
+    this.contactError = '';
+    this.cdr.detectChanges();
   }
 
   removeContact(i: number) {
@@ -59,9 +98,8 @@ export class ProfileComponent implements OnInit { // Ensure 'export' is here
 
   onSave() {
     this.saveError = '';
-    
-    // Validate if anything changed
     const currentContactsStr = JSON.stringify(this.contacts);
+    
     if (this.displayName.trim() === this.initialDisplayName.trim() && currentContactsStr === this.initialContactsStr) {
       this.saveError = 'No changes detected. Please modify your information before saving.';
       return;

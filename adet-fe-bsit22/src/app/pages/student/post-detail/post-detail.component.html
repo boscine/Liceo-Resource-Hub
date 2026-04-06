@@ -31,7 +31,7 @@
             <span class="post-meta">{{ post.category }} · {{ post.timeAgo }}</span>
           </div>
           <h1 class="post-title serif-italic">{{ post.title }}</h1>
-          <div class="author-row">
+          <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
             <div class="author-avatar">{{ post.author[0] }}</div>
             <div>
               <p class="author-name">{{ post.author }}</p>
@@ -43,12 +43,12 @@
           <div class="divider"></div>
 
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button class="report-btn" (click)="toggleReport()" *ngIf="!(isLoggedIn && (user.displayName === post.author || user.display_name === post.author || user.name === post.author))">
+            <button class="report-btn" (click)="toggleReport()" *ngIf="isLoggedIn && user.id !== post.authorId && user.role !== 'admin'">
               <span class="material-symbols-outlined">flag</span>
               Report this post
             </button>
 
-            <a [routerLink]="['/post/edit', post.id]" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && (user.displayName === post.author || user.display_name === post.author || user.name === post.author)">
+            <a [routerLink]="['/post', post.id, 'edit']" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && (user.id == post.authorId || user.role === 'admin')">
               <span class="material-symbols-outlined">edit</span> Edit Request Status
             </a>
           </div>

@@ -1,20 +1,5 @@
 <div class="admin-page">
-
-  <!-- NAV -->
-  <header class="app-nav">
-    <div class="nav-inner">
-      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
-      <nav class="nav-links">
-        <a routerLink="/feed">Requests</a>
-        <a routerLink="/post/create">Create</a>
-        <a routerLink="/admin" class="active">Dashboard</a>
-      </nav>
-      <div class="nav-actions">
-        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
-        <button class="icon-btn avatar-btn">A</button>
-      </div>
-    </div>
-  </header>
+  <app-navbar active="admin"></app-navbar>
 
   <main class="admin-main">
 
@@ -33,14 +18,14 @@
           <span class="stat-label">{{ stat.label | uppercase }}</span>
           <span class="material-symbols-outlined stat-icon">{{ stat.icon }}</span>
         </div>
-        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-value">{{ loading ? '...' : stat.value }}</div>
         <div class="stat-note">{{ stat.note }}</div>
       </div>
     </div>
 
     <div class="admin-grid">
 
-      <!-- URGENT REPORTS -->
+      <!-- URGENT REPORTS (LIVE DATA) -->
       <aside class="urgent-panel">
         <div class="panel-header">
           <h2 class="serif-italic">Urgent Reports</h2>
@@ -49,12 +34,16 @@
 
         <div class="report-card" *ngFor="let report of urgentReports">
           <div class="report-meta">
-            <span class="report-type">{{ report.type }}</span>
+            <span class="report-type">{{ report.reason }}</span>
             <span class="report-time">{{ report.timeAgo }}</span>
           </div>
           <p class="report-by">Reported by {{ report.reportedBy }}</p>
-          <p class="report-excerpt">{{ report.excerpt }}</p>
-          <button class="view-btn">View Details</button>
+          <p class="report-excerpt" *ngIf="report.details">{{ report.details }}</p>
+          <button class="view-btn" [routerLink]="['/admin/reports']">View Details</button>
+        </div>
+
+        <div *ngIf="urgentReports.length === 0" class="no-results-lite">
+          No pending reports at this time.
         </div>
 
         <button class="view-all-btn" routerLink="/admin/reports">View All Reports</button>
@@ -80,41 +69,50 @@
         </div>
 
         <!-- Post List -->
-        <div class="post-list">
-          <div class="post-row" *ngFor="let post of getFilteredPosts()" [class.flagged]="post.flagged" [class.removed]="post.removed">
+        <div class="post-list" *ngIf="!loading">
+          <div class="post-row" *ngFor="let post of getFilteredPosts()" 
+               [class.flagged]="post.status === 'FLAGGED'" 
+               [class.removed]="post.status === 'REMOVED'">
             <div class="post-info">
-              <span class="post-id">{{ post.id }}</span>
+              <span class="post-id">REQ-2025-{{ post.id }}</span>
               <h4 class="post-title serif-italic">{{ post.title }}</h4>
               <span class="post-author">By: {{ post.author }} | {{ post.college }}</span>
             </div>
             <div class="post-status-col">
               <span class="status-label">STATUS</span>
-              <span class="status-value" [class.flagged-text]="post.flagged" [class.removed-text]="post.removed">
-                <span class="material-symbols-outlined" *ngIf="!post.flagged && !post.removed" style="color:#2e7d32;font-size:14px">circle</span>
-                <span class="material-symbols-outlined" *ngIf="post.flagged" style="color:#f57c00;font-size:14px">warning</span>
+              <span class="status-value" [class.flagged-text]="post.status === 'FLAGGED'" [class.removed-text]="post.status === 'REMOVED'">
+                <span class="material-symbols-outlined" *ngIf="post.status === 'OPEN' || post.status === 'ACTIVE'" style="color:#2e7d32;font-size:14px">circle</span>
+                <span class="material-symbols-outlined" *ngIf="post.status === 'FLAGGED'" style="color:#f57c00;font-size:14px">warning</span>
                 {{ post.status }}
               </span>
             </div>
             <div class="post-actions">
-              <button class="action-btn action-approve" *ngIf="!post.removed" title="Approve">
+              <button class="action-btn action-approve" *ngIf="post.status !== 'REMOVED'" (click)="approvePost(post.id)" title="Approve">
                 <span class="material-symbols-outlined">check_circle</span>
               </button>
-              <button class="action-btn action-flag" *ngIf="!post.removed" title="Flag">
+              <button class="action-btn action-flag" *ngIf="post.status !== 'FLAGGED' && post.status !== 'REMOVED'" (click)="flagPost(post.id)" title="Flag">
                 <span class="material-symbols-outlined">flag</span>
               </button>
-              <button class="action-btn action-remove" *ngIf="!post.removed" title="Remove">
+              <button class="action-btn action-remove" *ngIf="post.status !== 'REMOVED'" (click)="removePost(post.id)" title="Remove">
                 <span class="material-symbols-outlined">close</span>
               </button>
-              <button class="action-btn action-restore" *ngIf="post.removed" title="Restore">
+              <button class="action-btn action-restore" *ngIf="post.status === 'REMOVED'" (click)="approvePost(post.id)" title="Restore">
                 <span class="material-symbols-outlined">restore</span>
               </button>
             </div>
           </div>
+          <div *ngIf="getFilteredPosts().length === 0" class="no-results">
+            No posts found in this category.
+          </div>
+        </div>
+
+        <div class="loading-spinner" *ngIf="loading">
+          Loading live requests...
         </div>
 
         <!-- Pagination -->
-        <div class="pagination-row">
-          <span class="showing-text">SHOWING 1-10 OF 482 POSTS</span>
+        <div class="pagination-row" *ngIf="!loading">
+          <span class="showing-text">SHOWING 1-{{ getFilteredPosts().length }} OF {{ posts.length }} POSTS</span>
           <div class="page-btns">
             <button class="page-btn"><span class="material-symbols-outlined">chevron_left</span></button>
             <button class="page-btn active-page">
@@ -135,7 +133,7 @@
       <span>© 2026 The Academic Curator.</span>
     </div>
     <div class="footer-links">
-      <a href="#">University Portal</a>
+      <a href="https://liceo.edu.ph" target="_blank">University Portal</a>
       <a href="#">Terms of Service</a>
       <a href="#">Privacy Policy</a>
     </div>

@@ -1,42 +1,83 @@
-import { Component }    from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule }  from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { ApiService } from '../../../core/services/api.service';
+import { PostService } from '../../../core/services/post.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, NavbarComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
   activeTab = 'ALL POSTS';
   tabs      = ['ALL POSTS', 'FLAGGED', 'REMOVED'];
+  posts: any[] = [];
+  urgentReports: any[] = [];
+  loading = true;
 
-  stats = [
-    { label: 'Total Requests',     value: '1,284', note: '+12% from last academic week', icon: 'library_books',  highlighted: false },
-    { label: 'Reported Posts',     value: '42',    note: 'Requires immediate review',   icon: 'report',         highlighted: true  },
-    { label: 'Fulfilled Requests', value: '956',   note: '84% Success Rate',            icon: 'check_circle',   highlighted: false },
-  ];
+  private postSub?: Subscription;
+  private reportSub?: Subscription;
 
-  urgentReports = [
-    { type: 'INAPPROPRIATE CONTENT', reportedBy: '#2023-4102', timeAgo: '2m ago',  excerpt: '"The attached PDF contains non-academic promotional material..."' },
-    { type: 'COPYRIGHT VIOLATION',   reportedBy: '#2024-0012', timeAgo: '15m ago', excerpt: '"This resource is a full copy of a licensed textbook chapter..."' },
-  ];
+  constructor(
+    private api: ApiService, 
+    private postService: PostService, 
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  posts = [
-    { id: 'REQ-2024-8892', title: 'Calculus III Advanced Synthesis Notes',  author: 'Juan Dela Cruz',  college: 'College of Engineering',    status: 'Active',             flagged: false, removed: false },
-    { id: 'REQ-2024-7712', title: 'Ethics in Modern Journalism - Draft',     author: 'Maria Santos',    college: 'College of Arts & Sciences', status: 'FLAGGED',           flagged: true,  removed: false },
-    { id: 'REQ-2024-6651', title: 'Marketing Strategy Masterclass Vol. 4',  author: 'Prof. Arnold Lee', college: 'Business Admin',            status: 'Permanently Removed', flagged: false, removed: true  },
-    { id: 'REQ-2024-5540', title: 'Organic Chemistry Lab Manual Reprints',  author: 'Kevin Wu',        college: 'College of Pharmacy',        status: 'Active',             flagged: false, removed: false },
-  ];
+  ngOnInit() {
+    this.postService.getAdminPosts();
+    this.postService.getAdminReports();
+
+    this.postSub = this.postService.posts$.subscribe(data => {
+      this.posts = data;
+      this.loading = false;
+      this.cdr.detectChanges();
+    });
+
+    this.reportSub = this.postService.reports$.subscribe(data => {
+      // Show only pending reports in the urgent panel
+      this.urgentReports = data.filter(r => r.status === 'pending').slice(0, 3);
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.postSub) this.postSub.unsubscribe();
+    if (this.reportSub) this.reportSub.unsubscribe();
+  }
+
+  get stats() {
+    return [
+      { label: 'Total Requests',     value: this.posts.length, note: '+12% from last academic week', icon: 'library_books',  highlighted: false },
+      { label: 'Reported Posts',     value: this.posts.filter(p => !!p.is_flagged).length,    note: 'Requires immediate review',   icon: 'report',         highlighted: true  },
+      { label: 'Fulfilled Requests', value: this.posts.filter(p => p.status === 'FULFILLED').length,   note: '84% Success Rate',            icon: 'check_circle',   highlighted: false },
+    ];
+  }
 
   setTab(tab: string) { this.activeTab = tab; }
 
   getFilteredPosts() {
-    if (this.activeTab === 'FLAGGED') return this.posts.filter(p => p.flagged);
-    if (this.activeTab === 'REMOVED') return this.posts.filter(p => p.removed);
-    return this.posts;
+    if (this.activeTab === 'FLAGGED') return this.posts.filter(p => !!p.is_flagged);
+    if (this.activeTab === 'REMOVED') return this.posts.filter(p => p.status === 'REMOVED');
+    // For 'ALL POSTS', excluding removed but showing everything else (open, fulfilled, flagged)
+    return this.posts.filter(p => p.status !== 'REMOVED');
+  }
+
+  approvePost(id: any) {
+    this.api.put(`/posts/${id}`, { isFlagged: false, status: 'open' }).subscribe(() => this.postService.getAdminPosts());
+  }
+
+  flagPost(id: any) {
+    this.api.put(`/posts/${id}`, { isFlagged: true }).subscribe(() => this.postService.getAdminPosts());
+  }
+
+  removePost(id: any) {
+    this.api.put(`/posts/${id}`, { status: 'removed' }).subscribe(() => this.postService.getAdminPosts());
   }
 }

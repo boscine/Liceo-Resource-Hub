@@ -39,12 +39,15 @@ export class PostDetailComponent implements OnInit {
       this.user = this.auth.getUser() || {};
     }
 
-    const postId = this.route.snapshot.paramMap.get('id');
-    if (postId) {
-      this.fetchPost(postId);
-    } else {
-      this.loading = false;
-    }
+    // Use paramMap subscription for robust navigation
+    this.route.paramMap.subscribe(params => {
+      const postId = params.get('id');
+      if (postId) {
+        this.fetchPost(postId);
+      } else {
+        this.loading = false;
+      }
+    });
   }
 
   fetchPost(id: string) {

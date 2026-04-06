@@ -1,9 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { Subscription }      from 'rxjs';
 import { ApiService }        from '../../../core/services/api.service';
 import { AuthService }       from '../../../core/services/auth.service';
+import { PostService }       from '../../../core/services/post.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -13,7 +15,7 @@ import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss'],
 })
-export class FeedComponent implements OnInit {
+export class FeedComponent implements OnInit, OnDestroy {
   searchQuery    = '';
   activeCategory = 'All Resources';
   categories     = ['All Resources', 'Textbooks', 'Lab Tools', 'Lecture Notes', 'Art Supplies', 'Calculator', 'USB / Storage', 'Other'];
@@ -30,10 +32,12 @@ export class FeedComponent implements OnInit {
   pageSize = 12;
 
   savedPosts = new Set<string>();
+  
+  private postSub?: Subscription;
+  private catSub?: Subscription;
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
-    // Check if the user has scrolled near the bottom of the page
     const threshold = 100; 
     const position = window.innerHeight + window.scrollY;
     const height = document.documentElement.scrollHeight;
@@ -44,7 +48,8 @@ export class FeedComponent implements OnInit {
     private api: ApiService, 
     private cdr: ChangeDetectorRef,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private postService: PostService
   ) {}
 
   ngOnInit() {
@@ -60,35 +65,28 @@ export class FeedComponent implements OnInit {
       catch (e) { console.error('Failed parsing saved posts', e); }
     }
 
-    this.loadCategories();
-    this.loadPosts();
+    // Subscribe to stateful post stream
+    this.postSub = this.postService.posts$.subscribe(data => {
+      this.posts = data;
+      this.loading = false;
+      this.cdr.detectChanges();
+    });
+
+    // Subscribe to stateful categories stream
+    this.catSub = this.postService.categories$.subscribe(data => {
+      const names = data.map(c => c.name);
+      this.categories = ['All Resources', ...names];
+      this.cdr.detectChanges();
+    });
+
+    // Initial load (will check cache automatically)
+    this.postService.getCategories();
+    this.postService.getPosts();
   }
 
-  loadCategories() {
-    this.api.get<any[]>('/categories').subscribe({
-      next: (data) => {
-        const names = data.map(c => c.name);
-        this.categories = ['All Resources', ...names];
-        this.cdr.detectChanges(); // Ensure UI updates on initial load
-      },
-      error: (err) => console.error('Failed to load categories', err)
-    });
-  }
-
-  loadPosts() {
-    this.loading = true;
-    this.api.get<any[]>('/posts').subscribe({
-      next: (data) => {
-        this.posts = data;
-        this.loading = false;
-        this.cdr.detectChanges(); // Force UI refresh
-      },
-      error: (err) => {
-        console.error('Failed to load posts', err);
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
+  ngOnDestroy() {
+    if (this.postSub) this.postSub.unsubscribe();
+    if (this.catSub) this.catSub.unsubscribe();
   }
 
   /** Posts filtered by the active category chip, search query, and view mode */
@@ -97,23 +95,15 @@ export class FeedComponent implements OnInit {
     const q   = (this.searchQuery || '').trim().toUpperCase();
     
     return this.posts.filter(p => {
-      // Safety checks: if post or needed fields are missing, skip or return false
       if (!p || !p.title) return false;
 
       const pCategory = (p.category || 'OTHER').toUpperCase();
       const pTitle = (p.title || '').toUpperCase();
       const pDesc = (p.description || '').toUpperCase();
 
-      // Category Filter
       const matchCat = cat === 'ALL RESOURCES' || pCategory === cat;
-      
-      // Search Query Filter
-      const matchQ   = !q ||
-        pTitle.includes(q) ||
-        pDesc.includes(q) ||
-        pCategory.includes(q);
+      const matchQ   = !q || pTitle.includes(q) || pDesc.includes(q) || pCategory.includes(q);
 
-      // View Mode Filter
       let matchView = true;
       if (this.viewMode === 'saved')      matchView = this.isSaved(p);
       if (this.viewMode === 'requests')   matchView = p.author === (this.user.display_name || this.user.displayName || this.user.name);
@@ -127,7 +117,7 @@ export class FeedComponent implements OnInit {
     const myName = this.user.displayName || this.user.display_name || this.user.name;
     const count = this.posts.filter(p => 
       p.author === myName && 
-      (p.status?.toLowerCase() === 'open' || p.status?.toLowerCase() === 'urgent' || p.status?.toLowerCase() === 'active')
+      p.status?.toLowerCase() === 'open'
     ).length;
     return count > 0 && count < 10 ? '0' + count : count;
   }
@@ -135,10 +125,7 @@ export class FeedComponent implements OnInit {
   get fulfilledCount(): number {
     if (!this.isLoggedIn || !this.user) return 0;
     const myName = this.user.displayName || this.user.display_name || this.user.name;
-    return this.posts.filter(p => 
-      p.author === myName && 
-      p.status?.toLowerCase() === 'fulfilled'
-    ).length;
+    return this.posts.filter(p => p.author === myName && p.status?.toLowerCase() === 'fulfilled').length;
   }
 
   toggleSave(post: any) {
@@ -155,16 +142,16 @@ export class FeedComponent implements OnInit {
   }
 
   deletePost(id: string | number) {
-    if (confirm('Are you sure you want to permanently delete this request? This action cannot be undone.')) {
+    if (confirm('Are you sure you want to permanently delete this request?')) {
       this.api.delete(`/posts/${id}`).subscribe({
         next: () => {
-          // Instantly remove from UI feed state without reloading
-          this.posts = this.posts.filter(p => p.id !== id);
+          // Sync state instantly
+          this.postService.removePostLocal(id);
           this.cdr.detectChanges();
         },
         error: (e) => {
           console.error('Failed deleting post:', e);
-          alert('Failed to delete the request. Please try again.');
+          alert('Failed to delete the request.');
         }
       });
     }
@@ -189,18 +176,17 @@ export class FeedComponent implements OnInit {
     if (!this.activeEditPost) return;
     this.activeEditPost.saving = true;
 
-    // Push the partial payload directly back to the database
     this.api.put(`/posts/${this.activeEditPost.id}`, {
       title: this.activeEditPost.editTitle,
       description: this.activeEditPost.editDescription
     }).subscribe({
       next: () => {
-        // Sync to backing feed organically
-        const original = this.posts.find(p => p.id === this.activeEditPost.id);
-        if (original) {
-          original.title = this.activeEditPost.editTitle;
-          original.description = this.activeEditPost.editDescription;
-        }
+        // Update state locally
+        this.postService.updatePostLocal({
+          id: this.activeEditPost.id,
+          title: this.activeEditPost.editTitle,
+          description: this.activeEditPost.editDescription
+        });
         this.activeEditPost = null;
         this.cdr.detectChanges();
       },
@@ -218,7 +204,7 @@ export class FeedComponent implements OnInit {
     return this.allFilteredPosts.slice(start, start + this.pageSize);
   }
 
-  get Math() { return Math; } // For template
+  get Math() { return Math; }
 
   get totalPages(): number {
     return Math.ceil(this.allFilteredPosts.length / this.pageSize) || 1;
@@ -243,7 +229,7 @@ export class FeedComponent implements OnInit {
     this.viewMode = mode;
     this.currentPage = 1;
     if (mode !== 'all') {
-      this.activeCategory = 'All Resources'; // Reset category if switching mode
+      this.activeCategory = 'All Resources';
     }
   }
 
@@ -255,9 +241,8 @@ export class FeedComponent implements OnInit {
   getStatusClass(status: string) {
     const s = (status || '').toLowerCase();
     return {
-      'status-open':      s === 'open' || s === 'active',
+      'status-open':      s === 'open',
       'status-fulfilled': s === 'fulfilled',
-      'status-urgent':    s === 'urgent' || s === 'flagged',
       'status-closed':    s === 'closed' || s === 'removed'
     };
   }

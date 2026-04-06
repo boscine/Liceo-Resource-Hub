@@ -68,11 +68,13 @@ auth.post('/register', async (c) => {
       return c.json({ message: 'All fields are required' }, 400);
     }
 
-    if (!email.endsWith('@liceo.edu.ph')) {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@liceo\.edu\.ph$/;
+    if (!emailRegex.test(email)) {
       return c.json({ message: 'Only @liceo.edu.ph emails allowed' }, 400);
     }
 
-    const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const emailLower = email.toLowerCase();
+    const existing = await prisma.user.findUnique({ where: { email: emailLower } });
     if (existing) return c.json({ message: 'Email already registered' }, 409);
 
     const passwordHash = bcrypt.hashSync(password, 10);
@@ -82,7 +84,7 @@ auth.post('/register', async (c) => {
 
     const user = await prisma.user.create({
       data: { 
-        email: email.toLowerCase(), 
+        email: emailLower, 
         passwordHash, 
         displayName, 
         role: 'student', 
@@ -93,15 +95,15 @@ auth.post('/register', async (c) => {
     });
 
     // In a real app, this would be an email. For now, log to console for dev.
-    console.log(`\n\n[DEV] Verification code for ${email}: ${verificationToken}\n\n`);
+    console.log(`\n\n[DEV] Verification code for ${emailLower}: ${verificationToken}\n\n`);
 
     return c.json({ 
       message: 'Registration successful. Verification code sent.',
       email: user.email
     }, 201);
   } catch (error) {
-    console.error('Registration Error:', error); // Full error with stack trace
-    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Registration Error:', error);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ message: 'Internal server error during registration', detail: msg }, 500);
   }
 });

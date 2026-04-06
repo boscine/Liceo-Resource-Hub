@@ -2,11 +2,12 @@ import { Component }    from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.scss'],
 })

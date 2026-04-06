@@ -7,7 +7,11 @@
     "stop": "wscript.exe stop-dev.vbs",
     "be:start": "cd adet-be-bsit22 && npm start",
     "be:dev": "cd adet-be-bsit22 && npm run dev",
+    "be:studio": "cd adet-be-bsit22 && npm run db:studio",
+    "be:db:reset": "cd adet-be-bsit22 && npx prisma migrate reset --force",
+    "be:db:seed": "cd adet-be-bsit22 && npm run db:seed",
     "fe:start": "cd adet-fe-bsit22 && npm start",
+    "fe:build": "cd adet-fe-bsit22 && npm run build",
     "install:all": "cd adet-be-bsit22 && npm install && cd ../adet-fe-bsit22 && npm install"
   },
   "author": "ADET-BSIT22 Team",

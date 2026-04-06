@@ -1,9 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiService } from '../../../core/services/api.service';
+import { PostService } from '../../../core/services/post.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -13,7 +15,7 @@ import { NavbarComponent } from '../../../shared/navbar/navbar.component';
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.scss'],
 })
-export class PostCreateComponent implements OnInit {
+export class PostCreateComponent implements OnInit, OnDestroy {
   title = '';
   categoryId = '';
   description = '';
@@ -23,12 +25,14 @@ export class PostCreateComponent implements OnInit {
   user: any = {};
 
   categories: any[] = [];
+  private catSub?: Subscription;
 
   constructor(
     private auth: AuthService, 
     private api: ApiService, 
     private cdr: ChangeDetectorRef, 
-    private router: Router
+    private router: Router,
+    private postService: PostService
   ) {}
 
   ngOnInit() {
@@ -37,17 +41,22 @@ export class PostCreateComponent implements OnInit {
       this.user = this.auth.getUser() || {};
     }
     
-    // Dynamically pull allowed categories
-    this.api.get<any[]>('/categories').subscribe({
-      next: (cats) => {
-        this.categories = cats;
-        this.cdr.detectChanges();
-      },
-      error: (e) => console.error('Failed to load categories', e)
+    // Use stateful categories
+    this.catSub = this.postService.categories$.subscribe(cats => {
+      this.categories = cats;
+      this.cdr.detectChanges();
     });
+
+    this.postService.getCategories();
+  }
+
+  ngOnDestroy() {
+    if (this.catSub) this.catSub.unsubscribe();
   }
 
   onSubmit() {
+    if (!this.title || !this.categoryId || !this.description) return;
+
     this.loading = true;
     this.api.post('/posts', { 
       title: this.title, 
@@ -55,11 +64,14 @@ export class PostCreateComponent implements OnInit {
       description: this.description 
     }).subscribe({
       next: () => {
+        // Trigger a background refresh of the post list so the Feed is ready
+        this.postService.refreshPosts();
+        
         this.loading = false;
         this.success = true;
         this.cdr.detectChanges();
 
-        // Elegantly shift focus back to feed after user reads the success message
+        // Redirect back to feed after showing success message
         setTimeout(() => this.router.navigate(['/feed']), 1800);
       },
       error: (e) => {

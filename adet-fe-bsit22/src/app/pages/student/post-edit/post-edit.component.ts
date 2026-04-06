@@ -61,6 +61,65 @@ import { ApiService }        from '../../../core/services/api.service';
   <footer class="app-footer"><div class="footer-brand">Liceo de Cagayan University<span>© 2026 The Academic Curator.</span></div></footer>
 </div>`,
   styleUrls: ['../post-create/post-create.component.scss'],
+  styles: [`
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--primary), var(--primary-container));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 24px rgba(87, 0, 0, 0.2);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(254, 214, 91, 0.15), transparent);
+        transition: none;
+      }
+
+      &:hover:not(:disabled) {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 16px 32px rgba(87, 0, 0, 0.3), 0 0 0 2px var(--secondary-container);
+        background: linear-gradient(135deg, var(--primary-container), #9c0000);
+        
+        &::before {
+          left: 100%;
+          transition: all 0.7s ease-in-out;
+        }
+
+        .material-symbols-outlined {
+          transform: translateX(4px) rotate(-10deg);
+          color: var(--secondary-container);
+        }
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(-1px) scale(0.98);
+        box-shadow: 0 4px 12px rgba(87, 0, 0, 0.2);
+      }
+
+      &[disabled] {
+        background: var(--surface-container-high);
+        color: var(--outline);
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .material-symbols-outlined {
+        font-size: 1.25rem;
+        transition: transform 0.3s, color 0.3s;
+      }
+
+      .spinner {
+        border-top-color: var(--secondary-container);
+      }
+    }
+  `]
 })
 export class PostEditComponent implements OnInit {
   postId      = '';

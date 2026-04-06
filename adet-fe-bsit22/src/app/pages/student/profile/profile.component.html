@@ -1,87 +1,129 @@
-<div class="profile-page">
-  <app-navbar active="profile"></app-navbar>
+<app-navbar></app-navbar>
 
-  <main class="profile-main">
-    <div class="profile-inner">
-
+<div class="profile-container academic-backdrop">
+  <div class="profile-layout">
+    
+    <!-- Profile Card (Premium Display) -->
+    <div class="profile-card premium-shadow">
       <div class="profile-header">
-        <div class="avatar-large">{{ displayName[0] }}</div>
-        <div>
-          <h1>{{ displayName }}</h1>
-          <p>{{ email }}</p>
+        <div class="profile-avatar">
+          <span class="material-symbols-outlined avatar-icon">account_circle</span>
+        </div>
+        <div class="profile-title">
+          <h2>Student Profile</h2>
+          <p class="email-badge">{{ email }}</p>
         </div>
       </div>
 
-      <div class="success-toast" *ngIf="saved">
-        <span class="material-symbols-outlined">check_circle</span> Profile saved successfully!
-      </div>
-      
-
-      <div class="profile-grid">
-
-        <!-- ACCOUNT INFO -->
-        <section class="profile-card">
-          <h2>Account Information</h2>
-          <div class="field">
-            <label class="field-label" for="displayName">Display Name <span class="req">*</span></label>
-            <input class="input-academic" id="displayName" type="text" [(ngModel)]="displayName" name="displayName"/>
+      <div class="profile-content">
+        <!-- Display Name Section -->
+        <div class="info-group">
+          <div class="group-label">
+            <span class="material-symbols-outlined label-icon">badge</span>
+            <span>Display Name</span>
           </div>
-          <div class="field">
-            <label class="field-label" for="email">University Email <span class="req">*</span></label>
-            <input class="input-academic" id="email" type="email" [(ngModel)]="email" name="email" disabled/>
-            <p class="field-note">Email cannot be changed.</p>
+          <input 
+            type="text" 
+            [(ngModel)]="displayName" 
+            placeholder="Your name for posts"
+            class="input-academic name-input"
+            maxlength="30">
+        </div>
+
+        <!-- Contacts Section -->
+        <div class="info-group">
+          <div class="group-label">
+            <span class="material-symbols-outlined label-icon">contact_support</span>
+            <span>Contact Information</span>
           </div>
-        </section>
 
-        <!-- CONTACT INFO -->
-        <section class="profile-card">
-          <h2>Contact Information</h2>
-          <p class="section-desc">Your contacts are shown to logged-in students when they view your posts.</p>
-
-          <div class="contact-list">
-            <div class="contact-item" *ngFor="let c of contacts; let i = index">
-              <span class="contact-badge">{{ c.type }}</span>
+          <!-- Existing List -->
+          <div class="contacts-grid" *ngIf="contacts.length > 0">
+            <div class="contact-badge" *ngFor="let c of contacts; let i = index">
+              <span class="material-symbols-outlined contact-type-icon">
+                {{ c.type.toLowerCase() === 'messenger' ? 'chat' : (c.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
+              </span>
               <span class="contact-val">{{ c.value }}</span>
-              <button class="remove-btn" (click)="removeContact(i)">
+              <button class="remove-btn" (click)="removeContact(i)" title="Remove contact">
                 <span class="material-symbols-outlined">close</span>
               </button>
             </div>
           </div>
 
-          <div class="add-contact">
-            <div class="select-wrap">
-              <select class="input-academic contact-type-select" [(ngModel)]="newContact.type" name="contactType">
-                <option *ngFor="let t of contactTypes" [value]="t">{{ t }}</option>
-              </select>
-              <span class="material-symbols-outlined select-icon">expand_more</span>
-            </div>
-            <input class="input-academic" type="text" [(ngModel)]="newContact.value" name="contactValue"
-              placeholder="e.g., m.me/yourname or 09XXXXXXXXX"/>
-            <button class="add-btn" (click)="addContact()">
-              <span class="material-symbols-outlined">add</span>
-            </button>
+          <!-- Empty State -->
+          <div class="empty-contacts" *ngIf="contacts.length === 0">
+            <p>No contact methods added yet.</p>
           </div>
-        </section>
 
-      </div>
+          <!-- Add Contact Box -->
+          <div class="add-contact-box">
+            <div class="add-contact-inputs">
+              <div class="select-wrap">
+                <span class="material-symbols-outlined selection-icon">
+                  {{ newContact.type.toLowerCase() === 'messenger' ? 'chat' : (newContact.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
+                </span>
+                <select class="input-academic contact-type-select" [(ngModel)]="newContact.type" name="contactType">
+                  <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+              
+              <div class="input-wrap">
+                <input 
+                  type="text" 
+                  [(ngModel)]="newContact.value" 
+                  placeholder="ID, @username, or digits..." 
+                  class="input-academic contact-val-input"
+                  (keyup.enter)="newContact.value.trim() ? addContact() : null">
+                <button class="add-btn-premium" (click)="addContact()" [disabled]="!newContact.value.trim()">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </div>
 
-      <div class="profile-actions">
-        <div class="error-text" *ngIf="saveError">
-          <span class="material-symbols-outlined">error</span>
-          <span>{{ saveError }}</span>
+            <!-- Error Display -->
+            <div class="contact-error" *ngIf="contactError">
+              <span class="material-symbols-outlined">error_outline</span>
+              <span>{{ contactError }}</span>
+            </div>
+          </div>
         </div>
-        <button class="btn-primary save-btn" (click)="onSave()" [disabled]="saving">
-          <span *ngIf="!saving">Save Changes</span>
-          <span *ngIf="!saving" class="material-symbols-outlined">save</span>
-          <span *ngIf="saving" class="spinner"></span>
+
+        <!-- Action Bar -->
+        <div class="action-bar-premium">
+          <div class="save-status">
+            <span class="status-saved" *ngIf="saved && !saveError">
+              <span class="material-symbols-outlined">check_circle</span>
+              Profile saved
+            </span>
+            <span class="status-error" *ngIf="saveError">
+              <span class="material-symbols-outlined">error</span>
+              {{ saveError }}
+            </span>
+          </div>
+
+          <button class="btn-primary save-btn" (click)="onSave()" [disabled]="saving">
+            <span class="material-symbols-outlined" *ngIf="!saving">save_as</span>
+            <span class="loader-academic" *ngIf="saving"></span>
+            {{ saving ? 'Saving Changes...' : 'Save Profile' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security/Account Utility -->
+    <div class="utility-card premium-shadow">
+      <div class="utility-header">
+        <span class="material-symbols-outlined">admin_panel_settings</span>
+        Account Actions
+      </div>
+      <div class="utility-actions">
+        <button class="btn-outline logout-btn" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span>
+          Logout from Portal
         </button>
       </div>
-
     </div>
-  </main>
 
-  <footer class="app-footer">
-    <div class="footer-brand">Liceo de Cagayan University<span>© 2026 The Academic Curator.</span></div>
-    <div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
-  </footer>
+  </div>
 </div>

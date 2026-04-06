@@ -1,17 +1,5 @@
 <div class="admin-posts-page">
-  <header class="app-nav">
-    <div class="nav-inner">
-      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
-      <nav class="nav-links">
-        <a routerLink="/feed">Requests</a>
-        <a routerLink="/admin" class="active">Dashboard</a>
-      </nav>
-      <div class="nav-actions">
-        <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
-        <button class="icon-btn avatar-btn">A</button>
-      </div>
-    </div>
-  </header>
+  <app-navbar active="admin"></app-navbar>
 
   <main class="admin-main">
     <div class="page-header">
@@ -24,7 +12,11 @@
       </a>
     </div>
 
-    <div class="toolbar">
+    <div class="loading-overlay" *ngIf="loading">
+      <span class="serif-italic">Connecting to Curatorial Database...</span>
+    </div>
+
+    <div class="toolbar" *ngIf="!loading">
       <div class="tabs">
         <button *ngFor="let tab of tabs" [class.active]="activeTab === tab" (click)="setTab(tab)">
           {{ tab }}
@@ -64,10 +56,10 @@
         </div>
         <div class="col-status">
           <span class="status-chip"
-            [class.chip-active]="post.status === 'active'"
-            [class.chip-flagged]="post.status === 'flagged'"
-            [class.chip-removed]="post.status === 'removed'">
-            {{ post.status | uppercase }}
+            [class.chip-active]="post.status === 'OPEN'"
+            [class.chip-flagged]="post.flagged"
+            [class.chip-removed]="post.status === 'REMOVED'">
+            {{ post.status }}
           </span>
         </div>
         <div class="col-actions">

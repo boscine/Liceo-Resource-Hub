@@ -72,7 +72,13 @@
             </div>
           </div>
           <h3 class="post-title serif-italic">{{ post.title }}</h3>
-          <p class="post-author" *ngIf="post.author">By {{ post.author }}</p>
+          <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
+            <div class="author-avatar">{{ post.author[0] }}</div>
+            <div>
+              <p class="author-name">{{ post.author }}</p>
+              <p class="author-college">{{ post.college }}</p>
+            </div>
+          </div>
           <p class="post-desc">{{ post.description }}</p>
           
           <div class="post-footer">

@@ -18,6 +18,7 @@ model User {
   verificationExpiresAt DateTime?       @map("verification_expires_at")
   lastLogin      DateTime?       @map("last_login")
   createdAt      DateTime        @default(now()) @map("created_at")
+  college        String?         @default("Liceo Student") @map("college")
   contacts       Contact[]
   passwordResets PasswordReset[]
   posts          Post[]

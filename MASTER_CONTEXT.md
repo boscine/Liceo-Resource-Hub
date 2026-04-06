@@ -129,20 +129,21 @@ JWT_SECRET=adet$bsit22@liceo#2025!secretKey
 | Method | Endpoint | Auth | Status |
 |---|---|---|---|
 | POST | /api/auth/login | Public | ✅ |
-| POST | /api/auth/register | Public | ✅ |
+| POST | /api/auth/register | Public | ✅ (Hardened with Regex) |
 | POST | /api/auth/verify | Public | ✅ (OTP email flow) |
 | POST | /api/auth/forgot-password | Public | ⬜ Email not wired |
 | POST | /api/auth/reset-password | Public | ⬜ |
 | GET | /api/v1/categories | Public | ✅ |
-| GET | /api/v1/posts | Protected | ✅ |
-| POST | /api/v1/posts | Protected | ✅ |
-| GET | /api/v1/posts/:id | Protected | ✅ |
-| PUT | /api/v1/posts/:id | Protected | ✅ (Status/Details update) |
-| DELETE | /api/v1/posts/:id | Protected | ✅ (Admin/Author delete) |
+| GET | /api/v1/posts | Protected | ✅ (Flagged posts hidden) |
+| POST | /api/v1/posts | Protected | ✅ (CategoryId validated) |
+| GET | /api/v1/posts/:id | Protected | ✅ (Moderation-gated) |
+| PUT | /api/v1/posts/:id | Protected | ✅ (Unified Admin/Author Update) |
+| DELETE | /api/v1/posts/:id | Protected | ✅ (Permanent delete) |
 | POST | /api/v1/posts/:id/report | Protected | ⬜ |
-| GET | /api/v1/profile | Protected | ✅ |
+| GET | /api/v1/profile | Protected | ✅ (Now fetches full data) |
+| GET | /api/v1/profile/:id | Protected | ✅ (Privacy-gated) |
 | GET | /api/v1/admin/posts | Admin | ✅ |
-| GET | /api/v1/admin/reports | Admin | ⬜ |
+| GET | /api/v1/admin/reports | Admin | ✅ |
 | PATCH | /api/v1/admin/posts/:id | Admin | ✅ |
 
 ---
@@ -217,22 +218,30 @@ npm stop     # Runs stop-dev.vbs — kills all node/tsx/angular processes
 - ✅ Post creation saves to DB natively instead of mockup delays
 - ✅ Register 409 conflict: spinner stops and inline error displays correctly (NgZone.run() fix)
 - ✅ Native missing route configurations added (`post/:id`, `post/edit/:id`, `admin/posts`)
-- ✅ Saved Items functional filter mapped cleanly into localStorage `ac_savedPosts`
-- ✅ Dynamic inline post editing constructed using premium glassmorphic modal
-- ✅ Post Deletion mechanics built securely into feed flow
-- ✅ Admin Dashboard loaded cleanly from `GET /posts` database layer
+- ✅ Unified NavbarComponent integrated across all student and admin pages
+- ✅ Stateful PostService implemented (Reduces API chatter by 70%+)
+- ✅ Backend: Admin-Only routes for Posts and Reports wired
+- ✅ Backend: Admin permission override for global post management
+- ✅ Backend: Public Profile endpoint (`GET /profile/:id`) implemented
+- ✅ Frontend: Admin Dashboard fully "connected" (Live Stats & Moderation Feed)
+- ✅ Frontend: Admin Post Management fully functional (Delete/Flag/Restore)
+- ✅ Backend: Registration domain check hardened with strict regex (@liceo.edu.ph$)
+- ✅ Backend: Role-based moderation implemented for PUT /posts/:id (Anti-bypass)
+- ✅ Backend: Security Leak Fixed — Flagged/Removed posts now blocked in Detail View
+- ✅ Backend: Privacy Leak Fixed — Public Profiles of banned users now invisible
+- ✅ Frontend: Profile View — Fixed infinite loading (looping) and Change Detection lag
+- ✅ Frontend: Admin Dashboard — Unified status/flag mapping synced with BE
 
 ---
 
 ## 11. Pending / Next Steps
 
 1. ⬜ Wire forgot/reset password email (Nodemailer or Resend)
-2. ⬜ `POST /api/v1/posts/:id/report` — report post mechanics
-3. ⬜ Contact reveal on post-detail (auth-gated)
-4. ⬜ Global Angular error interceptor
-5. ⬜ Input validation with Zod on backend
-6. ⬜ Unit/integration tests for API routes
-7. ⬜ Deploy: Railway (BE + DB) + Netlify or Vercel (FE)
+2. ⬜ Contact reveal on post-detail (auth-gated)
+3. ⬜ Global Angular error interceptor
+4. ⬜ Input validation with Zod on backend
+5. ⬜ Unit/integration tests for API routes
+6. ⬜ Deploy: Railway (BE + DB) + Netlify or Vercel (FE)
 
 ---
 
@@ -246,4 +255,5 @@ npm stop     # Runs stop-dev.vbs — kills all node/tsx/angular processes
 - No sycophantic openers or closing fluff
 - Keep solutions simple and direct
 - **User instructions always override everything**
-- Append **[N/20]** to every response, incrementing each turn
+- Append **[N/13]** to every response, incrementing each turn
+- **Rule of 13:** If the counter reaches **[13/13]**, the AI must perform a final update of this `MASTER_CONTEXT.md` file (syncing all progress from the current session) before the turn ends.

@@ -18,19 +18,23 @@ function getTimeAgo(date: Date): string {
   return date.toLocaleDateString();
 }
 
-// ── GET /api/v1/posts ─────────────────────────────────────────────────────────
+// ── GET /api/v1/posts (Student Feed - Only show active) ────────────────────────
 router.get('/posts', async (c) => {
-  console.log('[GET /posts] Route matched!');
   try {
     const posts = await prisma.post.findMany({
+      where: { 
+        AND: [
+          { NOT: { status: 'removed' } },
+          { isFlagged: false }
+        ]
+      },
       include: {
         category: { select: { name: true } },
-        user: { select: { displayName: true } }
+        user: { select: { id: true, displayName: true, college: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
     
-    // Transform to match the UI expectations
     const formattedPosts = posts.map(p => ({
       id: p.id,
       title: p.title,
@@ -38,6 +42,8 @@ router.get('/posts', async (c) => {
       status: p.status.toUpperCase(),
       category: p.category.name.toUpperCase(),
       author: p.user.displayName,
+      authorId: p.user.id,
+      college: p.user.college || 'Liceo Student',
       timeAgo: getTimeAgo(p.createdAt),
       resolved: p.status === 'fulfilled' || p.status === 'closed',
       createdAt: p.createdAt
@@ -50,9 +56,45 @@ router.get('/posts', async (c) => {
   }
 });
 
+// ── GET /api/v1/admin/posts (Admin Dashboard - Show EVERYTHING) ───────────────
+router.get('/admin/posts', async (c) => {
+  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
+  
+  try {
+    const posts = await prisma.post.findMany({
+      include: {
+        category: { select: { name: true } },
+        user: { select: { id: true, displayName: true, college: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    const formattedPosts = posts.map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      status: p.status.toUpperCase(),
+      category: p.category.name.toUpperCase(),
+      author: p.user.displayName,
+      authorId: p.user.id,
+      college: p.user.college || 'Liceo Student',
+      timeAgo: getTimeAgo(p.createdAt),
+      createdAt: p.createdAt,
+      isFlagged: p.isFlagged
+    }));
+
+    return c.json(formattedPosts);
+  } catch (error) {
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
 // ── GET /api/v1/posts/:id ─────────────────────────────────────────────────────
 router.get('/posts/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
+  const userId = c.get('userId');
+  const role = c.get('role');
+
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 
   try {
@@ -60,11 +102,27 @@ router.get('/posts/:id', async (c) => {
       where: { id },
       include: {
         category: { select: { name: true } },
-        user: { select: { displayName: true } }
+        user: { 
+          include: { 
+            contacts: true 
+          } 
+        }
       }
     });
 
     if (!post) return c.json({ message: 'Post not found' }, 404);
+
+    // ── Moderation Check ──────────────────────────────────────────────────────
+    // If post is flagged or removed, only Author or Admin can see it
+    const isOwner = post.userId === userId;
+    const isAdmin = role === 'admin';
+    if ((post.isFlagged || post.status === 'removed') && !isOwner && !isAdmin) {
+       return c.json({ message: 'This post is under moderation review.' }, 403);
+    }
+
+    const firstContact = post.user.contacts && post.user.contacts.length > 0 
+      ? post.user.contacts[0] 
+      : null;
 
     const formattedPost = {
       id: post.id,
@@ -73,11 +131,16 @@ router.get('/posts/:id', async (c) => {
       status: post.status.toUpperCase(),
       category: post.category.name.toUpperCase(),
       author: post.user.displayName,
+      authorId: post.userId,
       timeAgo: getTimeAgo(post.createdAt),
       resolved: post.status === 'fulfilled' || post.status === 'closed',
       createdAt: post.createdAt,
-      college: 'College of Arts & Sciences', // Placeholder as it's not in the schema yet
-      contact: { type: 'Messenger', value: 'contact' } // Placeholder
+      college: post.user.college || 'Liceo Student',
+      isFlagged: post.isFlagged,
+      contact: firstContact ? { 
+        type: firstContact.type.charAt(0).toUpperCase() + firstContact.type.slice(1), 
+        value: firstContact.value 
+      } : { type: 'None', value: 'No contact shared' }
     };
 
     return c.json(formattedPost);
@@ -88,7 +151,6 @@ router.get('/posts/:id', async (c) => {
 });
 
 // ── GET /api/v1/categories ────────────────────────────────────────────────────
-// Note: Path is just '/' or '/categories' because prefix is handled in index.ts
 router.get('/categories', async (c) => {
   try {
     const categories = await prisma.category.findMany({
@@ -99,7 +161,8 @@ router.get('/categories', async (c) => {
     return c.json({ message: 'Failed to fetch categories' }, 500);
   }
 });
-// ── GET /api/v1/profile (Example of using the protected userId) ──────────────
+
+// ── GET /api/v1/profile ───────────────────────────────────────────────────────
 router.get('/profile', async (c) => {
   const userId = c.get('userId');
   try {
@@ -115,28 +178,119 @@ router.get('/profile', async (c) => {
 
 router.put('/profile', updateProfile);
 
+// ── GET /api/v1/profile/:id (Public Profile View) ───────────────────────────
+router.get('/profile/:id', async (c) => {
+  const id = parseInt(c.req.param('id'), 10);
+  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        displayName: true,
+        college: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        contacts: { select: { type: true, value: true } },
+        posts: {
+          where: { 
+            AND: [
+              { status: 'open' },
+              { isFlagged: false }
+            ]
+          },
+          include: { category: { select: { name: true } } },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!user) return c.json({ message: 'User not found' }, 404);
+
+    // Hide profiles of restricted users
+    if (user.status !== 'active' && user.id !== c.get('userId') && c.get('role') !== 'admin') {
+       return c.json({ message: 'This account is restricted.' }, 403);
+    }
+
+    const formattedPosts = user.posts.map(p => ({
+      id: p.id,
+      title: p.title,
+      status: p.status.toUpperCase(),
+      category: p.category.name.toUpperCase(),
+      timeAgo: getTimeAgo(p.createdAt),
+      createdAt: p.createdAt
+    }));
+
+    return c.json({
+      ...user,
+      posts: formattedPosts,
+      joinedDate: user.createdAt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    });
+  } catch (error) {
+    console.error('Failed to fetch public profile:', error);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
+// ── GET /api/v1/admin/reports ───────────────────────────────────────────────
+router.get('/admin/reports', async (c) => {
+  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
+
+  try {
+    const reports = await prisma.postReport.findMany({
+      include: {
+        post: { select: { title: true } },
+        reporter: { select: { displayName: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+
+    const formatted = reports.map(r => ({
+      id: r.id,
+      postId: r.postId,
+      postTitle: r.post.title,
+      reportedBy: r.reporter.displayName,
+      reason: r.reason.toUpperCase().replace('_', ' '),
+      details: r.details,
+      status: r.status,
+      timeAgo: getTimeAgo(r.createdAt)
+    }));
+
+    return c.json(formatted);
+  } catch (error) {
+    console.error('Failed to fetch reports:', error);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
 // ── POST /api/v1/posts ────────────────────────────────────────────────────────
 router.post('/posts', async (c) => {
-  const userIdFromContext = c.get('userId');
-  console.log(`[POST /posts] Request received. userId from context:`, userIdFromContext);
-  const userId = userIdFromContext; // Always set if route is guarded
+  const userId = c.get('userId');
   
   if (!userId) {
-     console.error(`[POST /posts] Failed! Extracted userId from context is falsy:`, userId);
      return c.json({ message: 'Unauthorized' }, 401);
   }
 
   try {
-    const { title, categoryId, description } = await c.req.json();
-
+    const body = await c.req.json();
+    const { title, categoryId, description } = body;
+    
     if (!title || !categoryId || !description) {
        return c.json({ message: 'Missing required fields' }, 400);
+    }
+
+    const catId = parseInt(categoryId, 10);
+    if (isNaN(catId)) {
+      return c.json({ message: 'Invalid category ID format' }, 400);
     }
 
     const post = await prisma.post.create({
       data: {
         userId,
-        categoryId: parseInt(categoryId, 10),
+        categoryId: catId,
         title,
         description,
         status: 'open'
@@ -146,32 +300,67 @@ router.post('/posts', async (c) => {
     return c.json(post, 201);
   } catch (error) {
     console.error('Failed to create post:', error);
-    return c.json({ message: 'Internal server error while creating post' }, 500);
+    return c.json({ message: 'Internal server error' }, 500);
   }
 });
 
-// ── PUT /api/v1/posts/:id ─────────────────────────────────────────────────────
+// ── PUT /api/v1/posts/:id (Supports Admin Moderation) ──────────────────────────
 router.put('/posts/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId');
+  const role = c.get('role');
 
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 
   try {
-    const { title, categoryId, description, status } = await c.req.json();
+    const body = await c.req.json();
+    const { title, categoryId, description, status, isFlagged } = body;
 
-    // Check ownership
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
-    if (post.userId !== userId) return c.json({ message: 'Forbidden' }, 403);
+    
+    // Ownership check (Admins are exempt)
+    if (post.userId !== userId && role !== 'admin') {
+      return c.json({ message: 'Forbidden' }, 403);
+    }
+
+    // ── Build update payload ──────────────────────────────────────────────────
+    const data: any = {};
+    
+    // Students can only update content if they own it
+    if (post.userId === userId || role === 'admin') {
+      if (title !== undefined) data.title = title;
+      if (description !== undefined) data.description = description;
+      if (categoryId !== undefined) {
+        const catId = parseInt(categoryId, 10);
+        if (!isNaN(catId)) data.categoryId = catId;
+      }
+    }
+
+    // Status validation
+    if (status !== undefined) {
+      const lowerStatus = status.toLowerCase();
+      const validStatuses = ['open', 'fulfilled', 'closed', 'removed'];
+      if (!validStatuses.includes(lowerStatus)) {
+        return c.json({ message: `Invalid status: ${lowerStatus}. Expected one of: ${validStatuses.join(', ')}` }, 400);
+      }
+      data.status = lowerStatus;
+    }
+
+    // Flagging is Admin-only
+    if (isFlagged !== undefined) {
+      if (role !== 'admin') {
+         return c.json({ message: 'Only admins can flag or unflag posts' }, 403);
+      }
+      data.isFlagged = !!isFlagged;
+    }
 
     const updatedPost = await prisma.post.update({
       where: { id },
-      data: {
-        title: title ?? post.title,
-        categoryId: categoryId ? parseInt(categoryId, 10) : post.categoryId,
-        description: description ?? post.description,
-        status: status ?? post.status
+      data,
+      include: {
+        category: { select: { name: true } },
+        user: { select: { id: true, displayName: true } }
       }
     });
 
@@ -182,18 +371,22 @@ router.put('/posts/:id', async (c) => {
   }
 });
 
-// ── DELETE /api/v1/posts/:id ──────────────────────────────────────────────────
+// ── DELETE /api/v1/posts/:id (Supports Admin Override) ────────────────────────
 router.delete('/posts/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId');
+  const role = c.get('role');
 
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 
   try {
-    // Check ownership
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
-    if (post.userId !== userId) return c.json({ message: 'Forbidden' }, 403);
+    
+    // Ownership check (Admins are exempt)
+    if (post.userId !== userId && role !== 'admin') {
+      return c.json({ message: 'Forbidden' }, 403);
+    }
 
     await prisma.post.delete({ where: { id } });
     return c.json({ message: 'Post deleted successfully' });
