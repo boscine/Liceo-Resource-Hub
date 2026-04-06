@@ -57,6 +57,21 @@
         </button>
       </div>
 
+      <!-- Bulk Actions (Only for 'Your Requests') -->
+      <div class="bulk-actions-bar" *ngIf="viewMode === 'requests' && paginatedPosts.length > 0">
+        <div class="select-all-row">
+          <label class="checkbox-container">
+            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()">
+            <span class="checkmark"></span>
+            Select All displayed
+          </label>
+        </div>
+        <button class="bulk-delete-btn" [disabled]="selectedPosts.size === 0" (click)="requestBulkDelete()">
+          <span class="material-symbols-outlined">delete</span>
+          Delete Selected ({{ selectedPosts.size }})
+        </button>
+      </div>
+
       <!-- Posts Grid -->
       <div class="posts-grid" *ngIf="!loading">
         <div class="post-card" *ngFor="let post of paginatedPosts">
@@ -64,11 +79,18 @@
             <span class="post-status" [ngClass]="getStatusClass(post.status)">{{ post.status }}</span>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="post-time">{{ post.timeAgo }}</span>
-              <button class="icon-btn" style="padding: 0.25rem;" (click)="toggleSave(post)" [title]="isSaved(post) ? 'Remove from Saved' : 'Save Request'">
+              <!-- Save Button (Only if NOT my post) -->
+              <button class="icon-btn" style="padding: 0.25rem;" (click)="toggleSave(post)" [title]="isSaved(post) ? 'Remove from Saved' : 'Save Request'" *ngIf="!isMyPost(post)">
                 <span class="material-symbols-outlined" 
                       [style.font-variation-settings]="isSaved(post) ? '\'FILL\' 1' : '\'FILL\' 0'"
                       [style.color]="isSaved(post) ? '#570000' : 'var(--outline)'">bookmark</span>
               </button>
+              
+              <!-- Selection Checkbox (Integrated into top actions) -->
+              <label class="checkbox-container" style="padding-left: 20px; font-size: 0;" *ngIf="viewMode === 'requests'">
+                <input type="checkbox" [checked]="selectedPosts.has(post.id)" (change)="toggleSelect(post.id)">
+                <span class="checkmark" style="position: static; display: inline-block;"></span>
+              </label>
             </div>
           </div>
           <h3 class="post-title serif-italic">{{ post.title }}</h3>
@@ -90,14 +112,11 @@
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               
               <!-- Regular Delete Button -->
-              <button class="view-details" style="background: rgba(186,26,26,0.06); padding: 0.4rem 0.6rem; border: none; cursor: pointer; color: var(--error);" *ngIf="viewMode === 'requests'" title="Delete Request" (click)="deletePost(post.id)">
+              <button class="view-details" style="background: rgba(186,26,26,0.06); padding: 0.4rem 0.6rem; border: none; cursor: pointer; color: var(--error);" *ngIf="viewMode === 'requests'" title="Delete Request" (click)="requestDelete(post)">
                 <span class="material-symbols-outlined" style="font-size:16px; margin: 0;">delete</span>
               </button>
 
-              <!-- Edit Popup Button Drop-in -->
-              <button class="view-details" style="background: rgba(87,0,0,0.06); padding: 0.4rem 0.6rem; border: none; cursor: pointer; color: var(--primary);" *ngIf="viewMode === 'requests'" title="Edit Request" (click)="startEdit(post)">
-                <span class="material-symbols-outlined" style="font-size:16px; margin: 0;">edit</span>
-              </button>
+
 
               <!-- Standard View Details -->
               <a [routerLink]="['/post', post.id]" class="view-details" *ngIf="!post.resolved || viewMode === 'requests'">
@@ -140,6 +159,32 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div class="editor-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="editor-modal confirm-delete-modal" (click)="$event.stopPropagation()">
+      <div class="editor-header bg-error">
+        <h2 class="serif-italic text-white">Confirm Deletion</h2>
+        <button class="icon-btn close-btn text-white" (click)="cancelDelete()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="editor-body">
+        <div class="warning-box">
+          <span class="material-symbols-outlined warning-icon">warning</span>
+          <p *ngIf="!isBulkDelete">Are you sure you want to permanently delete <strong>"{{ postToDelete?.title }}"</strong>? This action cannot be undone.</p>
+          <p *ngIf="isBulkDelete">Are you sure you want to permanently delete <strong>{{ selectedPosts.size }} selected requests</strong>? This action cannot be undone.</p>
+        </div>
+      </div>
+      <div class="editor-footer">
+        <button class="btn-cancel" (click)="cancelDelete()">Keep Request</button>
+        <button class="btn-error" (click)="confirmDelete()" [disabled]="deleting">
+          <span *ngIf="!deleting">Yes, Delete Permanently</span>
+          <span *ngIf="deleting" class="spinner"></span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- EDIT MODAL -->

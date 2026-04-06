@@ -9,9 +9,9 @@
   --primary-container:        #800000;
   --on-primary:               #ffffff;
   --on-primary-container:     #ff8371;
-  --secondary:                #9c7c00; /* Updated: A more 'Pleasant Gold' for labels and accents */
-  --secondary-container:      #fed65b;
-  --on-secondary-container:   #745c00;
+  --secondary:                #c5a021; /* Updated: A more vibrant, appealing Gold for labels and accents */
+  --secondary-container:      #ffecb3;
+  --on-secondary-container:   #3d2e00;
   --surface:                  #f8f9fa;
   --surface-bright:           #f8f9fa;
   --surface-dim:              #d9dadb;
@@ -313,7 +313,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--secondary);
+  color: var(--primary);
   margin-bottom: 0.4rem;
 }
 

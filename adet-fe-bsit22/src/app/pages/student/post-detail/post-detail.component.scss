@@ -7,7 +7,32 @@
 .detail-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; @media (min-width: 768px) { grid-template-columns: 1fr 300px; } }
 .post-card { background: var(--surface-container-lowest); padding: 2rem 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
 .post-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-.post-status { background: rgba(87,0,0,0.08); color: var(--primary); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); }
+.post-status {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;
+  padding: 0.25rem 0.75rem; border-radius: var(--radius-full);
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  border: 1px solid transparent;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  &.status-open { 
+    background: rgba(197, 160, 33, 0.08); // Gold tint
+    color: var(--secondary); // Academia Gold text
+    border-color: rgba(197, 160, 33, 0.3);
+    box-shadow: 0 2px 10px rgba(197, 160, 33, 0.15);
+    
+    &::before {
+      content: ''; width: 6px; height: 6px; background: var(--secondary); border-radius: 50%;
+      display: inline-block; animation: status-pulse 2s infinite;
+    }
+  }
+  &.status-fulfilled { background: var(--surface-container-high); color: var(--on-surface-variant); border-color: var(--outline-variant); }
+}
+
+@keyframes status-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
 .post-meta { font-size: 0.8rem; color: var(--on-surface-variant); }
 .post-title { font-family: var(--font-headline); font-style: italic; font-size: clamp(1.5rem, 3vw, 2rem); color: var(--on-surface); line-height: 1.25; margin-bottom: 1.25rem; }
 .author-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; transition: transform 0.2s, opacity 0.2s; &.clickable { cursor: pointer; &:hover { transform: translateX(4px); .author-name { color: var(--primary); } } } }

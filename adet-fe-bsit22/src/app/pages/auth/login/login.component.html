@@ -68,10 +68,6 @@
         <h2 class="card-title">Portal Login</h2>
         <p class="card-subtitle">Authenticity is key. Please use your official university credentials.</p>
 
-        <div class="error-box" *ngIf="error">
-          <span class="material-symbols-outlined">error</span>
-          {{ error }}
-        </div>
 
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
 

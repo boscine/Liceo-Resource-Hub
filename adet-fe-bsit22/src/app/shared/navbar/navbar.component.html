@@ -6,6 +6,7 @@
     <nav class="nav-links">
       <a routerLink="/feed"        [class.active]="active === 'feed'">Requests</a>
       <a routerLink="/post/create" [class.active]="active === 'create'">Create</a>
+      <a routerLink="/curator-guide" [class.active]="active === 'guide'">Protocol</a>
       <a routerLink="/admin"       [class.active]="active === 'admin'" *ngIf="isAdmin">Dashboard</a>
     </nav>
 

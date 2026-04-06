@@ -25,6 +25,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/student/post-create/post-create.component').then(m => m.PostCreateComponent)
   },
   {
+    path: 'curator-guide',
+    loadComponent: () => import('./pages/student/curator-guide/curator-guide.component').then(m => m.CuratorGuideComponent)
+  },
+  {
     path: 'admin/dashboard',
     canActivate: [AdminGuard], // You need to create this guard
     loadComponent: () => import('./pages/admin/dashboard/dashboard.component').then(m => m.DashboardComponent)

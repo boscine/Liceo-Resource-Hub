@@ -11,8 +11,8 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit {
-  /** Which nav link should be highlighted as active. Pass 'feed' | 'create' | 'admin' | 'profile' */
-  @Input() active: 'feed' | 'create' | 'admin' | 'profile' | '' = '';
+  /** Which nav link should be highlighted as active. Pass 'feed' | 'create' | 'admin' | 'profile' | 'guide' */
+  @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | '' = '';
 
   user: any       = {};
   isAdmin         = false;

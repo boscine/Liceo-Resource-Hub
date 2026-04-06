@@ -4,6 +4,7 @@ import { FormsModule }       from '@angular/forms';
 import { RouterModule }      from '@angular/router';
 import { AuthService }       from '../../../core/services/auth.service';
 import { ApiService }        from '../../../core/services/api.service';
+import { ToastService }      from '../../../core/services/toast.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -16,18 +17,25 @@ import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 export class ProfileComponent implements OnInit {
   displayName = '';
   email       = '';
+  college     = '';
   contacts: Array<{type: string, value: string}> = [];
   newContact: {type: string, value: string} = { type: 'messenger', value: '' };
+  
   saving      = false;
   saved       = false;
-  saveError   = '';
   contactError = '';
   contactTypes = ['messenger', 'phone', 'other'];
 
   initialDisplayName = '';
+  initialCollege     = '';
   initialContactsStr = '';
 
-  constructor(private auth: AuthService, private api: ApiService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private auth: AuthService, 
+    private api: ApiService, 
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
+  ) {}
 
   ngOnInit() {
     this.fetchProfile();
@@ -37,11 +45,13 @@ export class ProfileComponent implements OnInit {
     this.api.get<any>('/profile').subscribe({
       next: (user) => {
         if (user) {
-          this.displayName = user.displayName || user.display_name || user.name || 'User';
+          this.displayName = (user.displayName || user.display_name || '').trim() || 'User';
           this.email = user.email || '';
+          this.college = (user.college || '').trim() || 'Liceo Student';
           this.contacts = user.contacts ? [...user.contacts] : [];
           
           this.initialDisplayName = this.displayName;
+          this.initialCollege = this.college;
           this.initialContactsStr = JSON.stringify(this.contacts);
         }
         this.cdr.detectChanges();
@@ -52,6 +62,7 @@ export class ProfileComponent implements OnInit {
         if (tokenUser) {
           this.displayName = tokenUser.display_name || 'User';
           this.email = tokenUser.email || '';
+          this.college = 'Liceo Student';
         }
         this.cdr.detectChanges();
       }
@@ -60,8 +71,14 @@ export class ProfileComponent implements OnInit {
 
   addContact() {
     this.contactError = '';
-    const val = this.newContact.value?.trim();
+    let val = this.newContact.value?.trim();
     if (!val) return;
+
+    if (this.newContact.type === 'messenger') {
+      if (!val.includes('/') && !val.startsWith('http')) {
+        val = `m.me/${val}`;
+      }
+    }
 
     if (val.length < 3) {
       this.contactError = 'Contact value is too short.';
@@ -94,24 +111,41 @@ export class ProfileComponent implements OnInit {
 
   removeContact(i: number) {
     this.contacts.splice(i, 1);
+    this.cdr.detectChanges();
   }
 
   onSave() {
-    this.saveError = '';
     const currentContactsStr = JSON.stringify(this.contacts);
     
-    if (this.displayName.trim() === this.initialDisplayName.trim() && currentContactsStr === this.initialContactsStr) {
-      this.saveError = 'No changes detected. Please modify your information before saving.';
+    const hasDisplayNameChanged = this.displayName.trim() !== this.initialDisplayName.trim();
+    const hasCollegeChanged     = this.college.trim() !== this.initialCollege.trim();
+    const hasContactsChanged    = currentContactsStr !== this.initialContactsStr;
+
+    if (!hasDisplayNameChanged && !hasCollegeChanged && !hasContactsChanged) {
+      this.toast.info('No changes were made to your profile.');
       return;
     }
 
     this.saving = true;
-    this.api.put('/profile', { displayName: this.displayName, contacts: this.contacts }).subscribe({
-      next: () => {
+    this.api.put('/profile', { 
+      displayName: this.displayName.trim(), 
+      contacts: this.contacts,
+      college: this.college.trim() 
+    }).subscribe({
+      next: (res: any) => {
         this.saving = false;
         this.saved = true;
+        this.toast.success('Your profile changes have been secured.');
+        
+        if (res?.user) {
+          this.displayName = res.user.displayName;
+          this.college = res.user.college || 'Liceo Student';
+          this.contacts = [...res.user.contacts];
+        }
+
         this.initialDisplayName = this.displayName;
-        this.initialContactsStr = currentContactsStr;
+        this.initialCollege = this.college;
+        this.initialContactsStr = JSON.stringify(this.contacts);
         
         setTimeout(() => {
           this.saved = false;
@@ -119,9 +153,8 @@ export class ProfileComponent implements OnInit {
         }, 3000);
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: () => {
         this.saving = false;
-        this.saveError = err.error?.message || 'Failed to update profile. Please try again.';
         this.cdr.detectChanges();
       }
     });
@@ -130,4 +163,4 @@ export class ProfileComponent implements OnInit {
   logout() {
     this.auth.logout();
   }
-}
+}

@@ -1,0 +1,54 @@
+<div class="guide-page">
+  <app-navbar [active]="'guide'"></app-navbar>
+
+  <main class="guide-main">
+    <div class="guide-inner">
+      <header class="guide-header">
+        <div class="header-badge">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="badge-text">Academic Protocol</span>
+        </div>
+        <h1>The <em class="serif-italic">Curator's Guide</em></h1>
+        <p>Institutional standards for academic resource sharing within the Liceo de Cagayan University community.</p>
+        
+        <div class="header-actions">
+           <a routerLink="/post/create" class="btn-back">
+             <span class="material-symbols-outlined">arrow_back</span>
+             Return to Submission
+           </a>
+        </div>
+      </header>
+
+      <section class="guide-sections">
+        <!-- Ethics -->
+        <article class="guide-card">
+          <div class="card-icon"><span class="material-symbols-outlined">balance</span></div>
+          <h3>Borrowing Ethics</h3>
+          <p>Liceo Resource Hub is built on peer-to-peer accountability. Respect the stipulated duration of use and return items in their original condition.</p>
+        </article>
+
+        <!-- Condition -->
+        <article class="guide-card">
+          <div class="card-icon"><span class="material-symbols-outlined">verified</span></div>
+          <h3>Item Condition Standards</h3>
+          <ul class="guide-list">
+            <li><strong>Like New:</strong> Unused or perfectly maintained books/tools.</li>
+            <li><strong>Functional:</strong> Clear wear but 100% usable for academic work.</li>
+            <li><strong>End-of-Life:</strong> Heavily damaged; strictly for parts or reference.</li>
+          </ul>
+        </article>
+
+        <!-- Security -->
+        <article class="guide-card">
+          <div class="card-icon"><span class="material-symbols-outlined">shield_person</span></div>
+          <h3>Institutional Security</h3>
+          <p>Prohibited: Sharing external contact info beyond the provided "Messenger/Phone" system. Personal identity theft or external commercial solicitations will result in immediate bans.</p>
+        </article>
+      </section>
+
+      <footer class="guide-footer">
+        <p>Managed by the <strong>Liceo Academic Council &copy; 2026</strong>. Protocols are subject to institutional revision.</p>
+      </footer>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,55 @@
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
+import { ToastService } from '../services/toast.service';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const toastService = inject(ToastService);
+  const router = inject(Router);
+  const authService = inject(AuthService);
+
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (error.error instanceof ErrorEvent) {
+        // Client-side error
+        errorMessage = `Error: ${error.error.message}`;
+      } else {
+        // Server-side error
+        switch (error.status) {
+          case 400:
+            errorMessage = error.error?.message || 'Invalid request. Please check your input.';
+            break;
+          case 401:
+            errorMessage = 'Your session has expired. Please log in again.';
+            authService.logout();
+            router.navigate(['/auth/login']);
+            break;
+          case 403:
+            errorMessage = 'You do not have permission to perform this action.';
+            break;
+          case 404:
+            errorMessage = 'The requested resource was not found.';
+            break;
+          case 500:
+            errorMessage = 'Internal server error. Our team has been notified.';
+            break;
+          case 0:
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+            break;
+          default:
+            errorMessage = error.error?.message || errorMessage;
+            break;
+        }
+      }
+
+      console.error(`[ErrorInterceptor] Status: ${error.status} | Message: ${errorMessage}`, error);
+      toastService.error(errorMessage);
+      
+      return throwError(() => new Error(errorMessage));
+    })
+  );
+};

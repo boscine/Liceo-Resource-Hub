@@ -1,159 +1,202 @@
 <app-navbar></app-navbar>
 
-<div class="profile-container academic-backdrop">
-  <div class="profile-layout">
-    
-    <!-- Profile Card (Premium Display) -->
-    <div class="profile-card premium-shadow">
-      <div class="profile-header">
-        <div class="profile-avatar">
-          <span class="material-symbols-outlined avatar-icon">account_circle</span>
-        </div>
-        <div class="profile-title">
-          <h2>Student Profile</h2>
-          <p class="email-badge">{{ email }}</p>
-        </div>
-      </div>
+<div class="profile-page-v2">
+  <!-- Immersive Background Elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
 
-      <div class="profile-content">
-        <!-- Display Name Section -->
-        <div class="field">
-          <label class="field-label" for="displayName">
-            <span>Display Name <span class="req">*</span></span>
-            <span class="material-symbols-outlined field-icon">badge</span>
-          </label>
-          <input 
-            id="displayName"
-            name="displayName"
-            type="text" 
-            [(ngModel)]="displayName" 
-            placeholder="Your scholarship name" 
-            class="input-academic"
-            maxlength="30">
-          <p class="field-note">Visible on your academic requests and research posts.</p>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="primaryEmail">
-            <span>Primary Email</span>
-            <span class="material-symbols-outlined field-icon-lock">lock</span>
-          </label>
-          <input 
-            id="primaryEmail"
-            name="primaryEmail"
-            type="email" 
-            [value]="email" 
-            class="input-academic" 
-            disabled>
-          <p class="field-note">Institutional email used for authentication.</p>
-        </div>
-
-        <!-- Contacts Section -->
-        <div class="info-group">
-          <div class="group-label">
-            <span class="material-symbols-outlined label-icon">contact_support</span>
-            <span>Contact Information</span>
+  <div class="profile-container">
+    <div class="profile-layout-grid">
+      
+      <!-- Side: User Glance & Stats -->
+      <aside class="profile-side animate-in-left">
+        <div class="glass-card user-glance">
+          <div class="glance-avatar">
+            <div class="avatar-circle">
+              <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="avatar-badge">
+              <span class="material-symbols-outlined">verified</span>
+            </div>
           </div>
-
-          <!-- Existing List -->
-          <div class="contacts-grid" *ngIf="contacts.length > 0">
-            <div class="contact-badge" *ngFor="let c of contacts; let i = index">
-              <span class="material-symbols-outlined contact-type-icon">
-                {{ c.type.toLowerCase() === 'messenger' ? 'chat' : (c.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
-              </span>
-              <span class="contact-val">{{ c.value }}</span>
-              <button class="remove-btn" (click)="removeContact(i)" title="Remove contact">
-                <span class="material-symbols-outlined">close</span>
-              </button>
+          
+          <div class="glance-info">
+            <h1 class="user-name">{{ displayName || 'Academic Curator' }}</h1>
+            <p class="user-role-badge">Student Researcher</p>
+            <div class="user-meta">
+                {{ email }}
             </div>
           </div>
 
-          <!-- Empty State -->
-          <div class="empty-contacts" *ngIf="contacts.length === 0">
-            <p>No contact methods added yet.</p>
-          </div>
-
-          <!-- Add Contact Box -->
-          <div class="add-contact-box">
-            <div class="field-label" id="newMethodLabel">
-              <span>Add New Method</span>
-              <span class="material-symbols-outlined field-icon">add_circle</span>
-            </div>
-            <div class="add-contact-inputs">
-              <div class="select-wrap">
-                <span class="material-symbols-outlined selection-icon">
-                  {{ newContact.type.toLowerCase() === 'messenger' ? 'chat' : (newContact.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
-                </span>
-                <select 
-                  id="contactType"
-                  name="contactType"
-                  class="input-academic" 
-                  [(ngModel)]="newContact.type" 
-                  aria-labelledby="newMethodLabel">
-                  <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
-                </select>
-                <span class="material-symbols-outlined select-icon">expand_more</span>
-              </div>
-              
-              <div class="input-wrap">
-                <input 
-                  id="contactValue"
-                  name="contactValue"
-                  type="text" 
-                  [(ngModel)]="newContact.value" 
-                  placeholder="Value..." 
-                  class="input-academic contact-val-input"
-                  (keyup.enter)="addContact()"
-                  aria-label="New contact value">
-                <button class="add-btn-premium" (click)="addContact()" [disabled]="!newContact.value.trim()">
-                  <span class="material-symbols-outlined">add</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Error Display -->
-            <div class="contact-error" *ngIf="contactError">
-              <span class="material-symbols-outlined">error_outline</span>
-              <span>{{ contactError }}</span>
+          <div class="glance-stats-simple">
+            <div class="stat-item">
+              <span class="stat-val">{{ contacts.length }}</span>
+              <span class="stat-lab">Contact Methods</span>
             </div>
           </div>
         </div>
 
-        <!-- Action Bar -->
-        <div class="action-bar-premium">
-          <div class="save-status">
-            <span class="status-saved" *ngIf="saved && !saveError">
-              <span class="material-symbols-outlined">check_circle</span>
-              Profile saved
+        <div class="glass-card utility-mini-card">
+          <h3 class="mini-title">Security & Portal</h3>
+          <button class="logout-btn-premium" (click)="logout()">
+            <span class="inner-btn">
+              <span class="material-symbols-outlined">logout</span>
+              Sign Out of Portal
             </span>
-            <span class="status-error" *ngIf="saveError">
-              <span class="material-symbols-outlined">error</span>
-              {{ saveError }}
-            </span>
-          </div>
-
-          <button class="btn-primary save-btn" (click)="onSave()" [disabled]="saving">
-            <span class="material-symbols-outlined" *ngIf="!saving">save_as</span>
-            <span class="loader-academic" *ngIf="saving"></span>
-            {{ saving ? 'Saving Changes...' : 'Save Profile' }}
           </button>
         </div>
-      </div>
-    </div>
+      </aside>
 
-    <!-- Security/Account Utility -->
-    <div class="utility-card premium-shadow">
-      <div class="utility-header">
-        <span class="material-symbols-outlined">admin_panel_settings</span>
-        Account Actions
-      </div>
-      <div class="utility-actions">
-        <button class="btn-outline logout-btn" (click)="logout()">
-          <span class="material-symbols-outlined">logout</span>
-          Logout from Portal
-        </button>
-      </div>
-    </div>
+      <!-- Main: Edit Profile -->
+      <main class="profile-main animate-in-right">
+        <div class="glass-card main-profile-card">
+          <header class="card-header-v2">
+            <div class="header-icon-wrap">
+              <span class="material-symbols-outlined">settings_account_box</span>
+            </div>
+            <div class="header-text">
+              <h2>Profile Settings</h2>
+              <p>Manage your public identity and contact channels</p>
+            </div>
+          </header>
 
+          <form class="profile-form">
+            <!-- Basic Information -->
+            <section class="form-section">
+              <h3 class="section-title">
+                <span class="material-symbols-outlined">badge</span>
+                Basic Information
+              </h3>
+              
+              <div class="premium-field">
+                <label for="displayName" class="floating-label">Display Name <span class="required">*</span></label>
+                <div class="input-glow-wrap">
+                  <span class="material-symbols-outlined field-lead-icon">person</span>
+                  <input id="displayName" type="text" [(ngModel)]="displayName" name="displayName" class="premium-input" placeholder="Your Hub name">
+                </div>
+              </div>
+
+              <div class="premium-field">
+                <label for="college" class="floating-label">College / Department</label>
+                <div class="input-glow-wrap">
+                  <span class="material-symbols-outlined field-lead-icon">account_balance</span>
+                  <input id="college" type="text" [(ngModel)]="college" name="college" class="premium-input" placeholder="e.g. College of Engineering">
+                </div>
+                <p class="field-hint">Helps students from your department find your requests faster.</p>
+              </div>
+
+              <div class="premium-field disabled">
+                <label for="email" class="floating-label">Institutional Email</label>
+                <div class="input-glow-wrap">
+                  <input id="email" type="text" [value]="email" readonly class="premium-input no-icon" disabled>
+                  <span class="material-symbols-outlined field-trail-icon-lock">lock</span>
+                </div>
+                <p class="field-hint">Your email is managed by Liceo Hub and cannot be changed.</p>
+              </div>
+            </section>
+
+            <!-- Contacts Section -->
+            <section class="form-section">
+              <div class="section-header">
+                <h3 class="section-title">Reachability</h3>
+                <span class="badge-count">{{ contacts.length }} Methods</span>
+              </div>
+              
+              <div class="contacts-explorer">
+                <!-- Contact List -->
+                <div class="contacts-grid-v2" *ngIf="contacts.length > 0">
+                  <div class="contact-pill animate-pop-in" *ngFor="let c of contacts; let i = index">
+                    <div class="pill-icon-wrap">
+                      <span class="material-symbols-outlined">
+                        {{ c.type.toLowerCase() === 'messenger' ? 'chat' : (c.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
+                      </span>
+                    </div>
+                    <div class="pill-content">
+                      <span class="pill-type">{{ c.type }}</span>
+                      <span class="pill-value text-truncate">{{ c.value }}</span>
+                    </div>
+                    <button class="pill-remove" (click)="removeContact(i)" title="Remove">
+                      <span class="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="empty-explorer" *ngIf="contacts.length === 0">
+                  <span class="material-symbols-outlined">contact_support</span>
+                  <p>No contact methods listed yet</p>
+                </div>
+
+                <!-- Quick Add Contact Composer -->
+                <div class="add-contact-composer">
+                  <header class="composer-header">
+                    <span class="material-symbols-outlined header-icon">add_link</span>
+                    Quick Add New Method
+                  </header>
+                  <div class="composer-body">
+                    <div class="type-selector-wrap">
+                      <div class="type-icon-indicator" title="Selected method type">
+                        <span class="material-symbols-outlined">
+                          {{ newContact.type.toLowerCase() === 'messenger' ? 'chat' : (newContact.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
+                        </span>
+                      </div>
+                      <label for="contactType" class="visually-hidden">Contact Method Type</label>
+                      <select id="contactType" name="contactType" [(ngModel)]="newContact.type" class="type-select">
+                        <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
+                      </select>
+                      <span class="material-symbols-outlined select-arrow">expand_more</span>
+                    </div>
+
+                    <div class="value-input-wrap">
+                      <label for="contactValue" class="visually-hidden">Contact Method Value</label>
+                      <input 
+                        id="contactValue"
+                        type="text" 
+                        [(ngModel)]="newContact.value" 
+                        name="contactValue"
+                        [placeholder]="newContact.type === 'messenger' ? 'm.me/your.username' : (newContact.type === 'phone' ? '09xx-xxx-xxxx' : 'Link or Username...')" 
+                        (keyup.enter)="addContact()"
+                        class="value-input">
+                    </div>
+
+                    <button type="button" class="composer-submit-btn" (click)="addContact()" [disabled]="!newContact.value.trim()">
+                      <span class="material-symbols-outlined btn-icon">add</span>
+                      Add
+                    </button>
+                  </div>
+                  
+                  <div class="composer-error" *ngIf="contactError">
+                    <span class="material-symbols-outlined">warning</span>
+                    {{ contactError }}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </form>
+
+          <!-- Footer Actions -->
+          <footer class="profile-footer-v2">
+
+            <button 
+              type="button" 
+              class="btn-save-premium" 
+              (click)="onSave()" 
+              [disabled]="saving"
+              [class.btn-syncing]="saving"
+              [class.btn-saved]="saved">
+              
+              <div class="btn-main-wrap">
+                <span class="material-symbols-outlined btn-icon" *ngIf="!saving && !saved">verified_user</span>
+                <span class="material-symbols-outlined btn-icon" *ngIf="saved">check_circle</span>
+                <span class="loader-v2" *ngIf="saving"></span>
+                <span class="btn-label">
+                  {{ saving ? 'Syncing...' : (saved ? 'Profile Updated' : 'Save Changes') }}
+                </span>
+              </div>
+            </button>
+          </footer>
+        </div>
+      </main>
+
+    </div>
   </div>
 </div>

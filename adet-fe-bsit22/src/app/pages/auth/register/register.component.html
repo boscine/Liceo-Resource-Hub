@@ -41,13 +41,6 @@
           <p>Welcome to the digital resource atelier.</p>
         </div>
 
-        <div class="error-box" *ngIf="error">
-          <span class="material-symbols-outlined">error</span>
-          <span>
-            {{ error }}
-            <a *ngIf="isDuplicateEmail" routerLink="/login" style="color: inherit; font-weight: 700; text-decoration: underline; margin-left: 0.5rem;">Log in here</a>
-          </span>
-        </div>
 
         <form (ngSubmit)="onSubmit()" #regForm="ngForm" class="reg-form">
 

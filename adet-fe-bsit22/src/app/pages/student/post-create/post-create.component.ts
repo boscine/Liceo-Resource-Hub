@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiService } from '../../../core/services/api.service';
 import { PostService } from '../../../core/services/post.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -21,7 +22,6 @@ export class PostCreateComponent implements OnInit, OnDestroy {
   description = '';
   loading = false;
   success = false;
-  isAdmin = false;
   user: any = {};
 
   categories: any[] = [];
@@ -32,16 +32,15 @@ export class PostCreateComponent implements OnInit, OnDestroy {
     private api: ApiService, 
     private cdr: ChangeDetectorRef, 
     private router: Router,
-    private postService: PostService
+    private postService: PostService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
-    this.isAdmin = this.auth.isAdmin();
     if (this.auth.isLoggedIn()) {
       this.user = this.auth.getUser() || {};
     }
     
-    // Use stateful categories
     this.catSub = this.postService.categories$.subscribe(cats => {
       this.categories = cats;
       this.cdr.detectChanges();
@@ -64,18 +63,16 @@ export class PostCreateComponent implements OnInit, OnDestroy {
       description: this.description 
     }).subscribe({
       next: () => {
-        // Trigger a background refresh of the post list so the Feed is ready
         this.postService.refreshPosts();
+        this.toast.success('Your academic request has been published successfully.');
         
         this.loading = false;
         this.success = true;
         this.cdr.detectChanges();
 
-        // Redirect back to feed after showing success message
         setTimeout(() => this.router.navigate(['/feed']), 1800);
       },
-      error: (e) => {
-        console.error('Failed creating request', e);
+      error: () => {
         this.loading = false;
         this.cdr.detectChanges();
       }

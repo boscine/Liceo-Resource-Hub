@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { AuthVariables } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
-import { updateProfile } from '../controllers/profile.controller';
+import { updateProfile, getProfile } from '../controllers/profile.controller';
 
 // Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
@@ -163,18 +163,7 @@ router.get('/categories', async (c) => {
 });
 
 // ── GET /api/v1/profile ───────────────────────────────────────────────────────
-router.get('/profile', async (c) => {
-  const userId = c.get('userId');
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, displayName: true, role: true, status: true }
-    });
-    return c.json(user);
-  } catch (error) {
-    return c.json({ message: 'User not found' }, 404);
-  }
-});
+router.get('/profile', getProfile);
 
 router.put('/profile', updateProfile);
 

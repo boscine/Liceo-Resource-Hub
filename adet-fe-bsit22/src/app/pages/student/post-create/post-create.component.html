@@ -1,77 +1,104 @@
 <div class="create-page">
-
   <app-navbar [active]="'create'"></app-navbar>
 
   <main class="create-main">
     <div class="create-inner">
 
       <!-- Page Header -->
-      <div class="page-header">
-        <h1>Post a <em class="serif-italic">Resource Request</em></h1>
-        <p>Help the community grow by sharing what you're looking for. From textbooks to laboratory equipment.</p>
-      </div>
+      <header class="page-header">
+        <div class="header-badge">
+          <span class="material-symbols-outlined">edit_note</span>
+          <span class="badge-text">New Submission</span>
+        </div>
+        <h1>Post an <em class="serif-italic">Academic Request</em></h1>
+        <p>Connect with the Liceo community. Request textbooks, research tools, or laboratory equipment to support your journey.</p>
+      </header>
 
-      <!-- Success Message -->
-      <div class="success-box" *ngIf="success">
-        <span class="material-symbols-outlined">check_circle</span>
-        Your request has been posted successfully!
-        <a routerLink="/feed">View Feed</a>
+      <!-- Success State -->
+      <div class="success-container" *ngIf="success">
+        <span class="material-symbols-outlined success-icon">verified</span>
+        <h2>Request Published</h2>
+        <p>Your request is now live in the student feed and visible to the university community.</p>
+        
+        <div class="form-actions" style="max-width: 280px; margin: 0 auto;">
+          <a routerLink="/feed" class="btn-primary" style="text-decoration: none;">
+            Return to Feed
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </a>
+        </div>
       </div>
 
       <!-- Form Card -->
       <div class="form-card" *ngIf="!success">
-        <div class="card-decoration"></div>
-
         <form (ngSubmit)="onSubmit()" #createForm="ngForm" class="create-form">
 
+          <!-- Title Field -->
           <div class="field">
-            <label class="field-label" for="title">Request Title</label>
+            <label class="field-label" for="title">Request Subject</label>
             <input class="input-academic" id="title" type="text"
               [(ngModel)]="title" name="title"
-              placeholder="e.g., 'Need Calculus Textbook (12th Ed)'" required/>
+              placeholder="e.g., Seeking Financial Accounting Volume 2" required/>
           </div>
 
+          <!-- Category Field -->
           <div class="field">
             <label class="field-label" for="category">Academic Category</label>
             <div class="select-wrap">
               <select class="input-academic" id="category"
                 [(ngModel)]="categoryId" name="category" required>
-                <option value="" disabled selected>Select a category</option>
+                <option value="" disabled selected>Select the resource type...</option>
                 <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
               </select>
-              <span class="material-symbols-outlined select-icon">expand_more</span>
+              <span class="material-symbols-outlined select-icon">unfold_more</span>
             </div>
           </div>
 
+          <!-- Description Field -->
           <div class="field">
-            <label class="field-label" for="description">Details</label>
+            <label class="field-label" for="description">
+              Detailed Description
+              <span class="char-counter" [class.near-limit]="description.length > 450">
+                {{ description.length }}/500
+              </span>
+            </label>
             <textarea class="input-academic" id="description"
               [(ngModel)]="description" name="description"
-              placeholder="Describe the item, condition needed, or duration of use..."
-              rows="5" required></textarea>
+              maxlength="500"
+              placeholder="Provide context: course name, condition needed, or expected duration of use..."
+              rows="6" required></textarea>
           </div>
 
-          <!-- Privacy Notice -->
-          <div class="privacy-notice">
-            <span class="material-symbols-outlined privacy-icon" style="font-variation-settings: 'FILL' 1;">visibility_off</span>
-            <div>
-              <h4>Privacy Protection</h4>
-              <p>Your campus contact info is only visible to verified university members. Guests and external users cannot see your personal details.</p>
+
+          <!-- Privacy Protection Notice -->
+          <aside class="privacy-notice">
+            <span class="material-symbols-outlined privacy-icon">shield_person</span>
+            <div class="notice-content">
+              <h4>Secure Institutional Access</h4>
+              <p>Your institutional contact links are restricted to verified @liceo.edu.ph students. Guests and external visitors cannot access your personal information.</p>
             </div>
-          </div>
+          </aside>
 
-          <button type="submit" class="btn-primary" [disabled]="loading || !createForm.valid">
-            <span *ngIf="!loading">Submit Request</span>
-            <span *ngIf="!loading" class="material-symbols-outlined">send</span>
-            <span *ngIf="loading" class="spinner"></span>
-          </button>
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="loading || !createForm.valid">
+              <span *ngIf="!loading">Publish Request</span>
+              <span *ngIf="!loading" class="material-symbols-outlined">send</span>
+              <span *ngIf="loading" class="spinner"></span>
+            </button>
+          </div>
 
         </form>
       </div>
 
-      <p class="help-text">
-        Need help? <a href="#">Read the Curator's Guide</a> for making successful requests.
-      </p>
+      <!-- Help Section -->
+      <!-- Help Section -->
+      <section class="help-section">
+        <p class="help-text">
+          Unsure about how to post? 
+          <a routerLink="/curator-guide">Consult the Curator's Guide</a>
+        </p>
+      </section>
+
 
     </div>
   </main>
@@ -80,14 +107,13 @@
   <footer class="app-footer">
     <div class="footer-brand">
       Liceo de Cagayan University
-      <span>© 2026 The Academic Curator.</span>
+      <span>The Academic Curator &copy; 2026.</span>
     </div>
     <div class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">University Portal</a>
-      <a href="#">Contact Support</a>
+      <a href="#">Security Protocol</a>
+      <a href="#">Institutional Terms</a>
+      <a href="#">Liceo Portal</a>
+      <a href="#">Academic Support</a>
     </div>
   </footer>
-
 </div>

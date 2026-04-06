@@ -1,29 +1,29 @@
 <div class="verify-page">
   <div class="verify-card">
-    <div class="card-header">
-      <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary); margin-bottom: 1rem;">mark_email_read</span>
-      <h2>Check Your Inbox</h2>
-      <p>We've sent a 6-digit verification code to <strong>{{ email }}</strong>. Please enter it below to activate your account.</p>
-    </div>
+    <header class="card-header">
+      <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary); margin-bottom: 1.5rem; font-variation-settings: 'FILL' 1;">mark_email_read</span>
+      <h2>Identify Yourself</h2>
+      <p>A secure 6-digit access code has been dispatched to <strong>{{ email }}</strong>. Please authenticate to activate your student profile.</p>
+    </header>
 
-    <div class="error-box" *ngIf="error">
-      <span class="material-symbols-outlined">error</span>
-      {{ error }}
-    </div>
-
-    <form (ngSubmit)="onSubmit()">
-      <input type="text" [(ngModel)]="code" name="code" class="v-input" placeholder="000000" maxlength="6" autofocus required />
+    <form (ngSubmit)="onSubmit()" class="verify-form">
+      <div class="code-field">
+        <input type="text" [(ngModel)]="code" name="code" class="v-input" placeholder="000...0" maxlength="6" autofocus required />
+      </div>
       
       <button type="submit" class="btn-primary" [disabled]="loading || code.length < 6">
-        <span *ngIf="!loading">Verify Account</span>
-        <span *ngIf="!loading" class="material-symbols-outlined">verified</span>
+        <span *ngIf="!loading">Verify Identity</span>
+        <span *ngIf="!loading" class="material-symbols-outlined">shield_person</span>
         <span *ngIf="loading" class="spinner"></span>
       </button>
     </form>
 
     <div class="resend-link">
-      <span>Didn't get the code?</span>
-      <a routerLink="/register">Try Different Email</a>
+      <span>Didn't receive the email?</span>
+      <a (click)="resendCode()">Dispatch New Code</a>
+      <div style="margin-top: 1rem; opacity: 0.6; font-size: 0.75rem;">
+        Wrong email? <a routerLink="/register">Register again</a>
+      </div>
     </div>
   </div>
 </div>

@@ -32,6 +32,13 @@ export class FeedComponent implements OnInit, OnDestroy {
   pageSize = 12;
 
   savedPosts = new Set<string>();
+  selectedPosts = new Set<string | number>();
+  
+  // Custom delete confirmation
+  showDeleteConfirm = false;
+  postToDelete: any = null; // null if bulk delete
+  isBulkDelete = false;
+  deleting = false;
   
   private postSub?: Subscription;
   private catSub?: Subscription;
@@ -141,19 +148,115 @@ export class FeedComponent implements OnInit, OnDestroy {
     return this.savedPosts.has(post.id);
   }
 
-  deletePost(id: string | number) {
-    if (confirm('Are you sure you want to permanently delete this request?')) {
+  isMyPost(post: any): boolean {
+    if (!this.isLoggedIn || !this.user) return false;
+    const myName = this.user.displayName || this.user.display_name || this.user.name;
+    return post.author === myName;
+  }
+
+  // Trigger single delete confirmation
+  requestDelete(post: any) {
+    this.postToDelete = post;
+    this.isBulkDelete = false;
+    this.showDeleteConfirm = true;
+  }
+
+  // Trigger bulk delete confirmation
+  requestBulkDelete() {
+    if (this.selectedPosts.size === 0) return;
+    this.postToDelete = null;
+    this.isBulkDelete = true;
+    this.showDeleteConfirm = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+    this.postToDelete = null;
+    this.isBulkDelete = false;
+  }
+
+  confirmDelete() {
+    if (this.isBulkDelete) {
+      this.deleteSelected();
+    } else if (this.postToDelete) {
+      this.performDelete(this.postToDelete.id);
+    }
+  }
+
+  private performDelete(id: string | number) {
+    this.deleting = true;
+    this.api.delete(`/posts/${id}`).subscribe({
+      next: () => {
+        this.postService.removePostLocal(id);
+        this.selectedPosts.delete(id);
+        this.closeDeleteModal();
+      },
+      error: (e) => {
+        console.error('Failed deleting post:', e);
+        this.deleting = false;
+        alert('Failed to delete the request.');
+      }
+    });
+  }
+
+  private deleteSelected() {
+    this.deleting = true;
+    const ids = Array.from(this.selectedPosts);
+    
+    // We'll perform sequential deletes or if the API supports it, a bulk endpoint.
+    // Assuming no bulk endpoint for now, we'll loop or use forkJoin if needed.
+    // For simplicity and immediate UI feedback, we loop and update local state.
+    
+    let completed = 0;
+    ids.forEach(id => {
       this.api.delete(`/posts/${id}`).subscribe({
         next: () => {
-          // Sync state instantly
           this.postService.removePostLocal(id);
-          this.cdr.detectChanges();
+          this.selectedPosts.delete(id);
+          completed++;
+          if (completed === ids.length) {
+            this.closeDeleteModal();
+          }
         },
         error: (e) => {
-          console.error('Failed deleting post:', e);
-          alert('Failed to delete the request.');
+          console.error(`Failed deleting post ${id}:`, e);
+          completed++;
+          if (completed === ids.length) {
+            this.closeDeleteModal();
+          }
         }
       });
+    });
+  }
+
+  private closeDeleteModal() {
+    this.showDeleteConfirm = false;
+    this.postToDelete = null;
+    this.isBulkDelete = false;
+    this.deleting = false;
+    this.cdr.detectChanges();
+  }
+
+  toggleSelect(id: string | number) {
+    if (this.selectedPosts.has(id)) {
+      this.selectedPosts.delete(id);
+    } else {
+      this.selectedPosts.add(id);
+    }
+  }
+
+  isAllSelected(): boolean {
+    const posts = this.paginatedPosts;
+    if (posts.length === 0) return false;
+    return posts.every(p => this.selectedPosts.has(p.id));
+  }
+
+  toggleSelectAll() {
+    const posts = this.paginatedPosts;
+    if (this.isAllSelected()) {
+      posts.forEach(p => this.selectedPosts.delete(p.id));
+    } else {
+      posts.forEach(p => this.selectedPosts.add(p.id));
     }
   }
 

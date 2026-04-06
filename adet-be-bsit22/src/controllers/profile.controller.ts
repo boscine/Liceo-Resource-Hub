@@ -43,42 +43,70 @@ export const updateProfile = async (c: Context) => {
   }
 
   try {
-    const { displayName, contacts, college } = await c.req.json();
+    const body = await c.req.json();
+    let { displayName, contacts, college } = body;
     
-    if (!displayName || displayName.trim().length < 2) {
+    // ── Input Sanitization ──────────────────────────────────────────────────
+    displayName = (displayName || '').trim();
+    college = (college || '').trim();
+
+    if (!displayName || displayName.length < 2) {
       return c.json({ message: 'A valid display name (min 2 chars) is required' }, 400);
     }
 
-    // Validate Contact Types before hitting DB
+    if (displayName.length > 50) {
+      return c.json({ message: 'Display name is too long (max 50 characters)' }, 400);
+    }
+
+    if (college && college.length > 100) {
+      return c.json({ message: 'College name is too long (max 100 characters)' }, 400);
+    }
+
+    // ── Validate Contacts ────────────────────────────────────────────────────
+    const refinedContacts = [];
     if (contacts && Array.isArray(contacts)) {
       const validTypes = ['messenger', 'phone', 'other'];
       for (const contact of contacts) {
         if (!validTypes.includes(contact.type)) {
-          return c.json({ message: `Invalid contact type: ${contact.type}. Allowed: ${validTypes.join(', ')}` }, 400);
+          return c.json({ message: `Invalid contact type: ${contact.type}` }, 400);
         }
-        if (!contact.value || contact.value.trim() === '') {
-           return c.json({ message: `A value is required for contact type: ${contact.type}` }, 400);
+        const val = contact.value?.trim();
+        if (!val || val === '') {
+           return c.json({ message: `A value is required for ${contact.type}` }, 400);
         }
+        if (val.length > 255) {
+          return c.json({ message: `Contact value for ${contact.type} is too long` }, 400);
+        }
+        refinedContacts.push({ type: contact.type, value: val });
       }
     }
 
+    // ── Database Update ─────────────────────────────────────────────────────
     const updatedUser = await prisma.user.update({
       where: { id: Number(userId) },
       data: {
         displayName,
-        college: college ?? undefined,
+        college: college || null,
         contacts: {
           deleteMany: {},
-          create: Array.isArray(contacts) ? contacts.map((contact: any) => ({
-            type: contact.type,
-            value: contact.value,
-          })) : []
+          create: refinedContacts
         }
       },
-      include: { contacts: true }
+      include: { 
+        contacts: {
+          select: { type: true, value: true }
+        } 
+      }
     });
 
-    return c.json({ message: 'Profile updated successfully', user: updatedUser });
+    return c.json({ 
+      message: 'Profile updated successfully', 
+      user: {
+        displayName: updatedUser.displayName,
+        college: updatedUser.college,
+        contacts: updatedUser.contacts
+      }
+    });
   } catch (error) {
     console.error('Failed to update profile:', error);
     return c.json({ message: 'Internal Server Error' }, 500);
