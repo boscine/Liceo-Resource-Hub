@@ -1,6 +1,6 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
 > Unified session synchronization file. Paste at the start of any new AI session.
-> Last updated: 2026-04-05
+> Last updated: 2026-04-07
 
 ---
 
@@ -231,6 +231,11 @@ npm stop     # Runs stop-dev.vbs — kills all node/tsx/angular processes
 - ✅ Backend: Privacy Leak Fixed — Public Profiles of banned users now invisible
 - ✅ Frontend: Profile View — Fixed infinite loading (looping) and Change Detection lag
 - ✅ Frontend: Admin Dashboard — Unified status/flag mapping synced with BE
+- ✅ Profile: Redesigned with premium "Academic Curator" aesthetics (Maroon/Gold theme)
+- ✅ Profile: Hardened contact logic with strict validation (Duplicate checks, Min-length)
+- ✅ Profile: implemented type-specific validation (Phone length & Messenger normalization)
+- ✅ Profile: Added inline error feedback for contact management errors
+- ✅ Repo: Synced all major profile and detail-view refinements to GitHub main branch
 
 ---
 
