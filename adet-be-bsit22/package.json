@@ -5,7 +5,8 @@
     "start": "dotenv -e .env -- tsx src/index.ts",
     "db:migrate": "prisma migrate dev --name init --url \"mysql://root:12345@localhost:3306/adet_bsitdb22\"",
     "db:seed": "dotenv -e .env -- tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

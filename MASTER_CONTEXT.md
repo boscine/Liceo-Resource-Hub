@@ -54,7 +54,9 @@ liceo-resource-hub/
 1. **DB Setup**: Ensure MySQL/MariaDB is on port 3306. 
    - Option A: Run `setup_db.sql` in your MySQL client to create the schema and seed categories.
    - Option B: Create `adet_bsitdb22` manually and run `npx prisma db push`.
-2. **BE Environment**: In `adet-be-bsit22/.env`: `DATABASE_URL="mysql://root:12345@localhost:3306/adet_bsitdb22"`.
+2. **BE Environment**: Create `adet-be-bsit22/.env` by copying `.env.example`.
+   - Update `DATABASE_URL` with your local MySQL credentials.
+   - Set a custom `JWT_SECRET`.
 3. **Dependencies**:
    - `cd adet-be-bsit22 && npm install && npx prisma generate`
    - `cd adet-fe-bsit22 && npm install`
