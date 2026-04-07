@@ -29,15 +29,13 @@
           <div class="user-card">
             <div class="avatar-holder">
               <div class="avatar-large">{{ getAvatarInitial(user.displayName) }}</div>
-              <span class="status-indicator" [class.active]="user.status === 'active'"></span>
+              <div class="status-indicator" [class.active]="user.status === 'active'" [title]="user.status === 'active' ? 'Verified Scholarly Member' : 'Scholarly Identity Under Review'">
+                <span class="material-symbols-outlined" *ngIf="user.role === 'admin'">verified</span>
+              </div>
             </div>
             
             <h1 class="user-name serif-italic">{{ user.displayName }}</h1>
             <p class="user-role">{{ user.role | uppercase }}</p>
-            <div class="user-college">
-              <span class="material-symbols-outlined">school</span>
-              {{ user.college }}
-            </div>
             
             <div class="divider"></div>
             
@@ -112,7 +110,15 @@
   </main>
 
   <footer class="app-footer">
-    <div class="footer-brand">Liceo de Cagayan University<span>© 2026 The Academic Curator.</span></div>
-    <div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+    <div class="footer-brand">
+      Liceo de Cagayan University
+      <span>© 2026 The Academic Curator.</span>
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">University Portal</a>
+      <a href="#">Contact Support</a>
+    </div>
   </footer>
 </div>

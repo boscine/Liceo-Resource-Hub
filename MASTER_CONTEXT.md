@@ -1,6 +1,43 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
 > Unified session synchronization file. Last updated: 2026-04-07
 
+## 🏁 Getting Started & Installation
+
+Follow these steps to set up the repository precisely after git cloning.
+
+### 1. Prerequisites
+*   **Node.js v18+** (LTS recommended)
+*   **MariaDB v10+** (Default port 3306)
+*   **Git Bash** or similar terminal
+
+### 2. Database Configuration
+1.  Open your MariaDB shell and run `CREATE DATABASE adet_bsitdb22;`.
+2.  Import the initial schema: `source c:/Users/You/Desktop/adet-mainproject-bsit22/setup_db.sql`.
+3.  Ensure your `.env` in `adet-be-bsit22` has: `DATABASE_URL="mysql://root:12345@localhost:3306/adet_bsitdb22"` (update password if different).
+
+### 3. Backend Setup (`adet-be-bsit22`)
+```bash
+cd adet-be-bsit22
+npm install
+npx prisma generate
+npx prisma db push
+npm run dev
+```
+
+### 4. Frontend Setup (`adet-fe-bsit22`)
+```bash
+cd adet-fe-bsit22
+npm install
+npm run start
+```
+
+### 5. Running the Complete System
+Use the provided automation scripts in the root directory:
+*   `./start-dev.bat` (Windows Batch) OR
+*   `./start-dev.ps1` (PowerShell)
+
+---
+
 ## 1. Project Overview
 A web-based academic resource-sharing platform for Liceo de Cagayan University students.
 - **Theme:** "The Academic Curator" (Maroon `#570000`, Academia Gold `#c5a021`)
@@ -43,12 +80,19 @@ liceo-resource-hub/
 - **Bulk Delete:** Support for multi-request deletion with a custom premium confirmation modal.
 - **Security:** Privacy-gated profiles (no contacts for guests/self-saving blocked) and security-leak fixes.
 - **Design System:** Vibrant "Academia Gold" (`#c5a021`) accents + Maroon. Pulse-active status dots for "Open" posts.
+- **Performance Optimization:** GPU-accelerated animations (transform: translateZ(0)) for modals and overlays to maintain 60+ FPS.
+- **Empty States:** Dynamic, context-aware empty state components for Saved, My Requests, and Feed views.
+- **Notifications (V1):** Real-time backend-integrated notification system with a dedicated standalone `/notifications` page.
+- **Footer Standardization:** Unified `app-footer` across all student/admin pages (Privacy, Terms, Portal, Support links).
+- **Design Unification (V5):** Redesigned the self-profile portal (`/profile`) to perfectly match the "The Academic Curator" scholarly aesthetic used in public profile views.
+- **Backend Hardening:** Implemented missing `resend-verify` route and added robust foreign-key validation for category selection during post creation.
 
 ## 6. Pending / Next Steps (⬜)
 1. ⬜ **Email Integration:** Wire Nodemailer/Resend for OTP and Forgot Password flows.
-2. ⬜ **Validation:** Backend Zod schemas for all input routes.
-3. ⬜ **Testing:** Unit & Integration tests for critical API routes.
-4. ⬜ **Deployment:** Railway (BE+DB) + Netlify/Vercel (FE).
+2. ⬜ **Full Validation:** Backend Zod schemas for all input routes.
+3. ⬜ **Notification Triggers:** Ensure backend correctly emits notifications on bookmark/fulfillment.
+4. ⬜ **Testing:** Unit & Integration tests for critical API routes.
+5. ⬜ **Deployment:** Railway (BE+DB) + Netlify/Vercel (FE).
 
 ## 7. Quick Setup Guide (Another Machine)
 1. **DB Setup**: Ensure MySQL/MariaDB is on port 3306. 
@@ -61,6 +105,7 @@ liceo-resource-hub/
    - `cd adet-be-bsit22 && npm install && npx prisma generate`
    - `cd adet-fe-bsit22 && npm install`
 4. **Execution**:
+   - For detailed instructions, see: [SETUP_GUIDE.md](file:///c:/Users/You/Desktop/adet-mainproject-bsit22/SETUP_GUIDE.md)
    - Start BE: `npm run dev`
    - Start FE: `npm run start` (available at `localhost:4200`)
 
@@ -70,8 +115,13 @@ liceo-resource-hub/
 - **Design:** Follow "The Academic Curator" theme; prioritize FPS performance.
 
 ---
-**Current Session History:**
-- **Bulk Delete:** Implemented multi-select checkboxes and a premium confirmation modal in the Feed.
-- **UX Refinement:** Prevented users from saving their own posts; moved selection checkboxes to a more integrated UI position.
-- **Design Upgrade:** Enhanced `status-open` highlights with Academia Gold pulsing dots.
-- **Edit Portal:** Rebuilt `PostEdit` component with V4 premium aesthetics and status-colored radio chips.
+**Current Session History (Last Sync: 2026-04-07):**
+- **Performance:** Optimized feed modals with hardware GPU acceleration and specific property transitions for 60fps.
+- **UX Refinement:** Implemented dynamic empty states for saved items, personal requests, and filtered searches.
+- **Activity Sidebar:** Added "CLOSED" request tracking to the user activity card.
+- **Notifications:** Built a full backend-integrated notifications system with a dedicated full-page view and real-time navigation.
+- **Cleanup:** Removed public status indicators and moved sensitive security settings out of public profile views.
+- **Design Unification:** Synced self-profile and public profile aesthetics with premium "Academia Gold" gradients and verified badges.
+- **Footer Sync:** Standardized the Academic Curator footer across 10+ student and administrative layouts.
+- **Bug Fixes:** Implemented the missing `resend-code` API and resolved Angular template warnings and logout redirection loops.
+- **API Robustness:** Added category existence checks and admin-deletion notifications to the backend pipeline.

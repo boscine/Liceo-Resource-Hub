@@ -24,18 +24,22 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             errorMessage = error.error?.message || 'Invalid request. Please check your input.';
             break;
           case 401:
-            errorMessage = 'Your session has expired. Please log in again.';
-            authService.logout();
-            router.navigate(['/auth/login']);
+            if (req.url.includes('/login')) {
+              errorMessage = error.error?.message || 'Invalid credentials.';
+            } else {
+              errorMessage = 'Your session has expired. Please log in again.';
+              authService.logout();
+              router.navigate(['/auth/login']);
+            }
             break;
           case 403:
-            errorMessage = 'You do not have permission to perform this action.';
+            errorMessage = error.error?.message || 'You do not have permission to perform this action.';
             break;
           case 404:
             errorMessage = 'The requested resource was not found.';
             break;
           case 500:
-            errorMessage = 'Internal server error. Our team has been notified.';
+            errorMessage = error.error?.message || 'Internal server error. Our team has been notified.';
             break;
           case 0:
             errorMessage = 'Unable to connect to the server. Please check your internet connection.';
@@ -47,9 +51,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       console.error(`[ErrorInterceptor] Status: ${error.status} | Message: ${errorMessage}`, error);
-      toastService.error(errorMessage);
       
-      return throwError(() => new Error(errorMessage));
+      // Do not duplicate toast if we are redirecting to verify
+      if (!(error.status === 403 && error.error?.pending)) {
+        toastService.error(errorMessage);
+      }
+      
+      return throwError(() => error);
     })
   );
 };

@@ -10,6 +10,7 @@
         <h3>Your Activity</h3>
         <div class="activity-row"><span>ACTIVE REQUESTS</span><strong>{{ activeCount }}</strong></div>
         <div class="activity-row"><span>FULFILLED</span><strong>{{ fulfilledCount }}</strong></div>
+        <div class="activity-row"><span>CLOSED</span><strong>{{ closedCount }}</strong></div>
       </div>
 
       <div class="quick-nav" *ngIf="isLoggedIn">
@@ -73,7 +74,7 @@
       </div>
 
       <!-- Posts Grid -->
-      <div class="posts-grid" *ngIf="!loading">
+      <div class="posts-grid" *ngIf="!loading && paginatedPosts.length > 0">
         <div class="post-card" *ngFor="let post of paginatedPosts">
           <div class="post-top">
             <span class="post-status" [ngClass]="getStatusClass(post.status)">{{ post.status }}</span>
@@ -98,7 +99,6 @@
             <div class="author-avatar">{{ post.author[0] }}</div>
             <div>
               <p class="author-name">{{ post.author }}</p>
-              <p class="author-college">{{ post.college }}</p>
             </div>
           </div>
           <p class="post-desc">{{ post.description }}</p>
@@ -130,6 +130,32 @@
           </div>
         </div>
       </div>
+
+      <!-- EMPTY STATE COMPONENTS -->
+      <ng-container *ngIf="!loading && paginatedPosts.length === 0">
+        
+        <!-- SAVED ITEMS -->
+        <div class="empty-state" *ngIf="viewMode === 'saved'">
+          <span class="material-symbols-outlined">bookmark_border</span>
+          <p>You haven't saved any materials yet.<br><span style="font-size: 0.8rem; opacity: 0.8;">Click the bookmark icon on any request to keep it here.</span></p>
+          <button class="empty-reset-btn" (click)="setViewMode('all'); searchQuery = ''; setCategory('All Resources');">Browse Feed</button>
+        </div>
+
+        <!-- MY REQUESTS -->
+        <div class="empty-state" *ngIf="viewMode === 'requests'">
+          <span class="material-symbols-outlined">post_add</span>
+          <p>You haven't posted any material requests yet.</p>
+          <a routerLink="/post/create" class="empty-reset-btn" style="text-decoration:none; display:inline-block;">Create your first Request</a>
+        </div>
+
+        <!-- ALL FEED / SEARCH -->
+        <div class="empty-state" *ngIf="viewMode === 'all'">
+          <span class="material-symbols-outlined">search_off</span>
+          <p>No requests found in <strong *ngIf="activeCategory !== 'All Resources'">{{ activeCategory }}</strong><strong *ngIf="activeCategory === 'All Resources'">any category</strong>.</p>
+          <button class="empty-reset-btn" *ngIf="searchQuery || activeCategory !== 'All Resources'" (click)="searchQuery = ''; setCategory('All Resources')">Clear Filters</button>
+        </div>
+
+      </ng-container>
 
       <!-- Pagination -->
       <div class="pagination" *ngIf="totalPages > 1">
@@ -164,9 +190,9 @@
   <!-- DELETE CONFIRMATION MODAL -->
   <div class="editor-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
     <div class="editor-modal confirm-delete-modal" (click)="$event.stopPropagation()">
-      <div class="editor-header bg-error">
-        <h2 class="serif-italic text-white">Confirm Deletion</h2>
-        <button class="icon-btn close-btn text-white" (click)="cancelDelete()">
+      <div class="editor-header">
+        <h2 class="serif-italic warning-heading">Confirm Deletion</h2>
+        <button class="icon-btn close-btn" (click)="cancelDelete()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>

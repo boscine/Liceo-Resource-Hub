@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ApiService } from '../../../core/services/api.service';
 import { PostService } from '../../../core/services/post.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 
 @Component({
@@ -33,7 +34,8 @@ export class PostCreateComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef, 
     private router: Router,
     private postService: PostService,
-    private toast: ToastService
+    private toast: ToastService,
+    private notifService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -41,7 +43,7 @@ export class PostCreateComponent implements OnInit, OnDestroy {
       this.user = this.auth.getUser() || {};
     }
     
-    this.catSub = this.postService.categories$.subscribe(cats => {
+    this.catSub = this.postService.categories$.subscribe((cats: any[]) => {
       this.categories = cats;
       this.cdr.detectChanges();
     });
@@ -64,6 +66,7 @@ export class PostCreateComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.postService.refreshPosts();
+        this.notifService.refresh();
         this.toast.success('Your academic request has been published successfully.');
         
         this.loading = false;

@@ -6,7 +6,6 @@
     <nav class="nav-links">
       <a routerLink="/feed"        [class.active]="active === 'feed'">Requests</a>
       <a routerLink="/post/create" [class.active]="active === 'create'">Create</a>
-      <a routerLink="/curator-guide" [class.active]="active === 'guide'">Protocol</a>
       <a routerLink="/admin"       [class.active]="active === 'admin'" *ngIf="isAdmin">Dashboard</a>
     </nav>
 
@@ -14,14 +13,14 @@
 
       <!-- Notification Bell -->
       <div class="notif-wrapper" (click)="$event.stopPropagation()">
-        <button class="icon-btn notif-btn" (click)="toggleNotifications($event)" id="notif-bell">
+        <div class="notif-trigger-wrap" (click)="toggleNotifications($event)" *ngIf="false">
           <span class="material-symbols-outlined">notifications</span>
           <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
-        </button>
+        </div>
 
         <div class="notif-panel" *ngIf="notificationsOpen" id="notif-panel">
           <div class="notif-panel-header">
-            <span class="notif-panel-title">Notifications</span>
+            <span class="notif-panel-title">Notifications ({{ unreadCount }})</span>
             <button class="mark-all-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">Mark all read</button>
           </div>
 
@@ -39,7 +38,7 @@
           </div>
 
           <div class="notif-panel-footer">
-            <a routerLink="/notifications">View all notifications</a>
+            <a routerLink="/notifications" (click)="notificationsOpen = false">View all notifications</a>
           </div>
         </div>
       </div>

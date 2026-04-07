@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
-import { RouterModule }      from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService }       from '../../../core/services/auth.service';
 import { ApiService }        from '../../../core/services/api.service';
 import { ToastService }      from '../../../core/services/toast.service';
@@ -17,7 +17,6 @@ import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 export class ProfileComponent implements OnInit {
   displayName = '';
   email       = '';
-  college     = '';
   contacts: Array<{type: string, value: string}> = [];
   newContact: {type: string, value: string} = { type: 'messenger', value: '' };
   
@@ -27,17 +26,19 @@ export class ProfileComponent implements OnInit {
   contactTypes = ['messenger', 'phone', 'other'];
 
   initialDisplayName = '';
-  initialCollege     = '';
   initialContactsStr = '';
+  isAdmin = false;
 
   constructor(
     private auth: AuthService, 
+    private router: Router, 
     private api: ApiService, 
     private cdr: ChangeDetectorRef,
     private toast: ToastService
   ) {}
 
   ngOnInit() {
+    this.isAdmin = this.auth.isAdmin();
     this.fetchProfile();
   }
 
@@ -47,11 +48,9 @@ export class ProfileComponent implements OnInit {
         if (user) {
           this.displayName = (user.displayName || user.display_name || '').trim() || 'User';
           this.email = user.email || '';
-          this.college = (user.college || '').trim() || 'Liceo Student';
           this.contacts = user.contacts ? [...user.contacts] : [];
           
           this.initialDisplayName = this.displayName;
-          this.initialCollege = this.college;
           this.initialContactsStr = JSON.stringify(this.contacts);
         }
         this.cdr.detectChanges();
@@ -60,9 +59,8 @@ export class ProfileComponent implements OnInit {
         console.error('Failed to load profile data:', err);
         const tokenUser = this.auth.getUser() as any;
         if (tokenUser) {
-          this.displayName = tokenUser.display_name || 'User';
+          this.displayName = tokenUser.displayName || tokenUser.display_name || 'User';
           this.email = tokenUser.email || '';
-          this.college = 'Liceo Student';
         }
         this.cdr.detectChanges();
       }
@@ -118,10 +116,9 @@ export class ProfileComponent implements OnInit {
     const currentContactsStr = JSON.stringify(this.contacts);
     
     const hasDisplayNameChanged = this.displayName.trim() !== this.initialDisplayName.trim();
-    const hasCollegeChanged     = this.college.trim() !== this.initialCollege.trim();
     const hasContactsChanged    = currentContactsStr !== this.initialContactsStr;
 
-    if (!hasDisplayNameChanged && !hasCollegeChanged && !hasContactsChanged) {
+    if (!hasDisplayNameChanged && !hasContactsChanged) {
       this.toast.info('No changes were made to your profile.');
       return;
     }
@@ -129,8 +126,7 @@ export class ProfileComponent implements OnInit {
     this.saving = true;
     this.api.put('/profile', { 
       displayName: this.displayName.trim(), 
-      contacts: this.contacts,
-      college: this.college.trim() 
+      contacts: this.contacts
     }).subscribe({
       next: (res: any) => {
         this.saving = false;
@@ -139,12 +135,10 @@ export class ProfileComponent implements OnInit {
         
         if (res?.user) {
           this.displayName = res.user.displayName;
-          this.college = res.user.college || 'Liceo Student';
           this.contacts = [...res.user.contacts];
         }
 
         this.initialDisplayName = this.displayName;
-        this.initialCollege = this.college;
         this.initialContactsStr = JSON.stringify(this.contacts);
         
         setTimeout(() => {
@@ -162,5 +156,6 @@ export class ProfileComponent implements OnInit {
 
   logout() {
     this.auth.logout();
+    this.router.navigate(['/login']);
   }
 }

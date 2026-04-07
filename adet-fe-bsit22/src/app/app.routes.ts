@@ -46,5 +46,9 @@ export const routes: Routes = [
     canActivate: [AdminGuard],
     loadComponent: () => import('./pages/admin/posts/posts.component').then(m => m.PostsComponent)
   },
+  {
+    path: 'notifications',
+    loadComponent: () => import('./pages/student/notifications/notifications.component').then(m => m.NotificationsComponent)
+  },
   { path: '**', redirectTo: 'feed' }
 ];

@@ -24,6 +24,13 @@ auth.post('/login', async (c) => {
       return c.json({ message: 'No account found with this email' }, 401);
     }
 
+    // 2. Check password FIRST before revealing account status
+    const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
+    if (!isPasswordValid) {
+      return c.json({ message: 'Incorrect password' }, 401);
+    }
+
+    // 3. Inform of pending verification ONLY if credentials are correct
     if (user.status === 'pending') {
       return c.json({ 
         message: 'Account pending verification. Please check your email.', 
@@ -32,11 +39,6 @@ auth.post('/login', async (c) => {
       }, 403);
     }
 
-    // 2. Check password
-    const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
-    if (!isPasswordValid) {
-      return c.json({ message: 'Incorrect password' }, 401);
-    }
     if (user.status !== 'active') {
       return c.json({ message: 'Account is restricted' }, 403);
     }
@@ -154,6 +156,40 @@ auth.post('/verify', async (c) => {
     });
   } catch (error) {
     return c.json({ message: 'Verification failed' }, 500);
+  }
+});
+
+// POST /api/auth/resend-code
+auth.post('/resend-code', async (c) => {
+  try {
+    const { email } = await c.req.json();
+    if (!email) return c.json({ message: 'Email required' }, 400);
+
+    const emailLower = email.toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: emailLower } });
+
+    if (!user || user.status !== 'pending') {
+      return c.json({ message: 'Resend not applicable' }, 400);
+    }
+
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 2);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        verificationToken, 
+        verificationExpiresAt: expiresAt 
+      }
+    });
+
+    console.log(`\n\n[DEV] NEW Verification code for ${emailLower}: ${verificationToken}\n\n`);
+
+    return c.json({ message: 'A fresh access code has been dispatched.' });
+  } catch (error) {
+    console.error('Resend Error:', error);
+    return c.json({ message: 'Failed to resend code' }, 500);
   }
 });
 

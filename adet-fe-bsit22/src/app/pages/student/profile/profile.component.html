@@ -1,202 +1,173 @@
-<app-navbar></app-navbar>
+<div class="profile-page">
+  <app-navbar></app-navbar>
 
-<div class="profile-page-v2">
-  <!-- Immersive Background Elements -->
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
+  <main class="profile-main">
+    <div class="profile-inner">
 
-  <div class="profile-container">
-    <div class="profile-layout-grid">
-      
-      <!-- Side: User Glance & Stats -->
-      <aside class="profile-side animate-in-left">
-        <div class="glass-card user-glance">
-          <div class="glance-avatar">
-            <div class="avatar-circle">
-              <span class="material-symbols-outlined">person</span>
+      <a routerLink="/feed" class="breadcrumb">
+        <span class="material-symbols-outlined">arrow_back</span> Return to Library
+      </a>
+
+      <div class="profile-layout">
+        
+        <!-- SIDEBAR: User Glance -->
+        <aside class="profile-sidebar">
+          <div class="user-card animate-in-left">
+            <div class="avatar-holder">
+              <div class="avatar-large">
+                {{ displayName.charAt(0).toUpperCase() || 'U' }}
+              </div>
+              <div class="status-indicator active" title="Verified Scholarly Member">
+                <span class="material-symbols-outlined" *ngIf="isAdmin">verified</span>
+              </div>
             </div>
-            <div class="avatar-badge">
-              <span class="material-symbols-outlined">verified</span>
-            </div>
-          </div>
-          
-          <div class="glance-info">
+
             <h1 class="user-name">{{ displayName || 'Academic Curator' }}</h1>
-            <p class="user-role-badge">Student Researcher</p>
+            <span class="user-role">{{ isAdmin ? 'Administrator' : 'Student Researcher' }}</span>
+            
             <div class="user-meta">
-                {{ email }}
+              <span class="material-symbols-outlined">mail</span>
+              {{ email }}
             </div>
-          </div>
 
-          <div class="glance-stats-simple">
-            <div class="stat-item">
-              <span class="stat-val">{{ contacts.length }}</span>
-              <span class="stat-lab">Contact Methods</span>
+            <div class="divider"></div>
+
+            <div class="stats-row">
+              <div class="stat-item">
+                <span class="stat-val">{{ contacts.length }}</span>
+                <span class="stat-label">Methods</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-val">Active</span>
+                <span class="stat-label">Status</span>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="glass-card utility-mini-card">
-          <h3 class="mini-title">Security & Portal</h3>
-          <button class="logout-btn-premium" (click)="logout()">
-            <span class="inner-btn">
+            <div class="divider"></div>
+
+            <button class="btn-logout" (click)="logout()">
               <span class="material-symbols-outlined">logout</span>
-              Sign Out of Portal
-            </span>
-          </button>
-        </div>
-      </aside>
+              Disconnect Session
+            </button>
+          </div>
 
-      <!-- Main: Edit Profile -->
-      <main class="profile-main animate-in-right">
-        <div class="glass-card main-profile-card">
-          <header class="card-header-v2">
-            <div class="header-icon-wrap">
-              <span class="material-symbols-outlined">settings_account_box</span>
-            </div>
-            <div class="header-text">
-              <h2>Profile Settings</h2>
-              <p>Manage your public identity and contact channels</p>
-            </div>
+          <div class="privacy-notice">
+            <span class="material-symbols-outlined">shield_person</span>
+            <p>Your institutional contact links are restricted to verified @liceo.edu.ph students. External visitors cannot access this data.</p>
+          </div>
+        </aside>
+
+        <!-- MAIN CONTENT: Edit Profile -->
+        <div class="profile-content animate-in-right">
+          <header class="content-header">
+            <h2>Profile Settings</h2>
+            <p>Curate your public identity and institutional reachability channels.</p>
           </header>
 
-          <form class="profile-form">
-            <!-- Basic Information -->
+          <form (ngSubmit)="onSave()" #profileForm="ngForm" class="edit-form">
+            
+            <!-- SECTION 1: Identity -->
             <section class="form-section">
-              <h3 class="section-title">
+              <div class="section-title">
                 <span class="material-symbols-outlined">badge</span>
-                Basic Information
-              </h3>
-              
-              <div class="premium-field">
-                <label for="displayName" class="floating-label">Display Name <span class="required">*</span></label>
-                <div class="input-glow-wrap">
-                  <span class="material-symbols-outlined field-lead-icon">person</span>
-                  <input id="displayName" type="text" [(ngModel)]="displayName" name="displayName" class="premium-input" placeholder="Your Hub name">
+                Identity
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="displayName">Scholarly Display Name</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-outlined input-icon">person_edit</span>
+                  <input class="input-academic" id="displayName" type="text"
+                    [(ngModel)]="displayName" name="displayName"
+                    placeholder="Enter your name..."/>
                 </div>
               </div>
 
-              <div class="premium-field">
-                <label for="college" class="floating-label">College / Department</label>
-                <div class="input-glow-wrap">
-                  <span class="material-symbols-outlined field-lead-icon">account_balance</span>
-                  <input id="college" type="text" [(ngModel)]="college" name="college" class="premium-input" placeholder="e.g. College of Engineering">
+              <div class="field disabled">
+                <label class="field-label">Institutional Email</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-outlined input-icon">mail_lock</span>
+                  <input class="input-academic" [value]="email" readonly disabled />
                 </div>
-                <p class="field-hint">Helps students from your department find your requests faster.</p>
-              </div>
-
-              <div class="premium-field disabled">
-                <label for="email" class="floating-label">Institutional Email</label>
-                <div class="input-glow-wrap">
-                  <input id="email" type="text" [value]="email" readonly class="premium-input no-icon" disabled>
-                  <span class="material-symbols-outlined field-trail-icon-lock">lock</span>
-                </div>
-                <p class="field-hint">Your email is managed by Liceo Hub and cannot be changed.</p>
+                <p class="field-hint">Your university-issued email cannot be altered.</p>
               </div>
             </section>
 
-            <!-- Contacts Section -->
+            <!-- SECTION 2: Reachability -->
             <section class="form-section">
-              <div class="section-header">
-                <h3 class="section-title">Reachability</h3>
-                <span class="badge-count">{{ contacts.length }} Methods</span>
+              <div class="section-title">
+                <span class="material-symbols-outlined">connect_without_contact</span>
+                Reachability
               </div>
-              
-              <div class="contacts-explorer">
-                <!-- Contact List -->
-                <div class="contacts-grid-v2" *ngIf="contacts.length > 0">
-                  <div class="contact-pill animate-pop-in" *ngFor="let c of contacts; let i = index">
-                    <div class="pill-icon-wrap">
-                      <span class="material-symbols-outlined">
-                        {{ c.type.toLowerCase() === 'messenger' ? 'chat' : (c.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
-                      </span>
-                    </div>
-                    <div class="pill-content">
-                      <span class="pill-type">{{ c.type }}</span>
-                      <span class="pill-value text-truncate">{{ c.value }}</span>
-                    </div>
-                    <button class="pill-remove" (click)="removeContact(i)" title="Remove">
-                      <span class="material-symbols-outlined">close</span>
-                    </button>
+
+              <!-- Contact Methods List -->
+              <div class="contacts-grid" *ngIf="contacts.length > 0">
+                <div class="contact-pill" *ngFor="let c of contacts; let i = index">
+                  <span class="material-symbols-outlined pill-icon">
+                    {{ c.type.toLowerCase() === 'messenger' ? 'chat' : (c.type.toLowerCase() === 'phone' ? 'phone_iphone' : 'link') }}
+                  </span>
+                  <div class="pill-text">
+                    <span class="pill-type">{{ c.type }}</span>
+                    <span class="pill-val">{{ c.value }}</span>
                   </div>
+                  <button type="button" class="pill-close" (click)="removeContact(i)">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
                 </div>
+              </div>
 
-                <div class="empty-explorer" *ngIf="contacts.length === 0">
-                  <span class="material-symbols-outlined">contact_support</span>
-                  <p>No contact methods listed yet</p>
-                </div>
+              <!-- Empty State -->
+              <div class="empty-state" *ngIf="contacts.length === 0">
+                <span class="material-symbols-outlined">link_off</span>
+                <p>No active contact methods linked to your profile.</p>
+              </div>
 
-                <!-- Quick Add Contact Composer -->
-                <div class="add-contact-composer">
-                  <header class="composer-header">
-                    <span class="material-symbols-outlined header-icon">add_link</span>
-                    Quick Add New Method
-                  </header>
-                  <div class="composer-body">
-                    <div class="type-selector-wrap">
-                      <div class="type-icon-indicator" title="Selected method type">
-                        <span class="material-symbols-outlined">
-                          {{ newContact.type.toLowerCase() === 'messenger' ? 'chat' : (newContact.type.toLowerCase() === 'phone' ? 'phone_android' : 'link') }}
-                        </span>
-                      </div>
-                      <label for="contactType" class="visually-hidden">Contact Method Type</label>
-                      <select id="contactType" name="contactType" [(ngModel)]="newContact.type" class="type-select">
-                        <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
-                      </select>
-                      <span class="material-symbols-outlined select-arrow">expand_more</span>
-                    </div>
-
-                    <div class="value-input-wrap">
-                      <label for="contactValue" class="visually-hidden">Contact Method Value</label>
-                      <input 
-                        id="contactValue"
-                        type="text" 
-                        [(ngModel)]="newContact.value" 
-                        name="contactValue"
-                        [placeholder]="newContact.type === 'messenger' ? 'm.me/your.username' : (newContact.type === 'phone' ? '09xx-xxx-xxxx' : 'Link or Username...')" 
-                        (keyup.enter)="addContact()"
-                        class="value-input">
-                    </div>
-
-                    <button type="button" class="composer-submit-btn" (click)="addContact()" [disabled]="!newContact.value.trim()">
-                      <span class="material-symbols-outlined btn-icon">add</span>
-                      Add
-                    </button>
+              <!-- Contact Composer -->
+              <div class="composer">
+                <div class="composer-grid">
+                  <div class="field">
+                    <select class="input-academic" [(ngModel)]="newContact.type" name="newType">
+                      <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
+                    </select>
                   </div>
-                  
-                  <div class="composer-error" *ngIf="contactError">
-                    <span class="material-symbols-outlined">warning</span>
-                    {{ contactError }}
+                  <div class="field">
+                    <input class="input-academic" type="text" [(ngModel)]="newContact.value" name="newValue"
+                      [placeholder]="newContact.type === 'messenger' ? 'm.me/username' : 'Value...'" (keyup.enter)="addContact()"/>
                   </div>
+                  <button type="button" class="btn-primary-outline" (click)="addContact()" [disabled]="!newContact.value">
+                    Add Method
+                  </button>
                 </div>
+                <p class="error-text" *ngIf="contactError">{{ contactError }}</p>
               </div>
             </section>
+
+            <!-- FORM ACTIONS -->
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="saving">
+                <span *ngIf="!saving">{{ saved ? 'Identity Secured' : 'Sync Changes' }}</span>
+                <span *ngIf="saving" class="spinner-small"></span>
+                <span class="material-symbols-outlined" *ngIf="!saving">{{ saved ? 'verified' : 'sync' }}</span>
+              </button>
+            </div>
+
           </form>
-
-          <!-- Footer Actions -->
-          <footer class="profile-footer-v2">
-
-            <button 
-              type="button" 
-              class="btn-save-premium" 
-              (click)="onSave()" 
-              [disabled]="saving"
-              [class.btn-syncing]="saving"
-              [class.btn-saved]="saved">
-              
-              <div class="btn-main-wrap">
-                <span class="material-symbols-outlined btn-icon" *ngIf="!saving && !saved">verified_user</span>
-                <span class="material-symbols-outlined btn-icon" *ngIf="saved">check_circle</span>
-                <span class="loader-v2" *ngIf="saving"></span>
-                <span class="btn-label">
-                  {{ saving ? 'Syncing...' : (saved ? 'Profile Updated' : 'Save Changes') }}
-                </span>
-              </div>
-            </button>
-          </footer>
         </div>
-      </main>
 
+      </div>
     </div>
-  </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-brand">
+      Liceo de Cagayan University
+      <span>© 2026 The Academic Curator.</span>
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">University Portal</a>
+      <a href="#">Contact Support</a>
+    </div>
+  </footer>
 </div>

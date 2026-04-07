@@ -129,10 +129,18 @@ export class FeedComponent implements OnInit, OnDestroy {
     return count > 0 && count < 10 ? '0' + count : count;
   }
 
-  get fulfilledCount(): number {
+  get fulfilledCount(): string | number {
     if (!this.isLoggedIn || !this.user) return 0;
     const myName = this.user.displayName || this.user.display_name || this.user.name;
-    return this.posts.filter(p => p.author === myName && p.status?.toLowerCase() === 'fulfilled').length;
+    const count = this.posts.filter(p => p.author === myName && p.status?.toLowerCase() === 'fulfilled').length;
+    return count > 0 && count < 10 ? '0' + count : count;
+  }
+
+  get closedCount(): string | number {
+    if (!this.isLoggedIn || !this.user) return 0;
+    const myName = this.user.displayName || this.user.display_name || this.user.name;
+    const count = this.posts.filter(p => p.author === myName && (p.status?.toLowerCase() === 'closed' || p.status?.toLowerCase() === 'removed')).length;
+    return count > 0 && count < 10 ? '0' + count : count;
   }
 
   toggleSave(post: any) {

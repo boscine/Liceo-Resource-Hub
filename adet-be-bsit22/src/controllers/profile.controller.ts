@@ -17,7 +17,6 @@ export const getProfile = async (c: Context) => {
         email: true,
         role: true,
         status: true,
-        college: true,
         contacts: {
           select: { type: true, value: true }
         }
@@ -42,25 +41,20 @@ export const updateProfile = async (c: Context) => {
     return c.json({ message: 'Unauthorized' }, 401);
   }
 
-  try {
-    const body = await c.req.json();
-    let { displayName, contacts, college } = body;
-    
-    // ── Input Sanitization ──────────────────────────────────────────────────
-    displayName = (displayName || '').trim();
-    college = (college || '').trim();
+    try {
+      const body = await c.req.json();
+      let { displayName, contacts } = body;
+      
+      // ── Input Sanitization ──────────────────────────────────────────────────
+      displayName = (displayName || '').trim();
 
-    if (!displayName || displayName.length < 2) {
-      return c.json({ message: 'A valid display name (min 2 chars) is required' }, 400);
-    }
+      if (!displayName || displayName.length < 2) {
+        return c.json({ message: 'A valid display name (min 2 chars) is required' }, 400);
+      }
 
-    if (displayName.length > 50) {
-      return c.json({ message: 'Display name is too long (max 50 characters)' }, 400);
-    }
-
-    if (college && college.length > 100) {
-      return c.json({ message: 'College name is too long (max 100 characters)' }, 400);
-    }
+      if (displayName.length > 50) {
+        return c.json({ message: 'Display name is too long (max 50 characters)' }, 400);
+      }
 
     // ── Validate Contacts ────────────────────────────────────────────────────
     const refinedContacts = [];
@@ -86,7 +80,6 @@ export const updateProfile = async (c: Context) => {
       where: { id: Number(userId) },
       data: {
         displayName,
-        college: college || null,
         contacts: {
           deleteMany: {},
           create: refinedContacts
@@ -103,7 +96,6 @@ export const updateProfile = async (c: Context) => {
       message: 'Profile updated successfully', 
       user: {
         displayName: updatedUser.displayName,
-        college: updatedUser.college,
         contacts: updatedUser.contacts
       }
     });

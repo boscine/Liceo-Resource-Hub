@@ -1,0 +1,34 @@
+<div class="page-wrapper">
+  <app-navbar [active]="''"></app-navbar>
+
+  <main class="notifications-main">
+    <div class="notifications-header">
+      <div>
+        <h1>All Notifications</h1>
+        <p>Stay updated on the status of your requests and bookmarks.</p>
+      </div>
+      <button class="mark-all-btn-v2" *ngIf="notifications.length > 0 && !loading" (click)="markAllAsRead()">
+        <span class="material-symbols-outlined">done_all</span>
+        Mark all read
+      </button>
+    </div>
+
+    <div class="notifications-list" *ngIf="!loading">
+      <div class="notif-card" *ngFor="let n of notifications" [class.unread]="!n.read" (click)="markAsRead(n)">
+        <span class="notif-icon material-symbols-outlined">{{ n.icon }}</span>
+        <div class="notif-content">
+          <p class="notif-text" [innerHTML]="n.text"></p>
+          <span class="notif-time">{{ n.time }}</span>
+        </div>
+        <span class="notif-dot" *ngIf="!n.read"></span>
+      </div>
+
+      <div class="empty-state" *ngIf="notifications.length === 0">
+        <span class="material-symbols-outlined">inbox</span>
+        <p>You're all caught up!</p>
+      </div>
+    </div>
+    
+    <div class="loader-v2" *ngIf="loading" style="margin: 2rem auto;"></div>
+  </main>
+</div>

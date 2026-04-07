@@ -113,6 +113,15 @@ body {
     &:hover { color: var(--primary); }
     .material-symbols-outlined { font-size: 18px; }
   }
+
+  .select-arrow {
+    position: absolute;
+    right: 0.85rem;
+    font-size: 18px;
+    color: var(--outline);
+    pointer-events: none;
+    opacity: 0.7;
+  }
 }
 
 /* ── Shared Button Styles ─────────────────────────────────────────────────────── */

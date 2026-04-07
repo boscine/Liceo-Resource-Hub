@@ -35,7 +35,6 @@
             <div class="author-avatar">{{ post.author[0] }}</div>
             <div>
               <p class="author-name">{{ post.author }}</p>
-              <p class="author-college">{{ post.college }}</p>
             </div>
           </div>
           <div class="divider"></div>
@@ -48,7 +47,7 @@
               Report this post
             </button>
 
-            <a [routerLink]="['/post', post.id, 'edit']" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && (user.id == post.authorId || user.role === 'admin')">
+            <a [routerLink]="['/post', post.id, 'edit']" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && user.id == post.authorId">
               <span class="material-symbols-outlined">edit</span> Edit Request Status
             </a>
           </div>
@@ -112,7 +111,15 @@
   </main>
 
   <footer class="app-footer">
-    <div class="footer-brand">Liceo de Cagayan University<span>© 2026 The Academic Curator.</span></div>
-    <div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">University Portal</a></div>
+    <div class="footer-brand">
+      Liceo de Cagayan University
+      <span>© 2026 The Academic Curator.</span>
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">University Portal</a>
+      <a href="#">Contact Support</a>
+    </div>
   </footer>
 </div>
