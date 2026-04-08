@@ -64,7 +64,7 @@ model Post {
   id          Int          @id @default(autoincrement())
   userId      Int          @map("user_id")
   categoryId  Int          @map("category_id")
-  title       String
+  title       String       @db.VarChar(255)
   description String       @db.Text
   status      PostStatus   @default(open)
   isFlagged   Boolean      @default(false) @map("is_flagged")

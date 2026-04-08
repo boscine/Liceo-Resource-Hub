@@ -21,6 +21,7 @@ export class PostDetailComponent implements OnInit {
   reportDetails = '';
   user: any = {};
   loading = true;
+  isDescriptionExpanded = false;
 
   reasons = ['Inappropriate Content', 'Spam', 'Misleading', 'Not Educational', 'Duplicate Post', 'Fake Contact Info', 'Other'];
 
@@ -56,6 +57,7 @@ export class PostDetailComponent implements OnInit {
       next: (data) => {
         this.post = data;
         this.loading = false;
+        this.isDescriptionExpanded = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -69,4 +71,5 @@ export class PostDetailComponent implements OnInit {
   revealContact() { this.showContact = true; }
   toggleReport()  { this.showReportForm = !this.showReportForm; }
   submitReport()  { this.showReportForm = false; }
+  toggleDescription() { this.isDescriptionExpanded = !this.isDescriptionExpanded; }
 }

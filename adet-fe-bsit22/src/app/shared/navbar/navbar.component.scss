@@ -17,10 +17,19 @@
   &.active { box-shadow: 0 0 0 2px var(--secondary-container); }
 }
 
-// Logout button – subtle red on hover
-.logout-nav-btn {
-  color: var(--outline) !important;
-  &:hover { background: rgba(186,26,26,0.08) !important; color: var(--error) !important; }
+// Premium Logout Button
+.logout-btn-premium {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  padding: 0.6rem 1rem; border-radius: var(--radius-md); font-family: var(--font-body);
+  font-size: 0.75rem; font-weight: 700; color: var(--on-surface-variant);
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  .material-symbols-outlined { font-size: 18px; }
+  &:hover { 
+    background: var(--error-container); color: var(--error); border-color: var(--error);
+    transform: translateY(-1px); box-shadow: 0 4px 12px rgba(186, 26, 26, 0.1);
+  }
 }
 
 // ── Notification wrapper ──────────────────────────────────────────────────────
@@ -42,13 +51,18 @@
 
   // ── Panel ────────────────────────────────────────────────────────────────
   .notif-panel {
-    position: absolute; top: calc(100% + 0.75rem); right: 0;
+    position: absolute; top: calc(100% + 0.5rem); right: 0;
     width: 360px;
+    max-width: calc(100vw - 2rem);
     background: var(--surface-container-lowest);
     border-radius: var(--radius-lg);
     box-shadow: 0 16px 48px rgba(25,28,29,0.14), 0 0 0 1px var(--outline-variant);
     z-index: 200; overflow: hidden;
-    animation: slide-down 0.18s ease;
+    animation: slide-up-mod 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    @media (max-width: 480px) {
+      right: -60px; /* Offset to feel more centered on very small screens */
+    }
 
     .notif-panel-header {
       display: flex; justify-content: space-between; align-items: center;
@@ -118,7 +132,72 @@
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes slide-up-mod {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 @keyframes pop-in {
   from { transform: scale(0.5); }
   to   { transform: scale(1); }
+}
+
+// ── Guest Links ──────────────────────────────────────────────────────────────
+.nav-guest-link {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  transition: color 0.15s;
+  &:hover { color: var(--primary); }
+}
+
+.nav-mobile-menu {
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; color: var(--primary);
+  margin-left: -0.5rem; /* Better alignment on mobile edge */
+  width: 44px; height: 44px; border-radius: 50%;
+  transition: all 0.2s;
+  .material-symbols-outlined { font-size: 24px; }
+  &:hover { background: var(--surface-container-low); }
+  &:active { transform: scale(0.9); }
+  @media (min-width: 1024px) { display: none; }
+}
+
+.nav-brand {
+  .mobile-brand { display: none; }
+  @media (max-width: 1023px) {
+    .full-brand { display: none; }
+    .mobile-brand { display: inline; }
+  }
+}
+
+:host ::ng-deep {
+  @media (max-width: 1023px) {
+    .nav-links { display: none !important; }
+  }
+}
+
+.nav-btn-register {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: white;
+  background: var(--primary);
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(87, 0, 0, 0.12);
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 8px 20px rgba(87, 0, 0, 0.2);
+    filter: brightness(1.1);
+  }
+  &:active { transform: scale(0.96); }
 }

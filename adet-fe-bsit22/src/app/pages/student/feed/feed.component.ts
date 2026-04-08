@@ -39,6 +39,16 @@ export class FeedComponent implements OnInit, OnDestroy {
   postToDelete: any = null; // null if bulk delete
   isBulkDelete = false;
   deleting = false;
+
+  // Detail Modal properties
+  showDetailModal = false;
+  selectedPost: any = null;
+  loadingDetail = false;
+  showContact = false;
+  isDescriptionExpanded = false; // "See More" toggle state
+
+  sidebarOpen = false;
+  toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; }
   
   private postSub?: Subscription;
   private catSub?: Subscription;
@@ -82,7 +92,12 @@ export class FeedComponent implements OnInit, OnDestroy {
     // Subscribe to stateful categories stream
     this.catSub = this.postService.categories$.subscribe(data => {
       const names = data.map(c => c.name);
-      this.categories = ['All Resources', ...names];
+      const sortedNames = names.sort((a, b) => {
+        if (a === 'Other') return 1;
+        if (b === 'Other') return -1;
+        return a.localeCompare(b);
+      });
+      this.categories = ['All Resources', ...sortedNames];
       this.cdr.detectChanges();
     });
 
@@ -148,6 +163,12 @@ export class FeedComponent implements OnInit, OnDestroy {
       this.savedPosts.delete(post.id);
     } else {
       this.savedPosts.add(post.id);
+      // Notify author via backend
+      if (this.isLoggedIn) {
+        this.api.post(`/posts/${post.id}/save`, {}).subscribe({
+          error: (e) => console.error('Failed to notify author:', e)
+        });
+      }
     }
     localStorage.setItem('ac_savedPosts', JSON.stringify(Array.from(this.savedPosts)));
   }
@@ -245,6 +266,49 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  // --- DETAIL MODAL LOGIC ---
+  openDetail(post: any) {
+    this.selectedPost = { ...post }; // Use existing data first
+    this.showDetailModal = true;
+    this.loadingDetail = true;
+    this.showContact = false; // Reset contact visibility
+    this.isDescriptionExpanded = false; // Reset description expansion
+
+    // Fetch full post details (contacts, etc.)
+    this.api.get(`/posts/${post.id}`).subscribe({
+      next: (data: any) => {
+        this.selectedPost = data;
+        this.loadingDetail = false;
+        this.cdr.detectChanges();
+      },
+      error: (e) => {
+        console.error('Failed fetching post detail:', e);
+        this.loadingDetail = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeDetailModal() {
+    this.showDetailModal = false;
+    this.selectedPost = null;
+    this.isDescriptionExpanded = false;
+  }
+
+  toggleDescription() {
+    this.isDescriptionExpanded = !this.isDescriptionExpanded;
+  }
+
+  revealContact() {
+    this.showContact = true;
+  }
+
+  @HostListener('document:keydown.escape')
+  handleKeydown() {
+    if (this.showDetailModal) this.closeDetailModal();
+    if (this.showDeleteConfirm) this.cancelDelete();
+  }
+
   toggleSelect(id: string | number) {
     if (this.selectedPosts.has(id)) {
       this.selectedPosts.delete(id);
@@ -268,46 +332,11 @@ export class FeedComponent implements OnInit, OnDestroy {
     }
   }
 
-  activeEditPost: any = null;
-
-  startEdit(post: any) {
-    this.activeEditPost = {
-      ...post,
-      editTitle: post.title,
-      editDescription: post.description,
-      saving: false
-    };
-  }
-
-  cancelEdit() {
-    this.activeEditPost = null;
-  }
-
-  saveEdit() {
-    if (!this.activeEditPost) return;
-    this.activeEditPost.saving = true;
-
-    this.api.put(`/posts/${this.activeEditPost.id}`, {
-      title: this.activeEditPost.editTitle,
-      description: this.activeEditPost.editDescription
-    }).subscribe({
-      next: () => {
-        // Update state locally
-        this.postService.updatePostLocal({
-          id: this.activeEditPost.id,
-          title: this.activeEditPost.editTitle,
-          description: this.activeEditPost.editDescription
-        });
-        this.activeEditPost = null;
-        this.cdr.detectChanges();
-      },
-      error: (e) => {
-        console.error('Failed modal update:', e);
-        this.activeEditPost.saving = false;
-        alert('Failed to save changes.');
-        this.cdr.detectChanges();
-      }
-    });
+  goToEdit(post: any) {
+    if (!post) return;
+    const id = post.id;
+    this.closeDetailModal();
+    this.router.navigate(['/post', id, 'edit']);
   }
 
   get paginatedPosts() {

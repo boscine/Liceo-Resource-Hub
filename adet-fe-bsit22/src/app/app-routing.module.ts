@@ -12,6 +12,7 @@ const routes: Routes = [
   { path: 'register', loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent), canActivate: [GuestGuard] },
   { path: 'forgot-password', loadComponent: () => import('./pages/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent), canActivate: [GuestGuard] },
   { path: 'reset-password', loadComponent: () => import('./pages/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent), canActivate: [GuestGuard] },
+  { path: 'curator-guide', loadComponent: () => import('./pages/student/curator-guide/curator-guide.component').then(m => m.CuratorGuideComponent) },
 
   // Student
   { path: 'feed', loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent), canActivate: [AuthGuard] },   { path: 'post/create', loadComponent: () => import('./pages/student/post-create/post-create.component').then(m => m.PostCreateComponent), canActivate: [AuthGuard] },

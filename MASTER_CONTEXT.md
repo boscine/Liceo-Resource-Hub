@@ -1,5 +1,5 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
-> Unified session synchronization file. Last updated: 2026-04-07
+> Unified session synchronization file. Last updated: 2026-04-09
 
 ## 🏁 Getting Started & Installation
 
@@ -86,11 +86,32 @@ liceo-resource-hub/
 - **Footer Standardization:** Unified `app-footer` across all student/admin pages (Privacy, Terms, Portal, Support links).
 - **Design Unification (V5):** Redesigned the self-profile portal (`/profile`) to perfectly match the "The Academic Curator" scholarly aesthetic used in public profile views.
 - **Backend Hardening:** Implemented missing `resend-verify` route and added robust foreign-key validation for category selection during post creation.
+- **Guest Access (V1):** Reconfigured `AppRoutingModule` and `NavbarComponent` to allow unauthenticated users to view the Curator's Guide and Feed cards while maintaining contact privacy.
+- **UI Design Library:** Established a curated `designs/` directory.
+- **Feed Modal Transition (V6):** Replaced traditional page redirection with a premium, hardware-accelerated detail modal that fetches scholarly metadata asynchronously.
+- **Performance & Simplification:** Optimized modal motion physics (0.1s duration, opacity-only) and simplified header design to achieve maximum FPS and UI clarity.
+- **Mobile Menu Integration:** Implemented a responsive slide-out drawer for mobile views, triggered by a unified "Menu" button in the global navbar.
+- **Routing Redesign:** Updated academic request modification paths to follow the RESTful `post/:id/edit` pattern.
+- **Modal UX Hardening:** Restructured the detail modal to prioritize curator profiles and introduced the "Offer Scholarly Cooperation" call-to-action with handshake iconography.
+- **Navbar Mobile Optimization (V7):** Reduced mobile navbar height (60px) and padding (1rem) for better real estate. Hardened notification panel responsiveness.
+- **Post Edit Unification:** Standardized the `/post/:id/edit` redirection flow to use the global `NavbarComponent` and match the scholarly full-page layout.
+- **System Capacity (V2):** Increased `Post.title` capacity to 255 chars and implemented P2000 Prisma error handling to ensure data-overflow stability during scholarly archiving.
+- **Navigation Simplification (V8):** Relocated core actions (Requests, Create, Profile, Dashboard) to context-aware quick-navigation sidebars, stripping them from the global navbar header for a cleaner, profile-first header.
+- **"Static Fidelity" Strategy:** Completely transitioned the modal system (Delete, Metadata) and notification panels to a static, animation-free UI to ensure ultra-snappy, zero-latency scholarly feedback.
+- **Admin Control Integration:** Successfully unified the main feed's sidebar with institutional controls (Profile/Dashboard) for verified administrative accounts.
+- **Navigation Breadcrumbs:** Optimized the Post Creation portal with a "Return to Library" breadcrumb, matching the established profile-page navigation pattern.
+- **Profile Hardening:** Restricted header username reflection until successful sync and refined "Institutional Email" read-only styling with premium pill-backgrounds and locked iconography.
+- **Category Selection Cards (V9):** Replaced standard dropdowns with a premium, responsive grid of selectable academic cards in both the Create and Edit portals.
+- **Navigation Standardization:** Unified all internal breadcrumbs to "Return to feed" and restored navbar brand visibility on mobile with a responsive "Liceo Hub" title.
+- **Repository Indexing:** Redesigned the feed filter with a "Repository Index" anchor and premium scholarly chips that support alphabetical sorting and "Other-last" priority.
+- **Author Notifications:** Implemented backend-integrated notifications that alert authors when fellow scholars save their requests.
+- **Interaction Fidelity:** Introduced the "Offer Scholarly Cooperation" handshake call-to-action across the metadata modal and detail views.
+- **Flexible Metadata:** Optimized the Request Metadata system with hyper-flexible layouts that stack and wrap seamlessly across all device form factors.
 
 ## 6. Pending / Next Steps (⬜)
 1. ⬜ **Email Integration:** Wire Nodemailer/Resend for OTP and Forgot Password flows.
 2. ⬜ **Full Validation:** Backend Zod schemas for all input routes.
-3. ⬜ **Notification Triggers:** Ensure backend correctly emits notifications on bookmark/fulfillment.
+3. ⬜ **Performance Tuning:** Monitor `backdrop-filter` impact on low-end mobile hardware.
 4. ⬜ **Testing:** Unit & Integration tests for critical API routes.
 5. ⬜ **Deployment:** Railway (BE+DB) + Netlify/Vercel (FE).
 
@@ -105,23 +126,26 @@ liceo-resource-hub/
    - `cd adet-be-bsit22 && npm install && npx prisma generate`
    - `cd adet-fe-bsit22 && npm install`
 4. **Execution**:
+   - For network testing (phone): `npm start -- --host 0.0.0.0 --disable-host-check`
    - For detailed instructions, see: [SETUP_GUIDE.md](file:///c:/Users/You/Desktop/adet-mainproject-bsit22/SETUP_GUIDE.md)
    - Start BE: `npm run dev`
    - Start FE: `npm run start` (available at `localhost:4200`)
 
 ## 8. AI Synchronization Rules
 - **Conciseness:** Responses must be brief; prefer editing over rewriting.
-- **Rule of 13:** Turn counter MUST be appended ([N/13]). Turn 13 triggers MASTER_CONTEXT sync.
+- **Rule of 7:** Turn counter MUST be appended ([N/7]). Turn 7 triggers MASTER_CONTEXT sync.
 - **Design:** Follow "The Academic Curator" theme; prioritize FPS performance.
 
 ---
-**Current Session History (Last Sync: 2026-04-07):**
-- **Performance:** Optimized feed modals with hardware GPU acceleration and specific property transitions for 60fps.
-- **UX Refinement:** Implemented dynamic empty states for saved items, personal requests, and filtered searches.
-- **Activity Sidebar:** Added "CLOSED" request tracking to the user activity card.
-- **Notifications:** Built a full backend-integrated notifications system with a dedicated full-page view and real-time navigation.
-- **Cleanup:** Removed public status indicators and moved sensitive security settings out of public profile views.
-- **Design Unification:** Synced self-profile and public profile aesthetics with premium "Academia Gold" gradients and verified badges.
-- **Footer Sync:** Standardized the Academic Curator footer across 10+ student and administrative layouts.
-- **Bug Fixes:** Implemented the missing `resend-code` API and resolved Angular template warnings and logout redirection loops.
-- **API Robustness:** Added category existence checks and admin-deletion notifications to the backend pipeline.
+- **Header & Navigation Pivot:** De-cluttered the global navbar by removing "Requests" and "Create" links, centralizing them in the Feed's responsive Quick Navigation sidebar.
+- **Admin Sidebar Integration:** Integrated institutional control portals (Profile/Dashboard) into the Feed sidebar for restricted access by verified administrative accounts.
+- **"No Animation" UI:** Completely stripped all entry/exit animations from modals (Delete, Metadata) and overlays to achieve a lightning-fast, static academic interface prioritizing zero-latency feedback.
+- **Data-Overflow Hardening:** Implemented title length constraints (200 chars FE / 255 chars DB) and proactive P2000 error handling in the API routes to prevent crash loops.
+- **Design Unification:** Aligned the "Confirm Deletion" modal with the minimalist "Metadata" popup aesthetics while maintaining high-stakes visibility.
+- **Portal Breadcrumbs:** Added curated "Return to Library" breadcrumbs to the Creation portal to standardize return-to-feed patterns across the platform.
+- **Profile UI Hardening:** Fixed real-time header reflection in the Profile page and upgraded institutional email hints with locked scholarly pill designs.
+- **Category Card UI:** Replaced legacy selects with a tactile, card-based selection grid for scholarly categories.
+- **Navigation Unification:** Standardized all breadcrumb navigation to "Return to feed" and enabled the mobile menu button globally for consistent access.
+- **Notification Integration:** Fixed the author notification flow, ensuring real-time feedback when a request is bookmarked by another scholar.
+- **Filter Design Upgrade:** Introduced the "Repository Index" filter label and improved chip interactions for better scholarly browsing.
+- **Device-Agnostic Metadata:** Hardened the detail modal with wrapping layouts and fluid typography to handle long academic titles on mobile screens.

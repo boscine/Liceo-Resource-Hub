@@ -1,8 +1,12 @@
 <div class="create-page">
-  <app-navbar [active]="'create'"></app-navbar>
+  <app-navbar [active]="'feed'" [showMenuButton]="true"></app-navbar>
 
   <main class="create-main">
     <div class="create-inner">
+
+      <a routerLink="/feed" class="breadcrumb">
+        <span class="material-symbols-outlined">arrow_back</span> Return to feed
+      </a>
 
       <!-- Page Header -->
       <header class="page-header">
@@ -37,19 +41,25 @@
             <label class="field-label" for="title">Request Subject</label>
             <input class="input-academic" id="title" type="text"
               [(ngModel)]="title" name="title"
+              maxlength="200"
               placeholder="e.g., Seeking Financial Accounting Volume 2" required/>
           </div>
 
           <!-- Category Field -->
           <div class="field">
-            <label class="field-label" for="category">Academic Category</label>
-            <div class="select-wrap">
-              <select class="input-academic" id="category"
-                [(ngModel)]="categoryId" name="category" required>
-                <option value="" disabled selected>Select the resource type...</option>
-                <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
-              </select>
-              <span class="material-symbols-outlined select-icon">unfold_more</span>
+            <label class="field-label">Academic Category</label>
+            <div class="category-grid">
+              <label class="category-card" *ngFor="let cat of categories">
+                <input type="radio" 
+                  [(ngModel)]="categoryId" 
+                  [value]="cat.id.toString()"
+                  name="category" 
+                  required>
+                <div class="card-content">
+                  <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
+                  <span class="cat-name">{{ cat.name }}</span>
+                </div>
+              </label>
             </div>
           </div>
 

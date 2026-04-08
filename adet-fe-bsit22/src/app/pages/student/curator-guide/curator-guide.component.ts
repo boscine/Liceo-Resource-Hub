@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
@@ -10,4 +11,9 @@ import { NavbarComponent } from '../../../shared/navbar/navbar.component';
   templateUrl: './curator-guide.component.html',
   styleUrls: ['./curator-guide.component.scss']
 })
-export class CuratorGuideComponent {}
+export class CuratorGuideComponent {
+  isLoggedIn = false;
+  constructor(private auth: AuthService) {
+    this.isLoggedIn = this.auth.isLoggedIn();
+  }
+}

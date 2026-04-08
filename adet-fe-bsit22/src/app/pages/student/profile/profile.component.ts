@@ -60,6 +60,7 @@ export class ProfileComponent implements OnInit {
         const tokenUser = this.auth.getUser() as any;
         if (tokenUser) {
           this.displayName = tokenUser.displayName || tokenUser.display_name || 'User';
+          this.initialDisplayName = this.displayName;
           this.email = tokenUser.email || '';
         }
         this.cdr.detectChanges();

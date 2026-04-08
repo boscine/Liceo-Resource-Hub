@@ -1,11 +1,11 @@
 <div class="profile-page">
-  <app-navbar></app-navbar>
+  <app-navbar [hideLinks]="true"></app-navbar>
 
   <main class="profile-main">
     <div class="profile-inner">
 
       <a routerLink="/feed" class="breadcrumb">
-        <span class="material-symbols-outlined">arrow_back</span> Return to Library
+        <span class="material-symbols-outlined">arrow_back</span> Return to feed
       </a>
 
       <div class="profile-layout">
@@ -22,7 +22,7 @@
               </div>
             </div>
 
-            <h1 class="user-name">{{ displayName || 'Academic Curator' }}</h1>
+            <h1 class="user-name username">{{ initialDisplayName || 'Academic Curator' }}</h1>
             <span class="user-role">{{ isAdmin ? 'Administrator' : 'Student Researcher' }}</span>
             
             <div class="user-meta">

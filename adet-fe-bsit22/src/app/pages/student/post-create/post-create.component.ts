@@ -44,7 +44,11 @@ export class PostCreateComponent implements OnInit, OnDestroy {
     }
     
     this.catSub = this.postService.categories$.subscribe((cats: any[]) => {
-      this.categories = cats;
+      this.categories = [...cats].sort((a, b) => {
+        if (a.name === 'Other') return 1;
+        if (b.name === 'Other') return -1;
+        return a.name.localeCompare(b.name);
+      });
       this.cdr.detectChanges();
     });
 
@@ -53,6 +57,20 @@ export class PostCreateComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.catSub) this.catSub.unsubscribe();
+  }
+
+  getCategoryIcon(name: string): string {
+    const icons: { [key: string]: string } = {
+      'Textbook': 'menu_book',
+      'Notes': 'history_edu',
+      'Tools': 'science',
+      'Equipment': 'inventory_2',
+      'Art': 'palette',
+      'Calculator': 'calculate',
+      'USB': 'usb',
+      'Other': 'more_horiz'
+    };
+    return icons[name] || 'label';
   }
 
   onSubmit() {

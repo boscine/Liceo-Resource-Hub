@@ -7,9 +7,14 @@
 .breadcrumb { 
   display: inline-flex; align-items: center; gap: 0.4rem; 
   font-size: 0.82rem; color: var(--primary); text-decoration: none; 
-  font-weight: 600; margin-bottom: 2rem; transition: opacity 0.2s; 
-  .material-symbols-outlined { font-size: 18px; } 
-  &:hover { opacity: 0.8; } 
+  font-weight: 600; margin-bottom: 2rem; transition: all 0.3s ease; 
+  .material-symbols-outlined { font-size: 18px; transition: transform 0.3s ease; } 
+  &:hover { 
+    opacity: 1; 
+    color: var(--primary-container);
+    transform: translateX(-6px);
+    .material-symbols-outlined { transform: scale(1.2); }
+  }
 }
 
 .profile-layout { 
@@ -47,7 +52,10 @@
   } 
 }
 
-.user-name { font-family: var(--font-headline); font-size: 1.6rem; font-weight: 700; color: var(--on-surface); line-height: 1.2; margin-bottom: 0.25rem; }
+.user-name { 
+  font-family: var(--font-headline); font-size: 1.6rem; font-weight: 700; color: var(--on-surface); line-height: 1.2; margin-bottom: 0.25rem;
+  overflow-wrap: break-word; word-break: break-word; /* Ensure long names wrap */
+}
 .user-role { 
   font-size: 0.65rem; font-weight: 800; text-transform: uppercase; 
   letter-spacing: 0.15em; color: var(--secondary); 
@@ -55,7 +63,11 @@
   border-radius: var(--radius-full); margin-bottom: 1rem; 
 }
 
-.user-meta { font-size: 0.8rem; color: var(--on-surface-variant); display: flex; align-items: center; gap: 0.4rem; .material-symbols-outlined { font-size: 16px; opacity: 0.7; } }
+.user-meta { 
+  font-size: 0.8rem; color: var(--on-surface-variant); display: flex; align-items: center; gap: 0.4rem;
+  overflow-wrap: break-word; word-break: break-all; /* Emails can be very long */
+  .material-symbols-outlined { font-size: 16px; opacity: 0.7; } 
+}
 
 .divider { width: 100%; height: 1px; background: rgba(156, 124, 0, 0.1); margin: 1.5rem 0; }
 
@@ -92,7 +104,21 @@
 }
 
 .edit-form { display: flex; flex-direction: column; gap: 2.5rem; }
-.form-section { display: flex; flex-direction: column; gap: 1.5rem; }
+.form-section { display: flex; flex-direction: column; gap: 1.8rem; }
+.field { 
+  display: flex; flex-direction: column; 
+  &.disabled {
+    .field-label { color: var(--on-surface-variant); opacity: 0.6; }
+    .input-academic { background: var(--surface-container-high); border-bottom-style: dashed; cursor: not-allowed; }
+  }
+}
+
+.field-hint { 
+  font-size: 0.72rem; color: var(--on-surface-variant); opacity: 0.6; 
+  margin-top: 0.5rem; font-style: italic; display: flex; align-items: center; gap: 0.3rem;
+  padding: 0.4rem 0.6rem; background: var(--surface-container-low); border-radius: var(--radius-sm);
+  &::before { content: 'lock_person'; font-family: 'Material Symbols Outlined'; font-size: 14px; opacity: 0.8; }
+}
 
 .section-title { 
   font-family: var(--font-headline); font-size: 0.85rem; font-weight: 800; 
@@ -110,11 +136,14 @@
   &:hover { border-color: var(--secondary); transform: translateY(-2px); }
 }
 .pill-icon { color: var(--primary); font-size: 22px; }
-.pill-text { 
-  flex: 1; display: flex; flex-direction: column; 
-  .pill-type { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.05em; }
-  .pill-val { font-size: 0.92rem; font-weight: 600; color: var(--on-surface); }
-}
+  .pill-text { 
+    flex: 1; display: flex; flex-direction: column; min-width: 0; /* Important for text truncation/wrapping */
+    .pill-type { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.05em; }
+    .pill-val { 
+      font-size: 0.92rem; font-weight: 600; color: var(--on-surface);
+      overflow-wrap: break-word; word-break: break-all; /* Links/Usernames wrap */
+    }
+  }
 .pill-close { 
   background: none; border: none; cursor: pointer; color: var(--outline); 
   display: flex; padding: 4px; border-radius: 50%; &:hover { background: var(--error-container); color: var(--error); } 

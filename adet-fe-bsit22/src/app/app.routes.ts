@@ -38,7 +38,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/student/post-detail/post-detail.component').then(m => m.PostDetailComponent)
   },
   {
-    path: 'post/edit/:id',
+    path: 'post/:id/edit',
     loadComponent: () => import('./pages/student/post-edit/post-edit.component').then(m => m.PostEditComponent)
   },
   {

@@ -1,11 +1,22 @@
 <div class="feed-page">
 
-  <app-navbar [active]="'feed'"></app-navbar>
+  <app-navbar [active]="'feed'" [showMenuButton]="true" (menuClick)="toggleSidebar()"></app-navbar>
 
   <div class="feed-layout">
 
+    <!-- SIDEBAR OVERLAY (Mobile) -->
+    <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" [class.open]="sidebarOpen">
+      <!-- Mobile Sidebar Branding -->
+      <div class="sidebar-mobile-brand serif-italic">Liceo Hub</div>
+
+      <!-- Close button for mobile sidebar -->
+      <button class="sidebar-close-btn" (click)="toggleSidebar()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
       <div class="activity-card" *ngIf="isLoggedIn">
         <h3>Your Activity</h3>
         <div class="activity-row"><span>ACTIVE REQUESTS</span><strong>{{ activeCount }}</strong></div>
@@ -15,15 +26,36 @@
 
       <div class="quick-nav" *ngIf="isLoggedIn">
         <p class="quick-nav-label">Quick Navigation</p>
-        <a (click)="setViewMode('all')" [class.active]="viewMode === 'all'">
+        <a (click)="setViewMode('all'); sidebarOpen = false;" [class.active]="viewMode === 'all'">
           <span class="material-symbols-outlined">{{ viewMode === 'all' ? 'home' : 'list_alt' }}</span>
           All Feed
         </a>
-        <a (click)="setViewMode('requests')" [class.active]="viewMode === 'requests'">
+        <a routerLink="/post/create" (click)="sidebarOpen = false;">
+          <span class="material-symbols-outlined">add_box</span> Create
+        </a>
+        <div class="quick-nav-divider"></div>
+        <a (click)="setViewMode('requests'); sidebarOpen = false;" [class.active]="viewMode === 'requests'">
           <span class="material-symbols-outlined">person</span> Your Requests
         </a>
-        <a (click)="setViewMode('saved')" [class.active]="viewMode === 'saved'">
+        <a (click)="setViewMode('saved'); sidebarOpen = false;" [class.active]="viewMode === 'saved'">
           <span class="material-symbols-outlined">bookmark</span> Saved Items
+        </a>
+        
+        <!-- Admin Only Section -->
+        <ng-container *ngIf="isAdmin">
+          <div class="quick-nav-divider"></div>
+          <p class="quick-nav-label">Institutional Control</p>
+          <a routerLink="/profile" (click)="sidebarOpen = false;">
+            <span class="material-symbols-outlined">account_circle</span> Profile
+          </a>
+          <a routerLink="/admin" (click)="sidebarOpen = false;">
+            <span class="material-symbols-outlined">dashboard</span> Dashboard
+          </a>
+        </ng-container>
+
+        <div class="quick-nav-divider"></div>
+        <a (click)="logout()" class="logout-link">
+          <span class="material-symbols-outlined">logout</span> Disconnect
         </a>
       </div>
     </aside>
@@ -34,7 +66,7 @@
       <div class="feed-header">
         <div>
           <h1 class="serif">
-            <span *ngIf="viewMode === 'all'">Material Requests</span>
+            <span *ngIf="viewMode === 'all'">All Feed</span>
             <span *ngIf="viewMode === 'requests'">Your Requests</span>
             <span *ngIf="viewMode === 'saved'">Saved Materials</span>
           </h1>
@@ -51,6 +83,10 @@
 
       <!-- Category Filters -->
       <div class="category-filters">
+        <div class="filter-label">
+          <span class="material-symbols-outlined">filter_list</span>
+          <span>Index</span>
+        </div>
         <button *ngFor="let cat of categories"
           [class.active]="activeCategory === cat"
           (click)="setCategory(cat)">
@@ -94,7 +130,7 @@
               </label>
             </div>
           </div>
-          <h3 class="post-title serif-italic">{{ post.title }}</h3>
+          <h3 class="post-title serif-italic" (click)="openDetail(post)" style="cursor: pointer;">{{ post.title }}</h3>
           <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
             <div class="author-avatar">{{ post.author[0] }}</div>
             <div>
@@ -118,10 +154,10 @@
 
 
 
-              <!-- Standard View Details -->
-              <a [routerLink]="['/post', post.id]" class="view-details" *ngIf="!post.resolved || viewMode === 'requests'">
+              <!-- Standard View Details (Now Modal) -->
+              <button class="view-details" (click)="openDetail(post)" *ngIf="!post.resolved || viewMode === 'requests'">
                 View Details <span class="material-symbols-outlined">arrow_forward</span>
-              </a>
+              </button>
             </div>
             
             <span class="resolved-badge" *ngIf="post.resolved && viewMode !== 'requests'">
@@ -191,6 +227,7 @@
   <div class="editor-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
     <div class="editor-modal confirm-delete-modal" (click)="$event.stopPropagation()">
       <div class="editor-header">
+        <div class="modal-handle"></div>
         <h2 class="serif-italic warning-heading">Confirm Deletion</h2>
         <button class="icon-btn close-btn" (click)="cancelDelete()">
           <span class="material-symbols-outlined">close</span>
@@ -213,41 +250,98 @@
     </div>
   </div>
 
-  <!-- EDIT MODAL -->
-  <div class="editor-overlay" *ngIf="activeEditPost" (click)="cancelEdit()">
-    <div class="editor-modal" (click)="$event.stopPropagation()">
+
+
+
+  <!-- POST DETAIL MODAL -->
+  <div class="editor-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+    <div class="editor-modal detail-modal" (click)="$event.stopPropagation()">
       <div class="editor-header">
-        <h2 class="serif-italic">Edit Request Details</h2>
-        <button class="icon-btn close-btn" (click)="cancelEdit()">
+        <div class="modal-handle"></div>
+        <h2 class="serif-italic">Request Metadata</h2>
+        <button class="icon-btn close-btn" (click)="closeDetailModal()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="editor-body">
-        <div class="field">
-          <label class="field-label">Request Title</label>
-          <input type="text" [(ngModel)]="activeEditPost.editTitle" class="input-academic" placeholder="Request title..." />
+        
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="loadingDetail">
+          <span class="spinner"></span>
+          <p>Curating scholarly details...</p>
         </div>
-        <div class="field">
-          <label class="field-label">Specific Details</label>
-          <textarea [(ngModel)]="activeEditPost.editDescription" class="input-academic" rows="5" placeholder="Describe the item condition or duration of use..."></textarea>
+
+        <div class="detail-content" *ngIf="!loadingDetail && selectedPost">
+          <div class="detail-top">
+            <span class="post-status" [ngClass]="getStatusClass(selectedPost.status)">{{ selectedPost.status }}</span>
+            <span class="post-meta">{{ selectedPost.category }} · {{ selectedPost.timeAgo }}</span>
+          </div>
+          
+          <div class="author-row clickable" [routerLink]="['/profile', selectedPost.authorId]" (click)="closeDetailModal()">
+            <div class="author-avatar">{{ selectedPost.author[0] }}</div>
+            <div>
+              <p class="author-name">{{ selectedPost.author }}</p>
+            </div>
+            <span class="author-badge">Author</span>
+            <span class="material-symbols-outlined ml-auto">chevron_right</span>
+          </div>
+
+          <h1 class="selected-title serif-italic">{{ selectedPost.title }}</h1>
+          
+          <div class="divider"></div>
+          <p class="selected-description">
+            <span *ngIf="!isDescriptionExpanded && selectedPost.description.length > 280">
+              {{ selectedPost.description.slice(0, 280) }}...
+              <button class="see-more-link" (click)="toggleDescription()">See more</button>
+            </span>
+            <span *ngIf="isDescriptionExpanded || selectedPost.description.length <= 280">
+              {{ selectedPost.description }}
+              <button class="see-more-link" *ngIf="selectedPost.description.length > 280" (click)="toggleDescription()">See less</button>
+            </span>
+          </p>
+          <div class="divider"></div>
+
+          <!-- Contact Section in Modal (Hidden if Owner) -->
+          <div class="modal-contact-box" *ngIf="!isMyPost(selectedPost)">
+             <h3>Contact Curator</h3>
+             <p *ngIf="!isLoggedIn" class="contact-locked">
+               <span class="material-symbols-outlined">lock</span>
+               Log in to reveal contact channels.
+             </p>
+             
+             <div *ngIf="isLoggedIn && !showContact" class="contact-hidden">
+                <div class="contact-blur">
+                  <span class="contact-type">{{ selectedPost.contact?.type || 'Messenger' }}</span>
+                  <span class="contact-value-blur">••••••••••••••••</span>
+                </div>
+                <button class="btn-primary" (click)="revealContact()">
+                  <span class="material-symbols-outlined">handshake</span>
+                  Offer Scholarly Cooperation
+                </button>
+             </div>
+
+             <div *ngIf="isLoggedIn && showContact" class="contact-revealed">
+                <span class="contact-type">{{ selectedPost.contact.type }}</span>
+                <a class="contact-value" [href]="selectedPost.contact.value.startsWith('http') ? selectedPost.contact.value : 'https://' + selectedPost.contact.value" target="_blank">
+                  {{ selectedPost.contact.value }}
+                  <span class="material-symbols-outlined">open_in_new</span>
+                </a>
+             </div>
+          </div>
         </div>
+
       </div>
-      <div class="editor-footer">
-        <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
-        <button class="btn-primary" (click)="saveEdit()" [disabled]="activeEditPost.saving">
-          <span *ngIf="!activeEditPost.saving">Save Updates Form</span>
-          <span *ngIf="!activeEditPost.saving" class="material-symbols-outlined" style="font-size:18px;">cloud_upload</span>
-          <span *ngIf="activeEditPost.saving" class="spinner"></span>
+      <div class="editor-footer" *ngIf="isLoggedIn && user.id == selectedPost?.authorId">
+        <button class="btn-primary" (click)="goToEdit(selectedPost)">
+          <span class="material-symbols-outlined">edit</span>
+          Edit Request
         </button>
       </div>
     </div>
   </div>
 
-  <!-- FAB -->
-  <a routerLink="/post/create" class="fab" [class.fab-raised]="isNearBottom">
-    <span class="material-symbols-outlined">add</span>
-    Request Material
-  </a>
+  <!-- FAB REMOVED AS REQUESTED -->
+
 
   <!-- FOOTER -->
   <footer class="app-footer">

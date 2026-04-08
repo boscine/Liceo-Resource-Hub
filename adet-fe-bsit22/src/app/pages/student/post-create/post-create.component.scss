@@ -1,5 +1,18 @@
 @use 'design-system';
 
+.breadcrumb { 
+  display: inline-flex; align-items: center; gap: 0.4rem; 
+  font-size: 0.82rem; color: var(--primary); text-decoration: none; 
+  font-weight: 600; margin-bottom: 2rem; transition: all 0.3s ease; 
+  .material-symbols-outlined { font-size: 18px; transition: transform 0.3s ease; } 
+  &:hover { 
+    opacity: 1; 
+    color: var(--primary-container);
+    transform: translateX(-6px);
+    .material-symbols-outlined { transform: scale(1.2); }
+  }
+}
+
 .create-page {
   min-height: 100vh;
   display: flex;
@@ -23,7 +36,7 @@
 
 .page-header {
   margin-bottom: 3.5rem;
-  animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Animation removed */
   position: relative;
   padding-left: 1.5rem;
   border-left: 2px solid var(--outline-variant);
@@ -107,7 +120,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(156, 124, 0, 0.1);
-  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Animation removed */
 
   &::before {
     content: '';
@@ -191,6 +204,80 @@
   select:focus + .select-icon {
     transform: translateY(-50%) rotate(180deg);
     color: var(--primary);
+  }
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 0.5rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.category-card {
+  position: relative;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .card-content {
+    padding: 1.25rem 1rem;
+    background: var(--surface-container-low);
+    border-bottom: 3px solid transparent;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+    border: 1px solid var(--outline-variant);
+
+    .material-symbols-outlined {
+      font-size: 1.75rem;
+      color: var(--primary);
+      font-variation-settings: 'wght' 300;
+      transition: all 0.2s ease;
+    }
+
+    .cat-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      transition: all 0.2s ease;
+    }
+
+    &:hover {
+      background: var(--surface-container-lowest);
+      border-color: var(--primary-container);
+      transform: translateY(-2px);
+    }
+  }
+
+  input:checked + .card-content {
+    background: var(--surface-container-lowest);
+    border-bottom-color: var(--primary);
+    border-color: var(--primary-container);
+    box-shadow: 0 4px 12px rgba(87, 0, 0, 0.05);
+
+    .material-symbols-outlined {
+      color: var(--primary);
+      font-variation-settings: 'FILL' 1, 'wght' 400;
+    }
+
+    .cat-name {
+      color: var(--primary);
+      font-weight: 700;
+    }
   }
 }
 

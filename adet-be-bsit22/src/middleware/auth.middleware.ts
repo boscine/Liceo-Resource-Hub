@@ -13,8 +13,6 @@ export const authenticate = async (c: Context, next: Next) => {
   }
   try {
     const payload = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as any;
-    console.log(`[AuthMiddleware] Decoded payload:`, payload); // Debug payload
-
     // Support both id and userId depending on how old the token is
     const validUserId = payload.id || payload.userId;
     c.set('userId', validUserId);

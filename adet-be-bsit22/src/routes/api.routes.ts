@@ -325,7 +325,10 @@ router.post('/posts', async (c) => {
     });
 
     return c.json(post, 201);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2000') {
+      return c.json({ message: 'The request title is too long for the institutional archive. Please shorten it.' }, 400);
+    }
     console.error('Failed to create post:', error);
     return c.json({ message: 'Internal server error' }, 500);
   }
@@ -464,6 +467,38 @@ router.delete('/posts/:id', async (c) => {
     return c.json({ message: 'Internal server error' }, 500);
   }
 });
+// ── POST /api/v1/posts/:id/save (Notify Author) ─────────────────────────────
+router.post('/posts/:id/save', async (c) => {
+  const postId = parseInt(c.req.param('id'), 10);
+  const userId = c.get('userId'); 
+  if (isNaN(postId) || !userId) return c.json({ message: 'Invalid request' }, 400);
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { userId: true, title: true }
+    });
+
+    if (!post) return c.json({ message: 'Post not found' }, 404);
+
+    // Only notify if someone ELSE saves it
+    if (post.userId !== userId) {
+      await prisma.notification.create({
+        data: {
+          userId: post.userId,
+          icon: 'bookmark_added',
+          text: `A fellow scholar has saved your request: "${post.title}".`
+        }
+      });
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Failed to notify author on save:', error);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
 // ── GET /api/v1/notifications ────────────────────────────────────────────────
 router.get('/notifications', async (c) => {
   const userId = c.get('userId');

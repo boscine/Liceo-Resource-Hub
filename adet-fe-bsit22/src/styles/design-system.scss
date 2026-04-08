@@ -196,68 +196,82 @@ body {
 .app-nav {
   position: sticky;
   top: 0;
-  z-index: 50;
-  background: rgba(248, 249, 250, 0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid transparent;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  height: 72px;
+  display: flex;
+  align-items: center;
+  transition: height 0.3s ease, background 0.3s ease;
+
+  @media (max-width: 768px) {
+    height: 60px; /* Slimmer navbar on mobile */
+  }
 
   .nav-inner {
-    max-width: 1280px;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
 
-  .nav-brand {
-    font-family: var(--font-headline);
-    font-style: italic;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--primary);
-    text-decoration: none;
-  }
+    @media (max-width: 768px) {
+      padding: 0 1rem; /* Reduced padding for more real estate */
+    }
 
-  .nav-links {
-    display: flex;
-    gap: 2.5rem;
-    align-items: center;
-
-    a {
-      font-family: var(--font-body);
-      font-size: 0.875rem;
-      letter-spacing: 0.02em;
-      color: var(--on-surface-variant);
+    .nav-brand {
+      font-family: var(--font-headline);
+      font-style: italic;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
       text-decoration: none;
-      transition: color 0.2s;
+    }
 
-      &:hover { color: var(--primary); }
-      &.active {
-        color: var(--primary);
-        font-weight: 700;
-        border-bottom: 2px solid var(--secondary-container);
-        padding-bottom: 2px;
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+
+      a {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        letter-spacing: 0.02em;
+        color: var(--on-surface-variant);
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover { color: var(--primary); }
+        &.active {
+          color: var(--primary);
+          font-weight: 700;
+          border-bottom: 2px solid var(--secondary-container);
+          padding-bottom: 2px;
+        }
       }
     }
-  }
 
-  .nav-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-
-    button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0.5rem;
-      color: var(--primary);
-      border-radius: 50%;
-      transition: background 0.2s;
+    .nav-actions {
       display: flex;
+      gap: 0.75rem;
       align-items: center;
-      &:hover { background: var(--surface-container-low); }
+
+      button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        color: var(--primary);
+        border-radius: 50%;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        &:hover { background: var(--surface-container-low); }
+      }
     }
   }
 }
@@ -298,6 +312,10 @@ body {
     flex-wrap: wrap;
     gap: 2rem;
     justify-content: center;
+
+    @media (max-width: 768px) {
+      display: none;
+    }
 
     a {
       font-family: var(--font-body);

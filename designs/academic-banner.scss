@@ -1,0 +1,103 @@
+// Banner Specific Styles
+$primary: #570000;
+$secondary: #c5a021;
+$font-headline: 'Newsreader', serif;
+$font-body: 'Work Sans', sans-serif;
+
+body {
+    margin: 0;
+    font-family: $font-body;
+}
+
+.academic-banner {
+    position: relative;
+    height: 500px;
+    width: 100%;
+    background: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=2070') no-repeat center center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    overflow: hidden;
+
+    .banner-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba($primary, 0.95), rgba(0, 0, 0, 0.4));
+        z-index: 1;
+    }
+
+    .banner-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        padding: 2rem;
+
+        .banner-title {
+            font-family: $font-headline;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+
+            .serif-italic {
+                font-style: italic;
+                font-weight: 300;
+                color: $secondary;
+            }
+        }
+
+        .banner-subtitle {
+            font-size: 1.25rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+
+            .btn-banner-primary {
+                background: $secondary;
+                color: #3d2e00;
+                padding: 1rem 2.5rem;
+                text-decoration: none;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                font-size: 0.85rem;
+                border-radius: 4px;
+                transition: transform 0.2s, box-shadow 0.2s;
+                box-shadow: 0 8px 24px rgba($secondary, 0.3);
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 32px rgba($secondary, 0.4);
+                }
+            }
+
+            .btn-banner-secondary {
+                background: transparent;
+                color: white;
+                padding: 1rem 2.5rem;
+                text-decoration: none;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                font-size: 0.85rem;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                border-radius: 4px;
+                transition: background 0.2s;
+
+                &:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+    }
+}

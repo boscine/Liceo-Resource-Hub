@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -14,6 +14,9 @@ import { NotificationService } from '../../core/services/notification.service';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | '' = '';
+  @Input() showMenuButton = false;
+  @Input() hideLinks      = false;
+  @Output() menuClick = new EventEmitter<void>();
 
   user: any       = {};
   isAdmin         = false;
@@ -31,6 +34,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private api: ApiService,
     private notifService: NotificationService
   ) {}
+
+  toggleMenu() { this.menuClick.emit(); }
 
   ngOnInit() {
     this.isLoggedIn = this.auth.isLoggedIn();

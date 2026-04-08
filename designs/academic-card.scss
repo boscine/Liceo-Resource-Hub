@@ -1,0 +1,163 @@
+// Academic Curator Design Tokens
+$primary: #570000;
+$primary-container: #800000;
+$secondary: #c5a021;
+$surface: #f8f9fa;
+$on-surface: #191c1d;
+$on-surface-variant: #5a413d;
+$outline-variant: #e2bfb9;
+$font-headline: 'Newsreader', serif;
+$font-body: 'Work Sans', sans-serif;
+$radius: 0.5rem;
+
+body {
+    margin: 0;
+    padding: 3rem;
+    font-family: $font-body;
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.academic-card {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    border-radius: $radius;
+    padding: 1.5rem;
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.08);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba($outline-variant, 0.3);
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 48px rgba(87, 0, 0, 0.12);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+
+        .category-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: $secondary;
+            background: rgba($secondary, 0.1);
+            padding: 0.35rem 0.75rem;
+            border-radius: 99px;
+            border: 1px solid rgba($secondary, 0.2);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: $on-surface-variant;
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                background: #2e7d32;
+                border-radius: 50%;
+                
+                &.pulse {
+                    box-shadow: 0 0 0 rgba(#2e7d32, 0.4);
+                    animation: pulse 2s infinite;
+                }
+            }
+        }
+    }
+
+    .card-title {
+        font-family: $font-headline;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $primary;
+        margin: 1rem 0 0.75rem;
+        line-height: 1.2;
+
+        .serif-italic {
+            font-style: italic;
+            font-weight: 400;
+        }
+    }
+
+    .card-description {
+        font-size: 0.9rem;
+        color: $on-surface-variant;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.25rem;
+        border-top: 1px solid rgba($outline-variant, 0.2);
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            .avatar-small {
+                width: 28px;
+                height: 28px;
+                background: $primary;
+                color: white;
+                font-size: 0.7rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+            }
+
+            .author-name {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: $on-surface;
+            }
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            color: $primary;
+            font-family: $font-body;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0;
+            transition: gap 0.2s;
+
+            &:hover {
+                gap: 0.6rem;
+                .material-symbols-outlined { transform: translateX(2px); }
+            }
+
+            .material-symbols-outlined {
+                font-size: 18px;
+                transition: transform 0.2s;
+            }
+        }
+    }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(#2e7d32, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(#2e7d32, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(#2e7d32, 0); }
+}

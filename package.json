@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Integrated Academic Material Exchange Platform for Liceo de Cagayan University",
   "scripts": {
-    "start": "wscript.exe start.vbs",
-    "stop": "wscript.exe stop-dev.vbs",
+    "start": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
+    "stop": "powershell -ExecutionPolicy Bypass -File stop-dev.ps1",
     "be:start": "cd adet-be-bsit22 && npm start",
     "be:dev": "cd adet-be-bsit22 && npm run dev",
     "be:studio": "cd adet-be-bsit22 && npm run db:studio",

@@ -11,7 +11,7 @@
         <h1>The <em class="serif-italic">Curator's Guide</em></h1>
         <p>Institutional standards for academic resource sharing within the Liceo de Cagayan University community.</p>
         
-        <div class="header-actions">
+        <div class="header-actions" *ngIf="isLoggedIn">
            <a routerLink="/post/create" class="btn-back">
              <span class="material-symbols-outlined">arrow_back</span>
              Return to Submission

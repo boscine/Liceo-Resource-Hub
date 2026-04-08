@@ -5,7 +5,7 @@
     <div class="detail-inner">
 
       <a routerLink="/feed" class="breadcrumb">
-        <span class="material-symbols-outlined">arrow_back</span> Back to Requests
+        <span class="material-symbols-outlined">arrow_back</span> Return to feed
       </a>
 
       <!-- Loading State -->
@@ -36,9 +36,19 @@
             <div>
               <p class="author-name">{{ post.author }}</p>
             </div>
+            <span class="author-badge">Author</span>
           </div>
           <div class="divider"></div>
-          <p class="post-description">{{ post.description }}</p>
+          <p class="post-description">
+            <span *ngIf="!isDescriptionExpanded && post.description.length > 350">
+              {{ post.description.slice(0, 350) }}...
+              <button class="see-more-link" (click)="toggleDescription()">See more</button>
+            </span>
+            <span *ngIf="isDescriptionExpanded || post.description.length <= 350">
+              {{ post.description }}
+              <button class="see-more-link" *ngIf="post.description.length > 350" (click)="toggleDescription()">See less</button>
+            </span>
+          </p>
           <div class="divider"></div>
 
           <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -72,8 +82,8 @@
           </div>
         </article>
 
-        <!-- CONTACT SIDEBAR -->
-        <aside class="contact-sidebar">
+        <!-- CONTACT SIDEBAR (Hidden if Owner) -->
+        <aside class="contact-sidebar" *ngIf="!isLoggedIn || user.id !== post.authorId">
           <div class="contact-card">
             <h3>Contact Author</h3>
             <p *ngIf="!isLoggedIn" class="contact-locked">
@@ -85,9 +95,9 @@
                 <span class="contact-type">{{ post.contact.type }}</span>
                 <span class="contact-value-blur">••••••••••••••••</span>
               </div>
-              <button class="btn-reveal" (click)="revealContact()">
-                <span class="material-symbols-outlined">visibility</span>
-                Reveal Contact
+              <button class="btn-primary" (click)="revealContact()">
+                <span class="material-symbols-outlined">handshake</span>
+                Offer Scholarly Cooperation
               </button>
             </div>
             <div *ngIf="isLoggedIn && showContact" class="contact-revealed">
