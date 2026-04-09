@@ -128,33 +128,30 @@ export class FeedComponent implements OnInit, OnDestroy {
 
       let matchView = true;
       if (this.viewMode === 'saved')      matchView = this.isSaved(p);
-      if (this.viewMode === 'requests')   matchView = p.author === (this.user.display_name || this.user.displayName || this.user.name);
+      if (this.viewMode === 'requests')   matchView = p.authorId === this.user?.id;
 
       return matchCat && matchQ && matchView;
     });
   }
 
   get activeCount(): string | number {
-    if (!this.isLoggedIn || !this.user) return 0;
-    const myName = this.user.displayName || this.user.display_name || this.user.name;
+    if (!this.isLoggedIn || !this.user?.id) return 0;
     const count = this.posts.filter(p => 
-      p.author === myName && 
+      p.authorId === this.user.id && 
       p.status?.toLowerCase() === 'open'
     ).length;
     return count > 0 && count < 10 ? '0' + count : count;
   }
 
   get fulfilledCount(): string | number {
-    if (!this.isLoggedIn || !this.user) return 0;
-    const myName = this.user.displayName || this.user.display_name || this.user.name;
-    const count = this.posts.filter(p => p.author === myName && p.status?.toLowerCase() === 'fulfilled').length;
+    if (!this.isLoggedIn || !this.user?.id) return 0;
+    const count = this.posts.filter(p => p.authorId === this.user.id && p.status?.toLowerCase() === 'fulfilled').length;
     return count > 0 && count < 10 ? '0' + count : count;
   }
 
   get closedCount(): string | number {
-    if (!this.isLoggedIn || !this.user) return 0;
-    const myName = this.user.displayName || this.user.display_name || this.user.name;
-    const count = this.posts.filter(p => p.author === myName && (p.status?.toLowerCase() === 'closed' || p.status?.toLowerCase() === 'removed')).length;
+    if (!this.isLoggedIn || !this.user?.id) return 0;
+    const count = this.posts.filter(p => p.authorId === this.user.id && (p.status?.toLowerCase() === 'closed' || p.status?.toLowerCase() === 'removed')).length;
     return count > 0 && count < 10 ? '0' + count : count;
   }
 
@@ -178,9 +175,8 @@ export class FeedComponent implements OnInit, OnDestroy {
   }
 
   isMyPost(post: any): boolean {
-    if (!this.isLoggedIn || !this.user) return false;
-    const myName = this.user.displayName || this.user.display_name || this.user.name;
-    return post.author === myName;
+    if (!this.isLoggedIn || !this.user?.id) return false;
+    return post.authorId === this.user.id;
   }
 
   // Trigger single delete confirmation
@@ -232,29 +228,19 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.deleting = true;
     const ids = Array.from(this.selectedPosts);
     
-    // We'll perform sequential deletes or if the API supports it, a bulk endpoint.
-    // Assuming no bulk endpoint for now, we'll loop or use forkJoin if needed.
-    // For simplicity and immediate UI feedback, we loop and update local state.
-    
-    let completed = 0;
-    ids.forEach(id => {
-      this.api.delete(`/posts/${id}`).subscribe({
-        next: () => {
-          this.postService.removePostLocal(id);
-          this.selectedPosts.delete(id);
-          completed++;
-          if (completed === ids.length) {
-            this.closeDeleteModal();
-          }
-        },
-        error: (e) => {
-          console.error(`Failed deleting post ${id}:`, e);
-          completed++;
-          if (completed === ids.length) {
-            this.closeDeleteModal();
-          }
-        }
-      });
+    // Using the new institutional bulk-delete endpoint for maximum efficiency
+    this.api.post('/posts/bulk-delete', { ids }).subscribe({
+      next: (res: any) => {
+        // Remove all successfully deleted posts from local state
+        ids.forEach(id => this.postService.removePostLocal(id));
+        this.selectedPosts.clear();
+        this.closeDeleteModal();
+      },
+      error: (e) => {
+        console.error('Bulk deletion failed:', e);
+        this.deleting = false;
+        alert(e.error?.message || 'Failed to perform bulk scholarly cleanup.');
+      }
     });
   }
 

@@ -2,6 +2,8 @@ import { Hono } from 'hono';
 import { AuthVariables } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import { updateProfile, getProfile } from '../controllers/profile.controller';
+import { zValidator } from '@hono/zod-validator';
+import { postSchema, updatePostSchema, profileSchema } from '../lib/validation';
 
 // Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
@@ -118,7 +120,7 @@ router.get('/posts/:id', async (c) => {
        return c.json({ message: 'This post is under moderation review.' }, 403);
     }
 
-    const firstContact = post.user.contacts && post.user.contacts.length > 0 
+    const firstContact = post.user.contacts && post.user.contacts.length > 0 && userId
       ? post.user.contacts[0] 
       : null;
 
@@ -137,7 +139,7 @@ router.get('/posts/:id', async (c) => {
       contact: firstContact ? { 
         type: firstContact.type.charAt(0).toUpperCase() + firstContact.type.slice(1), 
         value: firstContact.value 
-      } : { type: 'None', value: 'No contact shared' }
+      } : { type: 'None', value: userId ? 'No contact shared' : 'Sign in to view contact details' }
     };
 
     return c.json(formattedPost);
@@ -162,7 +164,7 @@ router.get('/categories', async (c) => {
 // ── GET /api/v1/profile ───────────────────────────────────────────────────────
 router.get('/profile', getProfile);
 
-router.put('/profile', updateProfile);
+router.put('/profile', zValidator('json', profileSchema), updateProfile);
 
 // ── GET /api/v1/profile/:id (Public Profile View) ───────────────────────────
 router.get('/profile/:id', async (c) => {
@@ -197,6 +199,11 @@ router.get('/profile/:id', async (c) => {
     // Hide profiles of restricted users
     if (user.status !== 'active' && user.id !== c.get('userId') && c.get('role') !== 'admin') {
        return c.json({ message: 'This account is restricted.' }, 403);
+    }
+
+    // Redact contact info for guests
+    if (!c.get('userId')) {
+      user.contacts = [];
     }
 
     const formattedPosts = user.posts.map(p => ({
@@ -280,7 +287,7 @@ router.put('/admin/reports/:id', async (c) => {
 });
 
 // ── POST /api/v1/posts ────────────────────────────────────────────────────────
-router.post('/posts', async (c) => {
+router.post('/posts', zValidator('json', postSchema), async (c) => {
   const userId = c.get('userId');
   
   if (!userId) {
@@ -288,17 +295,8 @@ router.post('/posts', async (c) => {
   }
 
   try {
-    const body = await c.req.json();
-    const { title, categoryId, description } = body;
-    
-    if (!title || !categoryId || !description) {
-       return c.json({ message: 'Missing required fields' }, 400);
-    }
-
-    const catId = parseInt(categoryId, 10);
-    if (isNaN(catId)) {
-      return c.json({ message: 'Invalid category ID format' }, 400);
-    }
+    const { title, categoryId, description } = c.req.valid('json');
+    const catId = categoryId;
 
     const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
     if (!categoryExists) {
@@ -335,7 +333,7 @@ router.post('/posts', async (c) => {
 });
 
 // ── PUT /api/v1/posts/:id (Supports Admin Moderation) ──────────────────────────
-router.put('/posts/:id', async (c) => {
+router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId');
   const role = c.get('role');
@@ -343,8 +341,7 @@ router.put('/posts/:id', async (c) => {
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 
   try {
-    const body = await c.req.json();
-    const { title, categoryId, description, status, isFlagged } = body;
+    const { title, categoryId, description, status, isFlagged } = c.req.valid('json');
 
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
@@ -364,8 +361,15 @@ router.put('/posts/:id', async (c) => {
       if (title !== undefined) data.title = title;
       if (description !== undefined) data.description = description;
       if (categoryId !== undefined) {
-        const catId = parseInt(categoryId, 10);
-        if (!isNaN(catId)) data.categoryId = catId;
+        const catId = Number(categoryId);
+        if (isNaN(catId)) {
+          return c.json({ message: 'Invalid category ID.' }, 400);
+        }
+        const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
+        if (!categoryExists) {
+          return c.json({ message: 'The specified scholarly category does not exist.' }, 400);
+        }
+        data.categoryId = catId;
       }
     } else if (title !== undefined || description !== undefined || categoryId !== undefined) {
       return c.json({ message: 'You are not allowed to modify the content of this post.' }, 403);
@@ -437,6 +441,67 @@ router.put('/posts/:id', async (c) => {
   }
 });
 
+// ── POST /api/v1/posts/bulk-delete (Highly Efficient) ──────────────────────
+router.post('/posts/bulk-delete', async (c) => {
+  const userId = c.get('userId');
+  const role = c.get('role');
+  
+  try {
+    const body = await c.req.json();
+    const { ids } = body;
+
+    if (!ids || !Array.isArray(ids)) {
+      return c.json({ message: 'Invalid scholarly archive IDs.' }, 400);
+    }
+
+    const numericIds = ids.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    if (numericIds.length === 0) {
+      return c.json({ message: 'No valid archive records selected.' }, 400);
+    }
+
+    // 1. Fetch posts to verify authorization
+    const posts = await prisma.post.findMany({
+      where: { id: { in: numericIds } }
+    });
+
+    // 2. Filter allowed records (Owner or Admin)
+    const allowedPosts = posts.filter(p => p.userId === userId || role === 'admin');
+    const allowedIds = allowedPosts.map(p => p.id);
+
+    if (allowedIds.length === 0) {
+      return c.json({ message: 'Forbidden: Unauthorized access to selected records.' }, 403);
+    }
+
+    // 3. Dispatch Institutional Notifications for Administrative overrides
+    if (role === 'admin') {
+      const othersPosts = allowedPosts.filter(p => p.userId !== userId);
+      if (othersPosts.length > 0) {
+        await prisma.notification.createMany({
+          data: othersPosts.map(p => ({
+            userId: p.userId,
+            icon: 'delete_sweep',
+            text: `Your request "${p.title}" has been permanently removed by an administrator.`
+          }))
+        });
+      }
+    }
+
+    // 4. Atomic deletion
+    await prisma.post.deleteMany({
+      where: { id: { in: allowedIds } }
+    });
+
+    return c.json({ 
+      success: true, 
+      message: `${allowedIds.length} academic record(s) purged successfully.`,
+      deletedCount: allowedIds.length
+    });
+  } catch (error) {
+    console.error('Failed bulk delete:', error);
+    return c.json({ message: 'Internal server error during scholarly cleanup.' }, 500);
+  }
+});
+
 // ── DELETE /api/v1/posts/:id (Supports Admin Override) ────────────────────────
 router.delete('/posts/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
@@ -449,6 +514,12 @@ router.delete('/posts/:id', async (c) => {
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
     
+    // ── Authorization Check ──────────────────────────────────────────────────
+    // Only the owner or an admin can delete this post
+    if (post.userId !== userId && role !== 'admin') {
+      return c.json({ message: 'Forbidden: You do not have permission to delete this scholarly request.' }, 403);
+    }
+
     // Notify user if someone else (admin) deletes the post
     if (post.userId !== userId && role === 'admin') {
       await prisma.notification.create({

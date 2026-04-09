@@ -1,27 +1,34 @@
 // app.route.ts
 import { Routes } from '@angular/router';
 import { AdminGuard } from './core/guards/admin.guard';
+import { AuthGuard } from './core/guards/auth.guard';
+import { GuestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
     path: 'login',
+    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
+    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
     path: 'verify',
+    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/verify').then(m => m.VerifyComponent)
   },
   {
     path: 'feed',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent)
   },
   {
     path: 'post/create',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/post-create/post-create.component').then(m => m.PostCreateComponent)
   },
   {
@@ -30,15 +37,17 @@ export const routes: Routes = [
   },
   {
     path: 'admin/dashboard',
-    canActivate: [AdminGuard], // You need to create this guard
+    canActivate: [AdminGuard],
     loadComponent: () => import('./pages/admin/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
   {
     path: 'post/:id',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/post-detail/post-detail.component').then(m => m.PostDetailComponent)
   },
   {
     path: 'post/:id/edit',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/post-edit/post-edit.component').then(m => m.PostEditComponent)
   },
   {
@@ -48,6 +57,7 @@ export const routes: Routes = [
   },
   {
     path: 'notifications',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/notifications/notifications.component').then(m => m.NotificationsComponent)
   },
   { path: '**', redirectTo: 'feed' }

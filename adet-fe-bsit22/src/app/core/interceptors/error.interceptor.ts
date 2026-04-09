@@ -29,7 +29,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             } else {
               errorMessage = 'Your session has expired. Please log in again.';
               authService.logout();
-              router.navigate(['/auth/login']);
+              router.navigate(['/login']);
             }
             break;
           case 403:

@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import prisma from '../lib/prisma';
+import { profileSchema } from '../lib/validation';
 
 export const getProfile = async (c: Context) => {
   // Use the 'userId' field set by our custom authenticate middleware
@@ -42,38 +43,7 @@ export const updateProfile = async (c: Context) => {
   }
 
     try {
-      const body = await c.req.json();
-      let { displayName, contacts } = body;
-      
-      // ── Input Sanitization ──────────────────────────────────────────────────
-      displayName = (displayName || '').trim();
-
-      if (!displayName || displayName.length < 2) {
-        return c.json({ message: 'A valid display name (min 2 chars) is required' }, 400);
-      }
-
-      if (displayName.length > 50) {
-        return c.json({ message: 'Display name is too long (max 50 characters)' }, 400);
-      }
-
-    // ── Validate Contacts ────────────────────────────────────────────────────
-    const refinedContacts = [];
-    if (contacts && Array.isArray(contacts)) {
-      const validTypes = ['messenger', 'phone', 'other'];
-      for (const contact of contacts) {
-        if (!validTypes.includes(contact.type)) {
-          return c.json({ message: `Invalid contact type: ${contact.type}` }, 400);
-        }
-        const val = contact.value?.trim();
-        if (!val || val === '') {
-           return c.json({ message: `A value is required for ${contact.type}` }, 400);
-        }
-        if (val.length > 255) {
-          return c.json({ message: `Contact value for ${contact.type} is too long` }, 400);
-        }
-        refinedContacts.push({ type: contact.type, value: val });
-      }
-    }
+      const { displayName, contacts } = await c.req.json();
 
     // ── Database Update ─────────────────────────────────────────────────────
     const updatedUser = await prisma.user.update({
@@ -82,7 +52,7 @@ export const updateProfile = async (c: Context) => {
         displayName,
         contacts: {
           deleteMany: {},
-          create: refinedContacts
+          create: contacts
         }
       },
       include: { 

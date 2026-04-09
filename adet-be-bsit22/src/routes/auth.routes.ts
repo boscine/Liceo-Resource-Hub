@@ -2,20 +2,17 @@ import { Hono } from 'hono';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
+import { zValidator } from '@hono/zod-validator';
+import { loginSchema, registerSchema, verifySchema, forgotPasswordSchema, resetPasswordSchema } from '../lib/validation';
+import { sendOTPEmail, sendPasswordResetEmail } from '../lib/mail.service';
+import crypto from 'crypto';
 
 const auth = new Hono();
 
 // POST /api/auth/login
- 
-// POST /api/auth/login
-auth.post('/login', async (c) => {
+auth.post('/login', zValidator('json', loginSchema), async (c) => {
   try {
-    const body = await c.req.json();
-    const { email, password } = body;
-
-    if (!email || !password) {
-      return c.json({ message: 'Email and password are required' }, 400);
-    }
+    const { email, password } = c.req.valid('json');
 
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 
@@ -62,18 +59,9 @@ auth.post('/login', async (c) => {
 });
 
 // POST /api/auth/register
-auth.post('/register', async (c) => {
+auth.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
-    const { email, password, displayName } = await c.req.json();
-
-    if (!email || !password || !displayName) {
-      return c.json({ message: 'All fields are required' }, 400);
-    }
-
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@liceo\.edu\.ph$/;
-    if (!emailRegex.test(email)) {
-      return c.json({ message: 'Only @liceo.edu.ph emails allowed' }, 400);
-    }
+    const { email, password, displayName } = c.req.valid('json');
 
     const emailLower = email.toLowerCase();
     const existing = await prisma.user.findUnique({ where: { email: emailLower } });
@@ -96,8 +84,8 @@ auth.post('/register', async (c) => {
       },
     });
 
-    // In a real app, this would be an email. For now, log to console for dev.
-    console.log(`\n\n[DEV] Verification code for ${emailLower}: ${verificationToken}\n\n`);
+    // Dispatch the academic access code via the mail service
+    await sendOTPEmail(emailLower, verificationToken);
 
     return c.json({ 
       message: 'Registration successful. Verification code sent.',
@@ -111,10 +99,9 @@ auth.post('/register', async (c) => {
 });
 
 // POST /api/auth/verify
-auth.post('/verify', async (c) => {
+auth.post('/verify', zValidator('json', verifySchema), async (c) => {
   try {
-    const { email, code } = await c.req.json();
-    if (!email || !code) return c.json({ message: 'Email and code required' }, 400);
+    const { email, code } = c.req.valid('json');
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() }
@@ -184,12 +171,78 @@ auth.post('/resend-code', async (c) => {
       }
     });
 
-    console.log(`\n\n[DEV] NEW Verification code for ${emailLower}: ${verificationToken}\n\n`);
+    // Dispatch the fresh academic access code via the mail service
+    await sendOTPEmail(emailLower, verificationToken);
 
     return c.json({ message: 'A fresh access code has been dispatched.' });
   } catch (error) {
     console.error('Resend Error:', error);
     return c.json({ message: 'Failed to resend code' }, 500);
+  }
+});
+
+// POST /api/auth/forgot-password
+auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), async (c) => {
+  try {
+    const { email } = c.req.valid('json');
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // For security, always return success even if email doesn't exist
+    if (!user) return c.json({ message: 'If this email is registered, a reset link has been dispatched.' });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+
+    await prisma.passwordReset.create({
+      data: {
+        userId: user.id,
+        token: resetToken,
+        expiresAt
+      }
+    });
+
+    await sendPasswordResetEmail(email, resetToken);
+
+    return c.json({ message: 'If this email is registered, a reset link has been dispatched.' });
+  } catch (error) {
+    console.error('Forgot Password Error:', error);
+    return c.json({ message: 'System error during archival restoration.' }, 500);
+  }
+});
+
+// POST /api/auth/reset-password
+auth.post('/reset-password', zValidator('json', resetPasswordSchema), async (c) => {
+  try {
+    const { token, password } = c.req.valid('json');
+
+    const resetRequest = await prisma.passwordReset.findUnique({
+      where: { token },
+      include: { user: true }
+    });
+
+    if (!resetRequest || resetRequest.usedAt || resetRequest.expiresAt < new Date()) {
+      return c.json({ message: 'Invalid or expired restoration token.' }, 400);
+    }
+
+    const passwordHash = bcrypt.hashSync(password, 10);
+
+    // Atomic update: Set new password and mark token as used
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetRequest.userId },
+        data: { passwordHash }
+      }),
+      prisma.passwordReset.update({
+        where: { id: resetRequest.id },
+        data: { usedAt: new Date() }
+      })
+    ]);
+
+    return c.json({ message: 'Credentials restored successfully. You may now log in.' });
+  } catch (error) {
+    console.error('Reset Password Error:', error);
+    return c.json({ message: 'System error during credential restoration.' }, 500);
   }
 });
 
