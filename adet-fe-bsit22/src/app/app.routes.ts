@@ -22,6 +22,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/verify').then(m => m.VerifyComponent)
   },
   {
+    path: 'forgot-password',
+    canActivate: [GuestGuard],
+    loadComponent: () => import('./pages/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'reset-password',
+    canActivate: [GuestGuard],
+    loadComponent: () => import('./pages/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
+  {
     path: 'feed',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent)
@@ -59,6 +69,17 @@ export const routes: Routes = [
     path: 'notifications',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/notifications/notifications.component').then(m => m.NotificationsComponent)
+  },
+  { path: 'notifactions', redirectTo: 'notifications' },
+  {
+    path: 'profile',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./pages/student/profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
+    path: 'profile/:id',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
   },
   { path: '**', redirectTo: 'feed' }
 ];

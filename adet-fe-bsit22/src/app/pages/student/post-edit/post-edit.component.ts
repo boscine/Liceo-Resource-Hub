@@ -83,6 +83,7 @@ export class PostEditComponent implements OnInit {
   title       = '';
   categoryId  = '1';
   description = '';
+  imageUrl    = '';
   status      = 'open';
   
   loadingMeta = true;
@@ -112,14 +113,14 @@ export class PostEditComponent implements OnInit {
 
   getCategoryIcon(name: string): string {
     const icons: { [key: string]: string } = {
-      'Textbook': 'menu_book',
-      'Notes': 'history_edu',
-      'Tools': 'science',
-      'Equipment': 'inventory_2',
-      'Art': 'palette',
-      'Calculator': 'calculate',
-      'USB': 'usb',
-      'Other': 'more_horiz'
+      'Academic Textbooks': 'auto_stories',
+      'Lecture Chronicles': 'history_edu',
+      'Laboratory & Scientific Tools': 'biotech',
+      'Computing & Digital Assets': 'terminal',
+      'Technical & Artistic Equipment': 'construction',
+      'Scholarly Manuscripts': 'menu_book',
+      'Physical Education Kits': 'fitness_center',
+      'Miscellaneous Resources': 'extension'
     };
     return icons[name] || 'label';
   }
@@ -128,8 +129,8 @@ export class PostEditComponent implements OnInit {
     this.api.get<any[]>('/categories').subscribe({
       next: (cats) => {
         this.categories = [...cats].sort((a, b) => {
-          if (a.name === 'Other') return 1;
-          if (b.name === 'Other') return -1;
+          if (a.name === 'Miscellaneous Resources') return 1;
+          if (b.name === 'Miscellaneous Resources') return -1;
           return a.name.localeCompare(b.name);
         });
         this.loadPost();
@@ -143,6 +144,7 @@ export class PostEditComponent implements OnInit {
       next: (res) => {
         this.title = res.title;
         this.description = res.description;
+        this.imageUrl = res.imageUrl || '';
         this.status = res.status.toLowerCase();
         
         // Find matching category object to extract the ID for the form select
@@ -166,6 +168,7 @@ export class PostEditComponent implements OnInit {
       title: this.title,
       categoryId: parseInt(this.categoryId, 10),
       description: this.description,
+      imageUrl: this.imageUrl,
       status: this.status
     }).subscribe({
       next: () => {

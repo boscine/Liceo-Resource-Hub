@@ -66,6 +66,7 @@ model Post {
   categoryId  Int          @map("category_id")
   title       String       @db.VarChar(255)
   description String       @db.Text
+  imageUrl    String?      @db.Text @map("image_url")
   status      PostStatus   @default(open)
   isFlagged   Boolean      @default(false) @map("is_flagged")
   createdAt   DateTime     @default(now()) @map("created_at")

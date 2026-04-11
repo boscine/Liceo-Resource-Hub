@@ -18,7 +18,7 @@ import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 export class FeedComponent implements OnInit, OnDestroy {
   searchQuery    = '';
   activeCategory = 'All Resources';
-  categories     = ['All Resources', 'Textbooks', 'Lab Tools', 'Lecture Notes', 'Art Supplies', 'Calculator', 'USB / Storage', 'Other'];
+  categories     = ['All Resources'];
 
   loading = true;
   posts: any[] = [];
@@ -93,8 +93,8 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.catSub = this.postService.categories$.subscribe(data => {
       const names = data.map(c => c.name);
       const sortedNames = names.sort((a, b) => {
-        if (a === 'Other') return 1;
-        if (b === 'Other') return -1;
+        if (a === 'Miscellaneous Resources') return 1;
+        if (b === 'Miscellaneous Resources') return -1;
         return a.localeCompare(b);
       });
       this.categories = ['All Resources', ...sortedNames];
@@ -371,6 +371,20 @@ export class FeedComponent implements OnInit, OnDestroy {
       'status-fulfilled': s === 'fulfilled',
       'status-closed':    s === 'closed' || s === 'removed'
     };
+  }
+
+  getCategoryIcon(name: string): string {
+    const icons: { [key: string]: string } = {
+      'Academic Textbooks': 'auto_stories',
+      'Lecture Chronicles': 'history_edu',
+      'Laboratory & Scientific Tools': 'biotech',
+      'Computing & Digital Assets': 'terminal',
+      'Technical & Artistic Equipment': 'construction',
+      'Scholarly Manuscripts': 'menu_book',
+      'Physical Education Kits': 'fitness_center',
+      'Miscellaneous Resources': 'extension'
+    };
+    return icons[name] || 'bookmark';
   }
 
   logout() {

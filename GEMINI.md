@@ -1,5 +1,5 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
-> Unified session synchronization file. Last updated: 2026-04-09 (Backend Audit & Bug Sync)
+> Unified session synchronization file. Last updated: 2026-04-12 (Institutional Category Overhaul)
 
 ## 🏁 Getting Started & Installation
 
@@ -71,7 +71,7 @@ liceo-resource-hub/
 - **user:** id, email, password_hash, role (student/admin), status (pending/active/banned), college
 - **contact:** user_id FK, type (messenger/phone/other), value
 - **post:** user_id FK, category_id FK, status (open/fulfilled/closed/removed), title, description
-- **category:** 8 seeded types: Textbook, Notes, Tools, Equipment, Art, Calculator, USB, Other.
+- **category:** 12 Institutional Types: Academic Textbooks, Lecture Chronicles, Scientific Apparatus, Computing & Digital Assets, Mathematical Instruments, Technical & Vocational Tools, Artistic Tools & Mediums, Clinical & Medical Supplies, Physical Education Kits, Institutional Equipment, Scholarly Manuscripts, Miscellaneous Resources.
 - **post_report:** 3+ reports = auto-flag for admin review.
 
 ## 5. Completed Milestones (✅)
@@ -112,6 +112,8 @@ liceo-resource-hub/
 - **Email Integration (V12):** Fully implemented real-time academic dispatch system using Nodemailer. Integrated forgot-password and reset-password flows with secure archival tokens and themed scholarly email templates.
 - **Credential Restoration:** Established a secure restoration portal using the `PasswordReset` database model and atomic prisma transactions.
 - **Backend Hardening (V14):** Patched `verifyToken` middleware for guest access, optimized bulk delete with `createMany`, redacted contact info for guests, and unified Zod validation across routes and controllers.
+- **Post Moderation Mastery:** Implemented backend post reporting with auto-flagging (3+ reports), enabled administrative content editing for moderation, and upgraded to multiple-contact support in post details. (Turn 5)
+- **Category Taxonomy Overhaul:** Deployed a refined 12-category institutional taxonomy and fixed case-sensitivity icon mismatches. (Turn 7)
 
 ## 6. Pending / Next Steps (⬜)
 1. ⬜ **Performance Tuning:** Monitor `backdrop-filter` impact on low-end mobile hardware.
@@ -141,21 +143,8 @@ liceo-resource-hub/
 - **Sync Mandate:** Any update to `GEMINI.md` MUST be mirrored in `MASTER_CONTEXT.md` to ensure project-wide state consistency.
 
 ---
-- **Header & Navigation Pivot:** De-cluttered the global navbar by removing "Requests" and "Create" links, centralizing them in the Feed's responsive Quick Navigation sidebar.
-- **Admin Sidebar Integration:** Integrated institutional control portals (Profile/Dashboard) into the Feed sidebar for restricted access by verified administrative accounts.
-- **"No Animation" UI:** Completely stripped all entry/exit animations from modals (Delete, Metadata) and overlays to achieve a lightning-fast, static academic interface prioritizing zero-latency feedback.
-- **Data-Overflow Hardening:** Implemented title length constraints (200 chars FE / 255 chars DB) and proactive P2000 error handling in the API routes to prevent crash loops.
-- **Design Unification:** Aligned the "Confirm Deletion" modal with the minimalist "Metadata" popup aesthetics while maintaining high-stakes visibility.
-- **Portal Breadcrumbs:** Added curated "Return to Library" breadcrumbs to the Creation portal to standardize return-to-feed patterns across the platform.
-- **Profile UI Hardening:** Fixed real-time header reflection in the Profile page and upgraded institutional email hints with locked scholarly pill designs.
-- **Category Card UI:** Replaced legacy selects with a tactile, card-based selection grid for scholarly categories.
-- **Navigation Unification:** Standardized all breadcrumb navigation to "Return to feed" and enabled the mobile menu button globally for consistent access.
-- **Notification Integration:** Fixed the author notification flow, ensuring real-time feedback when a request is bookmarked by another scholar.
-- **Filter Design Upgrade:** Introduced the "Repository Index" filter label and improved chip interactions for better scholarly browsing.
-- **Device-Agnostic Metadata:** Hardened the detail modal with wrapping layouts and fluid typography to handle long academic titles on mobile screens.
-- **Email Infrastructure (V12):** Deployed a centralized `mail.service.ts` and hardened `auth.routes.ts` with real-time SMTP dispatching for verification and password restoration.
-- **Credential Recovery Logic:** Integrated the `PasswordReset` model with secure token generation, establishing a scholarly restoration flow for institutional accounts.
-- **Backend Audit (V13):** Identified critical logic gaps in guest access, foreign-key validation, and bulk notification performance. Established a roadmap for backend hardening.
-- **Backend Hardening (V14):** Realized the institutional roadmap by patching guest access middlewares, optimizing bulk notification dispatch via atomic `createMany`, and enforcing redacted scholarly contact privacy for unauthenticated users.
-- **Backend Compilation Fixes (V15):** Resolved TypeScript build errors in `profile.controller.ts` (casting `c.req.json()`) and `api.routes.ts` (`Number(categoryId)`) to ensure robust production-ready builds.
-- **Backend Audit & Bug Sync (V16):** Completed a comprehensive backend audit, confirming the correct implementation of guest access control and contact information redaction. No new bugs related to these critical security aspects were identified.
+- **Static Logout Design:** Stripped all hover and active effects from the "Disconnect" buttons on both the Navbar and Profile components, achieving a completely static, zero-latency institutional design that eliminates decorative motion.
+- **Header Positioning Refinement:** Centered the navbar brand title on mobile using absolute positioning and improved the visual balance with institutional icons.
+- **Backend Bug Fixes & Moderation:** Implemented post reporting with auto-flagging logic (3+ reports), enabled administrative editing of post content, and upgraded to multiple-contact support.
+- **Category Overhaul (Institutional V2):** Deployed a 12-category taxonomy including "Clinical Supplies" and "Technical Tools", and resolved icon-mapping case-sensitivity issues across the platform.
+- **Sync Mandate (Turn 7):** Successfully performed a full institutional context sync across GEMINI.md and MASTER_CONTEXT.md.

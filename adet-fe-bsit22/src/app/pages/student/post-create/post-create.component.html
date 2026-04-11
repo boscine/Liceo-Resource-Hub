@@ -78,6 +78,18 @@
               rows="6" required></textarea>
           </div>
 
+          <!-- Image URL Field (New) -->
+          <div class="field">
+            <label class="field-label" for="imageUrl">Visual Evidence (Optional Archive Link)</label>
+            <div class="input-with-icon">
+              <span class="material-symbols-outlined input-icon">image</span>
+              <input class="input-academic icon-padding" id="imageUrl" type="url"
+                [(ngModel)]="imageUrl" name="imageUrl"
+                placeholder="https://institutional-archive.com/item.jpg"/>
+            </div>
+            <p class="field-hint">Provide a valid image URL to help fellow scholars identify the requested resource.</p>
+          </div>
+
 
           <!-- Privacy Protection Notice -->
           <aside class="privacy-notice">

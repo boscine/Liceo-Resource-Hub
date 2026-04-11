@@ -77,14 +77,16 @@ CREATE TABLE IF NOT EXISTS `password_reset` (
 
 -- SEED DATA for Categories
 INSERT IGNORE INTO `category` (`id`, `name`) VALUES
-(1, 'Textbook'),
-(2, 'Lecture Notes'),
-(3, 'Lab Tools'),
-(4, 'Equipment'),
-(5, 'Art Supplies'),
-(6, 'Calculator'),
-(7, 'USB / Storage'),
-(8, 'Other');
+(1, 'Academic Textbooks'),
+(2, 'Lecture Chronicles'),
+(3, 'Scientific Apparatus'),
+(4, 'Institutional Equipment'),
+(5, 'Artistic Mediums'),
+(6, 'Mathematical Instruments'),
+(7, 'Digital Repositories'),
+(8, 'Scholarly Manuscripts'),
+(9, 'Technical Tools'),
+(10, 'Other Resources');
 
 -- Create a Default Admin (Password: admin123)
 -- Hash generated via bcrypt (you should change this in production)

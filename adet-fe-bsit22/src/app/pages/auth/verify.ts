@@ -49,7 +49,7 @@ export class VerifyComponent implements OnInit {
 
   resendCode() {
     if (!this.email) return;
-    this.auth.forgotPassword(this.email).subscribe({
+    this.auth.resendVerificationCode(this.email).subscribe({
       next: () => this.toast.info('A new verification code has been dispatched to your email.'),
       error: () => {}
     });

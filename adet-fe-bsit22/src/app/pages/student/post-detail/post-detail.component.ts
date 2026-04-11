@@ -69,6 +69,19 @@ export class PostDetailComponent implements OnInit {
   }
 
   revealContact() { this.showContact = true; }
+  getCategoryIcon(name: string): string {
+    const icons: { [key: string]: string } = {
+      'Textbook': 'auto_stories',
+      'Notes': 'description',
+      'Tools': 'construction',
+      'Equipment': 'biotech',
+      'Art': 'brush',
+      'Calculator': 'functions',
+      'USB': 'terminal',
+      'Other': 'extension'
+    };
+    return icons[name] || 'bookmark';
+  }
   toggleReport()  { this.showReportForm = !this.showReportForm; }
   submitReport()  { this.showReportForm = false; }
   toggleDescription() { this.isDescriptionExpanded = !this.isDescriptionExpanded; }

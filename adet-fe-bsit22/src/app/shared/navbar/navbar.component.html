@@ -1,5 +1,5 @@
 <header class="app-nav">
-  <div class="nav-inner">
+  <div class="nav-inner" [class.has-menu-btn]="showMenuButton">
     <button class="nav-mobile-menu" (click)="toggleMenu()" *ngIf="showMenuButton">
       <span class="material-symbols-outlined">menu</span>
     </button>
@@ -47,7 +47,7 @@
             </div>
 
             <div class="notif-panel-footer">
-              <a routerLink="/notifications" (click)="notificationsOpen = false">View all notifications</a>
+              <a routerLink="/notifications" (click)="closeNotificationsDeferred()">View all notifications</a>
             </div>
           </div>
         </div>

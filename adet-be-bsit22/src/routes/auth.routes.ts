@@ -146,8 +146,8 @@ auth.post('/verify', zValidator('json', verifySchema), async (c) => {
   }
 });
 
-// POST /api/auth/resend-code
-auth.post('/resend-code', async (c) => {
+// POST /api/auth/resend-verify (Renamed from resend-code to match frontend service)
+auth.post('/resend-verify', async (c) => {
   try {
     const { email } = await c.req.json();
     if (!email) return c.json({ message: 'Email required' }, 400);
@@ -190,19 +190,25 @@ auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), async (c
     // For security, always return success even if email doesn't exist
     if (!user) return c.json({ message: 'If this email is registered, a reset link has been dispatched.' });
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
+    // Institutional Security: Exclude admins from self-service archival restoration
+    if (user.role === 'admin') {
+      return c.json({ message: 'Administrative credentials must be restored by the System Custodian.' }, 403);
+    }
+
+    // Generate a 6-digit scholarly restoration code instead of a hex token
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+    expiresAt.setHours(expiresAt.getHours() + 1);
 
     await prisma.passwordReset.create({
       data: {
         userId: user.id,
-        token: resetToken,
+        token: verificationCode, // Reuse the token field for the OTP
         expiresAt
       }
     });
 
-    await sendPasswordResetEmail(email, resetToken);
+    await sendPasswordResetEmail(email, verificationCode);
 
     return c.json({ message: 'If this email is registered, a reset link has been dispatched.' });
   } catch (error) {

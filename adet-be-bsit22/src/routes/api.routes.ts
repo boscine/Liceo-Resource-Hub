@@ -3,7 +3,7 @@ import { AuthVariables } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import { updateProfile, getProfile } from '../controllers/profile.controller';
 import { zValidator } from '@hono/zod-validator';
-import { postSchema, updatePostSchema, profileSchema } from '../lib/validation';
+import { postSchema, updatePostSchema, profileSchema, reportSchema } from '../lib/validation';
 
 // Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
@@ -42,9 +42,10 @@ router.get('/posts', async (c) => {
       title: p.title,
       description: p.description,
       status: p.status.toUpperCase(),
-      category: p.category.name.toUpperCase(),
+      category: p.category.name,
       author: p.user.displayName,
       authorId: p.user.id,
+      imageUrl: p.imageUrl,
       timeAgo: getTimeAgo(p.createdAt),
       resolved: p.status === 'fulfilled' || p.status === 'closed',
       createdAt: p.createdAt
@@ -75,7 +76,7 @@ router.get('/admin/posts', async (c) => {
       title: p.title,
       description: p.description,
       status: p.status.toUpperCase(),
-      category: p.category.name.toUpperCase(),
+      category: p.category.name,
       author: p.user.displayName,
       authorId: p.user.id,
       timeAgo: getTimeAgo(p.createdAt),
@@ -129,17 +130,20 @@ router.get('/posts/:id', async (c) => {
       title: post.title,
       description: post.description,
       status: post.status.toUpperCase(),
-      category: post.category.name.toUpperCase(),
+      category: post.category.name,
       author: post.user.displayName,
       authorId: post.userId,
+      imageUrl: post.imageUrl,
       timeAgo: getTimeAgo(post.createdAt),
       resolved: post.status === 'fulfilled' || post.status === 'closed',
       createdAt: post.createdAt,
       isFlagged: post.isFlagged,
-      contact: firstContact ? { 
-        type: firstContact.type.charAt(0).toUpperCase() + firstContact.type.slice(1), 
-        value: firstContact.value 
-      } : { type: 'None', value: userId ? 'No contact shared' : 'Sign in to view contact details' }
+      contacts: post.user.contacts && post.user.contacts.length > 0 && userId
+        ? post.user.contacts.map(c => ({
+            type: c.type.charAt(0).toUpperCase() + c.type.slice(1),
+            value: c.value
+          }))
+        : []
     };
 
     return c.json(formattedPost);
@@ -177,6 +181,7 @@ router.get('/profile/:id', async (c) => {
       select: {
         id: true,
         displayName: true,
+        email: true,
         role: true,
         status: true,
         createdAt: true,
@@ -204,13 +209,14 @@ router.get('/profile/:id', async (c) => {
     // Redact contact info for guests
     if (!c.get('userId')) {
       user.contacts = [];
+      user.email = ''; // Redact institutional email for unauthenticated visitors
     }
 
     const formattedPosts = user.posts.map(p => ({
       id: p.id,
       title: p.title,
       status: p.status.toUpperCase(),
-      category: p.category.name.toUpperCase(),
+      category: p.category.name,
       timeAgo: getTimeAgo(p.createdAt),
       createdAt: p.createdAt
     }));
@@ -295,7 +301,7 @@ router.post('/posts', zValidator('json', postSchema), async (c) => {
   }
 
   try {
-    const { title, categoryId, description } = c.req.valid('json');
+    const { title, categoryId, description, imageUrl } = c.req.valid('json');
     const catId = categoryId;
 
     const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
@@ -309,6 +315,7 @@ router.post('/posts', zValidator('json', postSchema), async (c) => {
         categoryId: catId,
         title,
         description,
+        imageUrl,
         status: 'open'
       }
     });
@@ -341,7 +348,7 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 
   try {
-    const { title, categoryId, description, status, isFlagged } = c.req.valid('json');
+    const { title, categoryId, description, imageUrl, status, isFlagged } = c.req.valid('json');
 
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
@@ -356,23 +363,20 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
     const statusChanged = status && status.toLowerCase() !== post.status;
     const flagChanged = isFlagged !== undefined && !!isFlagged !== post.isFlagged;
     
-    // Students can only update content if they own it
-    if (post.userId === userId) {
-      if (title !== undefined) data.title = title;
-      if (description !== undefined) data.description = description;
-      if (categoryId !== undefined) {
-        const catId = Number(categoryId);
-        if (isNaN(catId)) {
-          return c.json({ message: 'Invalid category ID.' }, 400);
-        }
-        const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
-        if (!categoryExists) {
-          return c.json({ message: 'The specified scholarly category does not exist.' }, 400);
-        }
-        data.categoryId = catId;
+    // Moderation: Allow Admins to edit content for institutional cleanup
+    if (title !== undefined) data.title = title;
+    if (description !== undefined) data.description = description;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (categoryId !== undefined) {
+      const catId = Number(categoryId);
+      if (isNaN(catId)) {
+        return c.json({ message: 'Invalid category ID.' }, 400);
       }
-    } else if (title !== undefined || description !== undefined || categoryId !== undefined) {
-      return c.json({ message: 'You are not allowed to modify the content of this post.' }, 403);
+      const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
+      if (!categoryExists) {
+        return c.json({ message: 'The specified scholarly category does not exist.' }, 400);
+      }
+      data.categoryId = catId;
     }
 
     // Status validation
@@ -438,6 +442,58 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
   } catch (error) {
     console.error('Failed to update post:', error);
     return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
+// ── POST /api/v1/posts/:id/report (3+ Reports Auto-Flag) ─────────────────────
+router.post('/posts/:id/report', zValidator('json', reportSchema), async (c) => {
+  const postId = parseInt(c.req.param('id'), 10);
+  const reporterId = c.get('userId');
+
+  if (isNaN(postId) || !reporterId) {
+    return c.json({ message: 'Unauthorized scholarly reporting.' }, 401);
+  }
+
+  try {
+    const { reason, details } = c.req.valid('json');
+
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post) return c.json({ message: 'Post not found' }, 404);
+
+    if (post.userId === reporterId) {
+      return c.json({ message: 'Self-reporting is not permitted.' }, 400);
+    }
+
+    // 1. Create the report
+    await prisma.postReport.upsert({
+      where: { postId_reporterId: { postId, reporterId } },
+      update: { reason, details, status: 'pending' },
+      create: { postId, reporterId, reason, details, status: 'pending' }
+    });
+
+    // 2. Count reports to trigger auto-flagging (Rule of 3)
+    const reportCount = await prisma.postReport.count({ where: { postId } });
+    
+    if (reportCount >= 3 && !post.isFlagged) {
+      await prisma.post.update({
+        where: { id: postId },
+        data: { isFlagged: true }
+      });
+
+      // Notify the author about moderation
+      await prisma.notification.create({
+        data: {
+          userId: post.userId,
+          icon: 'flag',
+          text: `Scholarly Alarm: Your request "${post.title}" has been auto-flagged for moderation review after multiple reports.`
+        }
+      });
+    }
+
+    return c.json({ message: 'Report submitted successfully. Thank you for maintaining HUB integrity.' });
+  } catch (error) {
+    console.error('Failed to report post:', error);
+    return c.json({ message: 'Internal server error during reporting.' }, 500);
   }
 });
 

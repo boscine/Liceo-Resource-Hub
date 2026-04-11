@@ -34,7 +34,8 @@ export const resetPasswordSchema = z.object({
 export const postSchema = z.object({
   title: z.string().min(3, 'Title is too short.').max(200, 'Title exceeds institutional archive limits (200 chars).'),
   categoryId: z.union([z.number(), z.string()]).transform(val => Number(val)),
-  description: z.string().min(10, 'Please provide a more detailed scholarly description.').max(1000)
+  description: z.string().min(10, 'Please provide a more detailed scholarly description.').max(1000),
+  imageUrl: z.string().url('Invalid image URL format.').optional().or(z.literal(''))
 });
 
 export const updatePostSchema = postSchema.partial().extend({
@@ -48,4 +49,8 @@ export const profileSchema = z.object({
     type: z.enum(['messenger', 'phone', 'other']),
     value: z.string().min(1).max(255)
   })).max(5, 'Maximum of 5 contact methods allowed.')
+});
+export const reportSchema = z.object({
+  reason: z.enum(['inappropriate', 'spam', 'misleading', 'not_educational', 'duplicate', 'fake_contact', 'other']),
+  details: z.string().max(500).optional()
 });

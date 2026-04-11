@@ -218,6 +218,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 
     @media (max-width: 768px) {
       padding: 0 1rem; /* Reduced padding for more real estate */
@@ -260,7 +261,7 @@ body {
       gap: 0.75rem;
       align-items: center;
 
-      button {
+      button.icon-btn {
         background: none;
         border: none;
         cursor: pointer;

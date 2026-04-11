@@ -55,6 +55,14 @@
           </div>
 
           <div class="field">
+            <label class="field-label" for="imageUrl">Visual Evidence (Optional Archive Link)</label>
+            <div class="input-with-icon">
+              <span class="material-symbols-outlined input-icon">image</span>
+              <input class="input-academic icon-padding" id="imageUrl" type="url" [(ngModel)]="imageUrl" name="imageUrl" placeholder="https://institutional-archive.com/item.jpg"/>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="field-label">Current Status</label>
             <div class="status-grid">
               <label class="status-chip" *ngFor="let s of statuses" 

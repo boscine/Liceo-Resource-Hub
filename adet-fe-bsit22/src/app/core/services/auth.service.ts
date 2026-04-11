@@ -42,6 +42,10 @@ export class AuthService {
       }));
   }
 
+  resendVerificationCode(email: string) {
+    return this.http.post('/api/auth/resend-verify', { email });
+  }
+
   logout() { localStorage.removeItem(TOKEN_KEY); }
   getToken() { return localStorage.getItem(TOKEN_KEY); }
   isLoggedIn() { return !!this.getToken(); }

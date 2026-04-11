@@ -67,5 +67,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   @HostListener('document:click')
   closeNotifications() { this.notificationsOpen = false; }
 
+  closeNotificationsDeferred() {
+    setTimeout(() => { this.notificationsOpen = false; }, 50);
+  }
+
   logout() { this.auth.logout(); this.router.navigate(['/login']); }
 }

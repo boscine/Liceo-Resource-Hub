@@ -28,9 +28,17 @@
         <article class="post-card">
           <div class="post-top">
             <span class="post-status" [ngClass]="'status-' + post.status.toLowerCase()">{{ post.status }}</span>
-            <span class="post-meta">{{ post.category }} · {{ post.timeAgo }}</span>
+            <span class="post-meta">
+              <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">{{ getCategoryIcon(post.category) }}</span>
+              {{ post.category }} · {{ post.timeAgo }}
+            </span>
           </div>
           <h1 class="post-title serif-italic">{{ post.title }}</h1>
+          
+          <div class="post-image-container" *ngIf="post.imageUrl">
+            <img [src]="post.imageUrl" [alt]="post.title" class="post-image" />
+          </div>
+
           <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
             <div class="author-avatar">{{ post.author[0] }}</div>
             <div>
