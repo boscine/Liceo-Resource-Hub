@@ -1,41 +1,49 @@
-# Liceo Resource Hub
+# Liceo Resource Hub — Academic Curator
 
-> A web-based academic resource-sharing platform for Liceo de Cagayan University students.
-> - **Theme:** "The Academic Curator" (Maroon `#570000`, Academia Gold `#c5a021`)
-> - **Access:** `@liceo.edu.ph` only. Guests can't see contact info.
-> - **Core Loop:** Students post requests (textbooks/tools) → Others contact via external links.
+A web-based academic resource-sharing platform for Liceo de Cagayan University students.
+- **Theme:** "The Academic Curator" (Maroon `#570000`, Academia Gold `#c5a021`)
+- **Access:** `@liceo.edu.ph` only. Guests can't see contact info.
+- **Core Loop:** Students post requests (textbooks/tools) → Others contact via external links.
 
-## 🏁 Getting Started & Installation
+---
 
-Follow these steps to set up the repository precisely after git cloning.
+## 🛠️ Tech Stack
+- **Frontend:** Angular 18 (Standalone, SCSS, RxJS, jwt-decode)
+- **Backend:** Hono (Typescript, ESM)
+- **Database:** MariaDB / MySQL (ORM: Prisma v7.6+)
+- **Auth:** JWT-based institutional authentication.
+- **Mailing:** Postmark API for scholarly dispatch (forgot password, etc.)
 
-### 1. Prerequisites
-*   **Node.js v18+** (LTS recommended)
-*   **MariaDB v10+** (Default port 3306)
-*   **Git Bash** or similar terminal
+---
 
-### 2. Database Configuration
-1.  Open your MariaDB shell and run `CREATE DATABASE adet_bsitdb22;`.
-2.  Import the initial schema: `source c:/Users/You/Desktop/adet-mainproject-bsit22/setup_db.sql`.
-3.  Ensure your `.env` in `adet-be-bsit22` has: `DATABASE_URL="mysql://root:12345@localhost:3306/adet_bsitdb22"` (update password if different).
+## 🚀 Quick Start
+For detailed installation and database configuration, please refer to:
+👉 **[SETUP_GUIDE.md](./SETUP_GUIDE.md)**
 
-### 3. Backend Setup (`adet-be-bsit22`)
+### Local Setup (Windows)
+Use the provided automation scripts in the root directory:
+- ⚡ **Start**: `./start-dev.bat` or `./start-dev.ps1`
+- 🛑 **Stop**: `./stop-dev.bat` or `./stop-dev.ps1`
+
+### Backend Setup (`adet-be-bsit22`)
 ```bash
-cd adet-be-bsit22
 npm install
 npx prisma generate
-npx prisma db push
 npm run dev
 ```
 
-### 4. Frontend Setup (`adet-fe-bsit22`)
+### Frontend Setup (`adet-fe-bsit22`)
 ```bash
-cd adet-fe-bsit22
 npm install
 npm run start
 ```
 
-### 5. Running the Complete System
-Use the provided automation scripts in the root directory:
-*   `./start-dev.bat` (Windows Batch) OR
-*   `./start-dev.ps1` (PowerShell)
+---
+
+## 📜 Repository Guidelines
+- **Institutional Integrity:** Only `@liceo.edu.ph` emails are permitted.
+- **Moderation:** Posts are filtered for inappropriate content and auto-flagged after 3 reports.
+- **Security:** Session-based spam prevention and real-time user status checks.
+
+---
+**Last Updated:** 2026-04-12 (Production Hardening & Bug Fixes)
