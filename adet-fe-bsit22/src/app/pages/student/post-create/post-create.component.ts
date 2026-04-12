@@ -9,11 +9,12 @@ import { PostService } from '../../../core/services/post.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-post-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.scss'],
 })
@@ -64,18 +65,22 @@ export class PostCreateComponent implements OnInit, OnDestroy {
     const icons: { [key: string]: string } = {
       'Academic Textbooks': 'auto_stories',
       'Lecture Chronicles': 'history_edu',
-      'Laboratory & Scientific Tools': 'biotech',
+      'Scientific Apparatus': 'biotech',
       'Computing & Digital Assets': 'terminal',
-      'Technical & Artistic Equipment': 'construction',
-      'Scholarly Manuscripts': 'menu_book',
+      'Mathematical Instruments': 'calculate',
+      'Technical & Vocational Tools': 'construction',
+      'Artistic Tools & Mediums': 'palette',
+      'Clinical & Medical Supplies': 'medical_services',
       'Physical Education Kits': 'fitness_center',
+      'Institutional Equipment': 'account_balance',
+      'Scholarly Manuscripts': 'menu_book',
       'Miscellaneous Resources': 'extension'
     };
     return icons[name] || 'label';
   }
 
   onSubmit() {
-    if (!this.title || !this.categoryId || !this.description) return;
+    if (this.loading || !this.title || !this.categoryId || !this.description) return;
 
     this.loading = true;
     this.api.post('/posts', { 

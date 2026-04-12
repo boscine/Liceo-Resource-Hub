@@ -6,10 +6,13 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 
+import { NavbarComponent }              from '../../../shared/navbar/navbar.component';
+import { FooterComponent }              from '../../../shared/footer/footer.component';
+
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
 })
@@ -37,7 +40,8 @@ export class RegisterComponent {
   }
 
   isLiceoEmail(email: string): boolean {
-    return email.toLowerCase().endsWith('@liceo.edu.ph');
+    const regex = /^[a-zA-Z0-9._%+-]+@liceo\.edu\.ph$/;
+    return regex.test(email.toLowerCase());
   }
 
   get isLowStrength(): boolean {
@@ -46,7 +50,10 @@ export class RegisterComponent {
   }
 
   onSubmit() {
-    if (!this.isLiceoEmail(this.email)) {
+    if (this.loading) return;
+    const normalizedEmail = this.email.trim().toLowerCase();
+
+    if (!this.isLiceoEmail(normalizedEmail)) {
       this.toast.error('Registration requires a valid @liceo.edu.ph university email.');
       return;
     }
@@ -68,7 +75,7 @@ export class RegisterComponent {
 
     this.loading = true;
 
-    this.auth.register(this.email, this.password, this.displayName).subscribe({
+    this.auth.register(normalizedEmail, this.password, this.displayName).subscribe({
       next: (res) => {
         this.loading = false;
         this.toast.success('Registration successful! Please verify your student email to activate your account.');

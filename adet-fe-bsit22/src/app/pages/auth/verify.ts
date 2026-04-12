@@ -5,10 +5,13 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 
+import { NavbarComponent }   from '../../shared/navbar/navbar.component';
+import { FooterComponent }   from '../../shared/footer/footer.component';
+
 @Component({
   selector: 'app-verify',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './verify.html',
   styleUrls: ['./verify.scss'] // Assuming there is a verify.scss or adding styles locally
 })
@@ -32,10 +35,14 @@ export class VerifyComponent implements OnInit {
   }
 
   onSubmit() {
-    if (!this.code || this.code.length < 6) return;
+    if (this.loading) return;
+    if (!this.code || this.code.length < 6) {
+      this.toast.error('The educational access code must be exactly 6 digits.');
+      return;
+    }
     this.loading = true;
 
-    this.auth.verify(this.email, this.code).subscribe({
+    this.auth.verify(this.email.trim().toLowerCase(), this.code).subscribe({
       next: () => {
         this.loading = false;
         this.toast.success('Account activated! Welcome to the Liceo Resource Hub.');
@@ -49,7 +56,7 @@ export class VerifyComponent implements OnInit {
 
   resendCode() {
     if (!this.email) return;
-    this.auth.resendVerificationCode(this.email).subscribe({
+    this.auth.resendVerificationCode(this.email.trim().toLowerCase()).subscribe({
       next: () => this.toast.info('A new verification code has been dispatched to your email.'),
       error: () => {}
     });

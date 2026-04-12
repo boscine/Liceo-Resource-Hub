@@ -40,6 +40,13 @@
         <a (click)="setViewMode('saved'); sidebarOpen = false;" [class.active]="viewMode === 'saved'">
           <span class="material-symbols-outlined">bookmark</span> Saved Items
         </a>
+
+        <!-- Theme Toggle -->
+        <div class="quick-nav-divider"></div>
+        <a (click)="themeService.toggleTheme()" class="theme-toggle-link">
+          <span class="material-symbols-outlined">{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</span>
+          {{ themeService.isDarkMode() ? 'Switch to Light' : 'Switch to Dark' }}
+        </a>
         
         <!-- Admin Only Section -->
         <ng-container *ngIf="isAdmin">
@@ -126,6 +133,12 @@
               </label>
             </div>
           </div>
+          
+          <!-- Image Preview -->
+          <div class="post-preview-img" *ngIf="post.imageUrl" (click)="openDetail(post)">
+            <img [src]="post.imageUrl" alt="Preview" (error)="post.imageUrl = null">
+          </div>
+
           <h3 class="post-title serif-italic" (click)="openDetail(post)" style="cursor: pointer;">{{ post.title }}</h3>
           <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
             <div class="author-avatar">{{ post.author[0] }}</div>
@@ -160,6 +173,11 @@
               <span class="material-symbols-outlined">check_circle</span> Resolved
             </span>
           </div>
+
+          <!-- Standalone Detail Link -->
+          <a [routerLink]="['/post', post.id]" class="full-details-link">
+            Open in Scholarly Portal <span class="material-symbols-outlined">open_in_new</span>
+          </a>
         </div>
       </div>
 
@@ -287,6 +305,11 @@
 
           <h1 class="selected-title serif-italic">{{ selectedPost.title }}</h1>
           
+          <!-- Image Container -->
+          <div class="selected-image-container" *ngIf="selectedPost.imageUrl">
+            <img [src]="selectedPost.imageUrl" alt="Scholarly material image" class="selected-image" (error)="selectedPost.imageUrl = ''">
+          </div>
+          
           <div class="divider"></div>
           <p class="selected-description">
             <span *ngIf="!isDescriptionExpanded && selectedPost.description.length > 280">
@@ -299,9 +322,42 @@
             </span>
           </p>
           <div class="divider"></div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <button class="report-btn-modal" (click)="toggleReport()" *ngIf="isLoggedIn && user.id !== selectedPost.authorId && user.role !== 'admin'">
+              <span class="material-symbols-outlined">{{ showReportForm ? 'arrow_back' : 'flag' }}</span>
+              {{ showReportForm ? 'Return to Metadata' : 'Report this post' }}
+            </button>
+          </div>
 
-          <!-- Contact Section in Modal (Hidden if Owner) -->
-          <div class="modal-contact-box" *ngIf="!isMyPost(selectedPost)">
+          <div class="report-form-modal" *ngIf="showReportForm">
+            <h3 class="serif-italic">Maintain Scholarly Integrity</h3>
+            <p style="font-size: 0.85rem; color: var(--on-surface-variant); margin-bottom: 1rem;">Flag this request for administrative review if it violates institutional standards.</p>
+            
+            <div class="field">
+              <label class="field-label" for="reason">Reason for flagging</label>
+              <select class="input-academic" [(ngModel)]="reportReason" id="reason" name="reason">
+                <option value="" disabled selected>Select a reason...</option>
+                <option *ngFor="let r of reasons" [value]="r.value">{{ r.label }}</option>
+              </select>
+            </div>
+            
+            <div class="field" style="margin-top:1rem">
+              <label class="field-label" for="details">Additional Context (Optional)</label>
+              <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details" rows="3" placeholder="Explain the violation..."></textarea>
+            </div>
+            
+            <div class="report-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+              <button class="btn-cancel" (click)="toggleReport()" style="flex: 1;">Cancel</button>
+              <button class="btn-error" (click)="submitReport()" [disabled]="reporting || !reportReason" style="flex: 2;">
+                <span *ngIf="!reporting">Submit to Moderation</span>
+                <span *ngIf="reporting" class="spinner"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Contact Section in Modal (Hidden if Owner and if Reporting) -->
+          <div class="modal-contact-box" *ngIf="!isMyPost(selectedPost) && !showReportForm">
              <h3>Contact Curator</h3>
              <p *ngIf="!isLoggedIn" class="contact-locked">
                <span class="material-symbols-outlined">lock</span>
@@ -344,18 +400,6 @@
   <!-- FAB REMOVED AS REQUESTED -->
 
 
-  <!-- FOOTER -->
-  <footer class="app-footer">
-    <div class="footer-brand">
-      Liceo de Cagayan University
-      <span>© 2026 The Academic Curator.</span>
-    </div>
-    <div class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">University Portal</a>
-      <a href="#">Contact Support</a>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 
 </div>

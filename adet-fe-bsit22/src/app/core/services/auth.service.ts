@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
+import { ThemeService } from './theme.service';
 
 const TOKEN_KEY = 'token';
 
@@ -21,7 +22,7 @@ export interface TokenPayload { // Add 'export' so it's accessible elsewhere
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private themeService: ThemeService) { }
 
   login(email: string, password: string) {
     return this.http.post<{ token: string }>('/api/auth/login', { email, password })
@@ -46,12 +47,15 @@ export class AuthService {
     return this.http.post('/api/auth/resend-verify', { email });
   }
 
-  logout() { localStorage.removeItem(TOKEN_KEY); }
+  logout() { 
+    localStorage.removeItem(TOKEN_KEY); 
+    this.themeService.setLightMode();
+  }
   getToken() { return localStorage.getItem(TOKEN_KEY); }
   isLoggedIn() { return !!this.getToken(); }
 
   forgotPassword(email: string) { return this.http.post('/api/auth/forgot-password', { email }); }
-  resetPassword(token: string, password: string) { return this.http.post('/api/auth/reset-password', { token, password }); }
+  resetPassword(email: string, token: string, password: string) { return this.http.post('/api/auth/reset-password', { email, token, password }); }
 
   isAdmin(): boolean {
     const token = this.getToken();

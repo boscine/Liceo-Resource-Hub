@@ -71,7 +71,7 @@
         <!-- Post List -->
         <div class="post-list" *ngIf="!loading">
           <div class="post-row" *ngFor="let post of getFilteredPosts()" 
-               [class.flagged]="post.status === 'FLAGGED'" 
+               [class.flagged]="post.isFlagged" 
                [class.removed]="post.status === 'REMOVED'">
             <div class="post-info">
               <span class="post-id">REQ-2025-{{ post.id }}</span>
@@ -80,17 +80,17 @@
             </div>
             <div class="post-status-col">
               <span class="status-label">STATUS</span>
-              <span class="status-value" [class.flagged-text]="post.status === 'FLAGGED'" [class.removed-text]="post.status === 'REMOVED'">
-                <span class="material-symbols-outlined" *ngIf="post.status === 'OPEN' || post.status === 'ACTIVE'" style="color:#2e7d32;font-size:14px">circle</span>
-                <span class="material-symbols-outlined" *ngIf="post.status === 'FLAGGED'" style="color:#f57c00;font-size:14px">warning</span>
-                {{ post.status }}
+              <span class="status-value" [class.flagged-text]="post.isFlagged" [class.removed-text]="post.status === 'REMOVED'">
+                <span class="material-symbols-outlined" *ngIf="!post.isFlagged && (post.status === 'OPEN' || post.status === 'ACTIVE')" style="color:#2e7d32;font-size:14px">circle</span>
+                <span class="material-symbols-outlined" *ngIf="post.isFlagged" style="color:#f57c00;font-size:14px">warning</span>
+                {{ post.isFlagged ? 'FLAGGED' : post.status }}
               </span>
             </div>
             <div class="post-actions">
               <button class="action-btn action-approve" *ngIf="post.status !== 'REMOVED'" (click)="approvePost(post.id)" title="Approve">
                 <span class="material-symbols-outlined">check_circle</span>
               </button>
-              <button class="action-btn action-flag" *ngIf="post.status !== 'FLAGGED' && post.status !== 'REMOVED'" (click)="flagPost(post.id)" title="Flag">
+              <button class="action-btn action-flag" *ngIf="!post.isFlagged && post.status !== 'REMOVED'" (click)="flagPost(post.id)" title="Flag">
                 <span class="material-symbols-outlined">flag</span>
               </button>
               <button class="action-btn action-remove" *ngIf="post.status !== 'REMOVED'" (click)="removePost(post.id)" title="Remove">
@@ -126,18 +126,6 @@
 
   </main>
 
-  <!-- FOOTER -->
-  <footer class="app-footer">
-    <div class="footer-brand">
-      Liceo de Cagayan University
-      <span>© 2026 The Academic Curator.</span>
-    </div>
-    <div class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="https://liceo.edu.ph" target="_blank">University Portal</a>
-      <a href="#">Contact Support</a>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 
 </div>

@@ -6,12 +6,14 @@ import { Subscription }      from 'rxjs';
 import { ApiService }        from '../../../core/services/api.service';
 import { AuthService }       from '../../../core/services/auth.service';
 import { PostService }       from '../../../core/services/post.service';
+import { ThemeService }      from '../../../core/services/theme.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
+import { FooterComponent }   from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss'],
 })
@@ -46,6 +48,21 @@ export class FeedComponent implements OnInit, OnDestroy {
   loadingDetail = false;
   showContact = false;
   isDescriptionExpanded = false; // "See More" toggle state
+  
+  // Reporting logic
+  showReportForm = false;
+  reportReason = '';
+  reportDetails = '';
+  reporting = false;
+  reasons = [
+    { label: 'Inappropriate Content', value: 'inappropriate' },
+    { label: 'Spam', value: 'spam' },
+    { label: 'Misleading', value: 'misleading' },
+    { label: 'Not Educational', value: 'not_educational' },
+    { label: 'Duplicate Post', value: 'duplicate' },
+    { label: 'Fake Contact Info', value: 'fake_contact' },
+    { label: 'Other', value: 'other' }
+  ];
 
   sidebarOpen = false;
   toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; }
@@ -66,7 +83,8 @@ export class FeedComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private auth: AuthService,
     private router: Router,
-    private postService: PostService
+    private postService: PostService,
+    public themeService: ThemeService
   ) {}
 
   ngOnInit() {
@@ -101,9 +119,9 @@ export class FeedComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    // Initial load (will check cache automatically)
+    // Initial load (Force refresh to ensure data integrity)
     this.postService.getCategories();
-    this.postService.getPosts();
+    this.postService.refreshPosts();
   }
 
   ngOnDestroy() {
@@ -270,6 +288,7 @@ export class FeedComponent implements OnInit, OnDestroy {
       error: (e) => {
         console.error('Failed fetching post detail:', e);
         this.loadingDetail = false;
+        this.closeDetailModal();
         this.cdr.detectChanges();
       }
     });
@@ -279,6 +298,35 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.showDetailModal = false;
     this.selectedPost = null;
     this.isDescriptionExpanded = false;
+    this.showReportForm = false; // Reset report form
+  }
+
+  toggleReport() {
+    this.showReportForm = !this.showReportForm;
+  }
+
+  submitReport() {
+    if (this.reporting || !this.reportReason || !this.selectedPost) return;
+    
+    this.reporting = true;
+    
+    this.api.post(`/posts/${this.selectedPost.id}/report`, {
+      reason: this.reportReason,
+      details: this.reportDetails
+    }).subscribe({
+      next: () => {
+        this.reporting = false;
+        this.showReportForm = false;
+        this.reportReason = '';
+        this.reportDetails = '';
+        alert('Report submitted. Thank you for maintaining HUB integrity.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.reporting = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   toggleDescription() {
@@ -377,11 +425,15 @@ export class FeedComponent implements OnInit, OnDestroy {
     const icons: { [key: string]: string } = {
       'Academic Textbooks': 'auto_stories',
       'Lecture Chronicles': 'history_edu',
-      'Laboratory & Scientific Tools': 'biotech',
+      'Scientific Apparatus': 'biotech',
       'Computing & Digital Assets': 'terminal',
-      'Technical & Artistic Equipment': 'construction',
-      'Scholarly Manuscripts': 'menu_book',
+      'Mathematical Instruments': 'calculate',
+      'Technical & Vocational Tools': 'construction',
+      'Artistic Tools & Mediums': 'palette',
+      'Clinical & Medical Supplies': 'medical_services',
       'Physical Education Kits': 'fitness_center',
+      'Institutional Equipment': 'account_balance',
+      'Scholarly Manuscripts': 'menu_book',
       'Miscellaneous Resources': 'extension'
     };
     return icons[name] || 'bookmark';

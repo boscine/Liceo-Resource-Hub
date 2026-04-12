@@ -4,10 +4,13 @@ import { FormsModule }  from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService }  from '../../../core/services/auth.service';
 
+import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
+import { FooterComponent }   from '../../../shared/footer/footer.component';
+
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.scss'],
 })
@@ -26,10 +29,12 @@ export class ForgotPasswordComponent {
   onSubmit() {
     this.loading = true;
     this.error   = '';
-    this.auth.forgotPassword(this.email).subscribe({
+    const normalizedEmail = this.email.trim().toLowerCase();
+    this.auth.forgotPassword(normalizedEmail).subscribe({
       next: () => { 
         this.loading = false; 
-        this.router.navigate(['/reset-password'], { queryParams: { email: this.email } });
+        this.sent = true;
+        this.cdr.detectChanges();
       },
       error: (err) => { 
         this.loading = false; 

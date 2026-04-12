@@ -10,8 +10,9 @@ import { verifyToken, AuthVariables } from './middleware/auth.middleware';
 const app = new Hono<{ Variables: AuthVariables }>();
 
 // 1. Global Middleware
+const origin = process.env.FRONTEND_URL || 'http://localhost:4200';
 app.use('*', cors({ 
-  origin: 'http://localhost:4200',
+  origin: origin,
   credentials: true 
 }));
 
@@ -23,6 +24,7 @@ app.route('/api/auth', authRoutes);
 app.use('/api/v1/*', verifyToken); 
 app.route('/api/v1', apiRoutes); 
 
-serve({ fetch: app.fetch, port: 3000 }, () =>
-  console.log('Liceo Resource Hub API → http://localhost:3000')
-);
+const port = Number(process.env.PORT) || 3000;
+serve({ fetch: app.fetch, port: port }, () =>
+  console.log(`Liceo Resource Hub API → http://localhost:${port}`)
+);;

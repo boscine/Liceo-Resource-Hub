@@ -1,12 +1,12 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
-> Unified session synchronization file. Last updated: 2026-04-12 (Institutional Category Overhaul)
+> Unified session synchronization file. Last updated: 2026-04-12 (Bug Fixes & Security Hardening)
 
 ## 🏁 Getting Started & Installation
 
 Follow these steps to set up the repository precisely after git cloning.
 
 ### 1. Prerequisites
-*   **Node.js v18+** (LTS recommended)
+*   **Node.js v18+** (Required for Hono and Angular 18)
 *   **MariaDB v10+** (Default port 3306)
 *   **Git Bash** or similar terminal
 
@@ -49,7 +49,7 @@ A web-based academic resource-sharing platform for Liceo de Cagayan University s
 - **Backend:** Hono (TS, ESM, tsx) | **ORM:** Prisma v7.6+ (MariaDB adapter)
 - **Database:** MySQL (`adet_bsitdb22`, root:12345, DATABASE_URL config in BE `.env`)
 - **Auth:** JWT + bcryptjs + 6-digit Email OTP (Dev-logged)
-- **Ports:** BE: 3000 | FE: 4200 (Proxy: `/api` → `localhost:3000`)
+- **Ports:** BE: 3000 (Configurable via PORT) | FE: 4200 (Proxy: `/api` → `localhost:3000`)
 - **Environment Constraint:** On Windows-based AI hosts, the `run_command` tool may fail due to "sandboxing not supported." 
   - **Verified Fix:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and enable WSL2 backend to provide the necessary containerization for system-level tool execution.
 
@@ -114,11 +114,33 @@ liceo-resource-hub/
 - **Backend Hardening (V14):** Patched `verifyToken` middleware for guest access, optimized bulk delete with `createMany`, redacted contact info for guests, and unified Zod validation across routes and controllers.
 - **Post Moderation Mastery:** Implemented backend post reporting with auto-flagging (3+ reports), enabled administrative content editing for moderation, and upgraded to multiple-contact support in post details. (Turn 5)
 - **Category Taxonomy Overhaul:** Deployed a refined 12-category institutional taxonomy and fixed case-sensitivity icon mismatches. (Turn 7)
+- **API Moderation Filter (V15):** Implemented a professional inappropriate word filter (`src/lib/moderation.ts`) across all post creation and update routes, enforcing scholarly standards. (Turn 7)
+- **Email Infrastructure Overhaul:** Deployed the Postmark API engine and transitioned to secure email link flows for credential restoration, eliminating the legacy 6-digit manual logic. [7/7]
+- **Authentication Resilience:** Patched premature `/reset-password` frontend redirection to prevent "Invalid Cryptographic Node" errors and replaced the basic success state with a hardware-accelerated "Dispatch Success" UI.
+- **Administrative Hardening:** Explicitly blocked admin self-service credential restoration using a 403 Forbidden status, redirecting verified admin accounts to contact the department head instead of sending resetting links.
+- **Link-Based Restoration (V5):** Replaced the 6-digit recovery code with a secure, 64-character hex link flow for one-click credential restoration. (Turn 7)
+- **Design System Unification (Email):** Established a premium "Scholarly Email" design system featuring Option A (Action Buttons) for resets and Option B (Brushed-Gold Code Boxes) for registration. (Turn 7)
+- **Notification Inbox Mastery:** Overhauled the notification system by centralizing institutional state in `NotificationService`, eliminating frontend data duplication, and introducing dynamic `limit` parameters for scholarly archive retrieval.
+- **Dispatch Deletion Engine:** Deployed high-efficiency backend routes and premium UI controls for individual notification removal and atomic inbox clearing ("Clear All"), ensuring a clutter-free scholarly environment.
+- **State Synchronization Hardening:** Patched the navbar badge mismatch by implementing a unified RxJS subscription model across the dedicated notifications portal and global navigation bar. [7/7]
+- **Visual Scholarly Integration (V16):** Fully implemented image support across the feed, metadata modals, and standalone detail pages. 
+- **Mobile Vision Optimization:** Deployed fixed-height image previews (`160px`) with hardware-accelerated zoom effects for rapid scholarly scanning.
+- **Frame-Rate Restoration:** Optimized modal performance by eliminating `backdrop-filter` blur in favor of high-alpha solid overlays, ensuring a consistent 60+ FPS experience.
+- **Cache Integrity Hardening:** Transitioned the feed component to a forced API synchronization model (`refreshPosts`) to resolve disappearing image artifacts during cross-portal navigation. [4/7]
+- **Institutional Footer Standardization (V17):** Established a shared `app-footer` component and standardized it across all authentication (Login, Register), student, and administrative portals, ensuring brand consistency. [1/7]
+- **Navbar Versatility:** Upgraded `app-navbar` with help-button support to maintain secure scholarly guidance on authentication interfaces while achieving global header unification. [1/7]
+- **Deployment Hardening (V18):** Made backend port and CORS origin configurable via environment variables and synchronized `.env.example` with Postmark requirements. [3/7]
+- **Build Optimization:** Resolved Angular build failures by increasing CSS budgets for component font-inlining and patched the credential restoration link path for production routing. [3/7]
+- **Codebase Sanitization:** Removed legacy backend testing and utility scripts (`check_db`, `test_forgot_password`, etc.) to prepare for a clean production deployment. [3/7]
+- **Institutional Real-Time Security:** Patched the `authenticate` middleware to perform live database status checks, ensuring that banned or suspended users are immediately restricted even with active JWTs. [4/7]
+- **Backend Architecture Cleanup:** Purged redundant Zod validations from the `updateProfile` controller and eliminated dead code from the post detail retrieval route. [4/7]
+- **Interaction Resilience:** Implemented session-based spam prevention for the "Save Request" notification trigger and refined auto-flagging logic to ignore dismissed scholarly reports. [4/7]
+- **Modal Stability Patches:** Fixed a frontend state bug in the `FeedComponent` where the metadata detail modal would fail to close upon moderation-related HTTP 403 errors. [4/7]
 
 ## 6. Pending / Next Steps (⬜)
-1. ⬜ **Performance Tuning:** Monitor `backdrop-filter` impact on low-end mobile hardware.
-2. ⬜ **Testing:** Unit & Integration tests for critical API routes.
-3. ⬜ **Deployment:** Railway (BE+DB) + Netlify/Vercel (FE).
+1. ⬜ **Production Launch:** Deploy to Railway (BE+DB) and Netlify/Vercel (FE).
+2. ⬜ **Performance Tuning:** Monitor impact of complex image grids on legacy hardware.
+3. ⬜ **Testing:** Unit & Integration tests for critical API routes.
 
 ## 7. Quick Setup Guide (Another Machine)
 1. **DB Setup**: Ensure MySQL/MariaDB is on port 3306. 
@@ -141,10 +163,3 @@ liceo-resource-hub/
 - **Rule of 7:** Turn counter MUST be appended ([N/7]). Turn 7 triggers MASTER_CONTEXT sync.
 - **Design:** Follow "The Academic Curator" theme; prioritize FPS performance.
 - **Sync Mandate:** Any update to `GEMINI.md` MUST be mirrored in `MASTER_CONTEXT.md` to ensure project-wide state consistency.
-
----
-- **Static Logout Design:** Stripped all hover and active effects from the "Disconnect" buttons on both the Navbar and Profile components, achieving a completely static, zero-latency institutional design that eliminates decorative motion.
-- **Header Positioning Refinement:** Centered the navbar brand title on mobile using absolute positioning and improved the visual balance with institutional icons.
-- **Backend Bug Fixes & Moderation:** Implemented post reporting with auto-flagging logic (3+ reports), enabled administrative editing of post content, and upgraded to multiple-contact support.
-- **Category Overhaul (Institutional V2):** Deployed a 12-category taxonomy including "Clinical Supplies" and "Technical Tools", and resolved icon-mapping case-sensitivity issues across the platform.
-- **Sync Mandate (Turn 7):** Successfully performed a full institutional context sync across GEMINI.md and MASTER_CONTEXT.md.

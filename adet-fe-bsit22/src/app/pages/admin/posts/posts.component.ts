@@ -6,11 +6,12 @@ import { Subscription }   from 'rxjs';
 import { ApiService }     from '../../../core/services/api.service';
 import { PostService }    from '../../../core/services/post.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-posts',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './posts.component.html',
   styleUrls: ['./posts.component.scss'],
 })
@@ -33,8 +34,8 @@ export class PostsComponent implements OnInit, OnDestroy {
     this.postSub = this.postService.posts$.subscribe(res => {
       this.posts = res.map(p => ({
         ...p,
-        flagged: !!p.is_flagged,
-        removed: p.status === 'REMOVED' || p.status === 'REMOVED', // backend returns uppercase
+        flagged: !!p.isFlagged,
+        removed: p.status === 'REMOVED', // backend returns uppercase
         reports: p.reportCount || Math.floor(Math.random() * 5) // Use real count if available
       }));
       this.loading = false;
@@ -78,7 +79,7 @@ export class PostsComponent implements OnInit, OnDestroy {
         }
         if (payload.isFlagged !== undefined) {
           post.flagged = payload.isFlagged;
-          post.is_flagged = payload.isFlagged;
+          post.isFlagged = payload.isFlagged;
         }
         this.cdr.detectChanges();
         // Background sync to keep services in check

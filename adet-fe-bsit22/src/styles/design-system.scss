@@ -42,6 +42,77 @@
   --shadow-button: 0px 8px 24px rgba(87, 0, 0, 0.2);
 }
 
+/* ── Dark Theme Overrides: Premium Scholarly Obsidian ─────────────────────── */
+.dark-theme {
+  --primary:                  #ffb4a9; /* Soft Salmon Red for button gradients */
+  --primary-container:        #570000; /* Deep Institutional Maroon */
+  --on-primary:               #ffffff;
+  --on-primary-container:     #ffdad5;
+  
+  --secondary:                #c5a021; /* Vibrant Academia Gold */
+  --secondary-container:      #3d2e00;
+  --on-secondary-container:   #ffecb3;
+
+  --surface:                  #0a0a0a; /* Deep Obsidian Base */
+  --surface-bright:           #1c1c1c;
+  --surface-dim:              #121212;
+  --surface-container-lowest: #050505;
+  --surface-container-low:    #141414;
+  --surface-container:        #1a1a1a;
+  --surface-container-high:   #242424;
+  --surface-container-highest:#2d2d2d;
+
+  --on-surface:               #e6e1e0; /* Soft Bone White */
+  --on-surface-variant:       #c9c4c3;
+  
+  --outline:                  #534341; /* Muted Maroon-Brown outline */
+  --outline-variant:          #362f2e;
+  
+  --error:                    #ffb4ab;
+  --error-container:          #93000a;
+
+  /* Shadows for High-End Obsidian Mode */
+  --shadow-card:   0px 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-button: 0px 8px 16px rgba(0, 0, 0, 0.4);
+
+  /* Component Refinements */
+  body {
+    background-color: var(--surface);
+    background-image: radial-gradient(circle at 50% 0%, rgba(87, 0, 0, 0.15) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  .app-nav {
+    background: rgba(10, 10, 10, 0.85) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .editor-modal {
+    background: #121212;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+  }
+
+  .input-academic {
+    background-color: #1a1a1a !important;
+    border-color: #333 !important;
+    color: #fff !important;
+    &:focus { border-color: var(--secondary) !important; }
+  }
+
+  .post-card {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    &:hover {
+      border-color: rgba(197, 160, 33, 0.2);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .quick-nav-divider { background: rgba(255, 255, 255, 0.1) !important; }
+}
+
 /* ── Reset ────────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

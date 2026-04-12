@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
 import { ApiService } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.scss'],
 })
@@ -17,6 +18,10 @@ export class ReportsComponent implements OnInit {
   tabs      = ['PENDING', 'REVIEWED', 'DISMISSED'];
   reports: any[] = [];
   loading = true;
+
+  get pendingCount() {
+    return this.reports.filter(r => r.status === 'pending').length;
+  }
 
   constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 

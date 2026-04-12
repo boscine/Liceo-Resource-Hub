@@ -24,6 +24,7 @@
 
             <h1 class="user-name username">{{ initialDisplayName || 'Academic Curator' }}</h1>
             <span class="user-role">{{ isAdmin ? 'Administrator' : 'Student Researcher' }}</span>
+            <span class="user-college" *ngIf="initialCollege">{{ initialCollege }}</span>
             
             <div class="user-meta">
               <span class="material-symbols-outlined">mail</span>
@@ -81,6 +82,19 @@
                     [(ngModel)]="displayName" name="displayName"
                     placeholder="Enter your name..."/>
                 </div>
+                <p class="error-text small" *ngIf="validationErrors.displayName">{{ validationErrors.displayName[0] }}</p>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="college">College / Department</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-outlined input-icon">school</span>
+                  <select class="input-academic" id="college" [(ngModel)]="college" name="college">
+                    <option value="">Select your college...</option>
+                    <option *ngFor="let c of colleges" [value]="c">{{ c }}</option>
+                  </select>
+                </div>
+                <p class="error-text small" *ngIf="validationErrors.college">{{ validationErrors.college[0] }}</p>
               </div>
 
               <div class="field disabled">
@@ -158,16 +172,5 @@
     </div>
   </main>
 
-  <footer class="app-footer">
-    <div class="footer-brand">
-      Liceo de Cagayan University
-      <span>© 2026 The Academic Curator.</span>
-    </div>
-    <div class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">University Portal</a>
-      <a href="#">Contact Support</a>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 </div>

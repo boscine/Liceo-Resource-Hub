@@ -17,6 +17,7 @@ model User {
   verificationToken     String?         @map("verification_token")
   verificationExpiresAt DateTime?       @map("verification_expires_at")
   lastLogin      DateTime?       @map("last_login")
+  college        String?         @db.VarChar(100)
   createdAt      DateTime        @default(now()) @map("created_at")
   contacts       Contact[]
   passwordResets PasswordReset[]

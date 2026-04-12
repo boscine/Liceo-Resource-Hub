@@ -44,10 +44,16 @@
           <h1 class="serif-italic">Scholarly Dispatch</h1>
           <p>Monitor your academic requests, community interaction, and scholarly cooperation.</p>
         </div>
-        <button class="mark-all-btn-v2" *ngIf="notifications.length > 0 && !loading" (click)="markAllAsRead()">
-          <span class="material-symbols-outlined">done_all</span>
-          Mark all read
-        </button>
+        <div class="header-actions" *ngIf="notifications.length > 0 && !loading">
+          <button class="header-btn" (click)="markAllAsRead()">
+            <span class="material-symbols-outlined">done_all</span>
+            Mark all read
+          </button>
+          <button class="header-btn clear-btn" (click)="clearAll()">
+            <span class="material-symbols-outlined">delete_sweep</span>
+            Clear All
+          </button>
+        </div>
       </header>
 
       <div class="notifications-list" *ngIf="!loading">
@@ -59,7 +65,12 @@
             <p class="notif-text" [innerHTML]="n.text"></p>
             <span class="notif-time">{{ n.time }}</span>
           </div>
-          <span class="notif-dot" *ngIf="!n.read"></span>
+          <div class="notif-actions">
+            <button class="delete-btn" (click)="deleteNotification($event, n.id)" title="Remove dispatched record">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <span class="notif-dot" *ngIf="!n.read"></span>
+          </div>
         </div>
 
         <div class="empty-state" *ngIf="notifications.length === 0">
@@ -71,6 +82,6 @@
       
       <div class="loader-v2" *ngIf="loading" style="margin: 3rem auto;"></div>
     </main>
-
   </div>
+  <app-footer></app-footer>
 </div>

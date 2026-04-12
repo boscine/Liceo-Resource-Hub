@@ -14,9 +14,11 @@ import { NotificationService } from '../../core/services/notification.service';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | '' = '';
+  @Input() showHelpButton = false;
   @Input() showMenuButton = false;
   @Input() hideLinks      = false;
   @Output() menuClick = new EventEmitter<void>();
+  @Output() helpClick = new EventEmitter<void>();
 
   user: any       = {};
   isAdmin         = false;
@@ -70,6 +72,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   closeNotificationsDeferred() {
     setTimeout(() => { this.notificationsOpen = false; }, 50);
   }
+
+  toggleHelp() { this.helpClick.emit(); }
 
   logout() { this.auth.logout(); this.router.navigate(['/login']); }
 }

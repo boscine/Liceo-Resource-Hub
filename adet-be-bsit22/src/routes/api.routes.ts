@@ -4,6 +4,8 @@ import prisma from '../lib/prisma';
 import { updateProfile, getProfile } from '../controllers/profile.controller';
 import { zValidator } from '@hono/zod-validator';
 import { postSchema, updatePostSchema, profileSchema, reportSchema } from '../lib/validation';
+import { containsInappropriateContent } from '../lib/moderation';
+
 
 // Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
@@ -121,10 +123,6 @@ router.get('/posts/:id', async (c) => {
        return c.json({ message: 'This post is under moderation review.' }, 403);
     }
 
-    const firstContact = post.user.contacts && post.user.contacts.length > 0 && userId
-      ? post.user.contacts[0] 
-      : null;
-
     const formattedPost = {
       id: post.id,
       title: post.title,
@@ -168,7 +166,11 @@ router.get('/categories', async (c) => {
 // ── GET /api/v1/profile ───────────────────────────────────────────────────────
 router.get('/profile', getProfile);
 
-router.put('/profile', zValidator('json', profileSchema), updateProfile);
+router.put('/profile', zValidator('json', profileSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ message: result.error.issues[0].message }, 400);
+  }
+}), updateProfile);
 
 // ── GET /api/v1/profile/:id (Public Profile View) ───────────────────────────
 router.get('/profile/:id', async (c) => {
@@ -293,7 +295,11 @@ router.put('/admin/reports/:id', async (c) => {
 });
 
 // ── POST /api/v1/posts ────────────────────────────────────────────────────────
-router.post('/posts', zValidator('json', postSchema), async (c) => {
+router.post('/posts', zValidator('json', postSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ message: result.error.issues[0].message }, 400);
+  }
+}), async (c) => {
   const userId = c.get('userId');
   
   if (!userId) {
@@ -302,7 +308,14 @@ router.post('/posts', zValidator('json', postSchema), async (c) => {
 
   try {
     const { title, categoryId, description, imageUrl } = c.req.valid('json');
+
+    // ── Moderation Check ───────────────────────────────────────────
+    if (containsInappropriateContent(title) || containsInappropriateContent(description)) {
+      return c.json({ message: 'Scholarly Integrity Violation: Your post contains inappropriate or unprofessional language prohibited by HUB standards.' }, 400);
+    }
+
     const catId = categoryId;
+
 
     const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
     if (!categoryExists) {
@@ -315,7 +328,7 @@ router.post('/posts', zValidator('json', postSchema), async (c) => {
         categoryId: catId,
         title,
         description,
-        imageUrl,
+        imageUrl: imageUrl?.trim() ? imageUrl.trim() : null,
         status: 'open'
       }
     });
@@ -340,7 +353,11 @@ router.post('/posts', zValidator('json', postSchema), async (c) => {
 });
 
 // ── PUT /api/v1/posts/:id (Supports Admin Moderation) ──────────────────────────
-router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
+router.put('/posts/:id', zValidator('json', updatePostSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ message: result.error.issues[0].message }, 400);
+  }
+}), async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId');
   const role = c.get('role');
@@ -349,6 +366,12 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
 
   try {
     const { title, categoryId, description, imageUrl, status, isFlagged } = c.req.valid('json');
+
+    // ── Moderation Check ───────────────────────────────────────────
+    if ((title && containsInappropriateContent(title)) || (description && containsInappropriateContent(description))) {
+      return c.json({ message: 'Scholarly Integrity Violation: Your updates contain inappropriate or unprofessional language prohibited by HUB standards.' }, 400);
+    }
+
 
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
@@ -366,7 +389,7 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
     // Moderation: Allow Admins to edit content for institutional cleanup
     if (title !== undefined) data.title = title;
     if (description !== undefined) data.description = description;
-    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl?.trim() ? imageUrl.trim() : null;
     if (categoryId !== undefined) {
       const catId = Number(categoryId);
       if (isNaN(catId)) {
@@ -381,12 +404,7 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
 
     // Status validation
     if (status !== undefined && statusChanged) {
-      const lowerStatus = status.toLowerCase();
-      const validStatuses = ['open', 'fulfilled', 'closed', 'removed'];
-      if (!validStatuses.includes(lowerStatus)) {
-        return c.json({ message: `Invalid status: ${lowerStatus}.` }, 400);
-      }
-      data.status = lowerStatus;
+      data.status = status.toLowerCase();
     }
 
     // Flagging is Admin-only
@@ -410,43 +428,52 @@ router.put('/posts/:id', zValidator('json', updatePostSchema), async (c) => {
       }
     });
 
-    // ── Create Dynamic Notification ───────────────────────────────────────────
-    let notifText = `Changes to your request "${updatedPost.title}" have been saved.`;
-    let notifIcon = 'edit';
+    // ── Create Dynamic Notification (Only on significant changes) ─────────────────
+    if (statusChanged || flagChanged || (role === 'admin' && (title !== undefined || description !== undefined))) {
+      let notifText = `Changes to your request "${updatedPost.title}" have been saved.`;
+      let notifIcon = 'edit';
 
-    if (statusChanged) {
-      if (data.status === 'fulfilled') {
-        notifText = `Scholar! Your request "${updatedPost.title}" is now marked as FULFILLED.`;
-        notifIcon = 'auto_awesome';
-      } else if (data.status === 'closed') {
-        notifText = `Your request "${updatedPost.title}" has been closed.`;
-        notifIcon = 'do_not_disturb_on';
-      } else if (data.status === 'removed' && role === 'admin') {
-        notifText = `Your request "${updatedPost.title}" was removed by an administrator.`;
-        notifIcon = 'delete_forever';
+      if (statusChanged) {
+        if (data.status === 'fulfilled') {
+          notifText = `Scholar! Your request "${updatedPost.title}" is now marked as FULFILLED.`;
+          notifIcon = 'auto_awesome';
+        } else if (data.status === 'closed') {
+          notifText = `Your request "${updatedPost.title}" has been closed.`;
+          notifIcon = 'do_not_disturb_on';
+        } else if (data.status === 'removed' && role === 'admin') {
+          notifText = `Your request "${updatedPost.title}" was removed by an administrator.`;
+          notifIcon = 'delete_forever';
+        }
+      } else if (flagChanged && updatedPost.isFlagged) {
+        notifText = `Your request "${updatedPost.title}" is currently under moderation review.`;
+        notifIcon = 'flag';
       }
-    } else if (flagChanged && updatedPost.isFlagged) {
-      notifText = `Your request "${updatedPost.title}" is currently under moderation review.`;
-      notifIcon = 'flag';
+
+      await prisma.notification.create({
+        data: {
+          userId: updatedPost.userId,
+          icon: notifIcon,
+          text: notifText
+        }
+      });
     }
 
-    await prisma.notification.create({
-      data: {
-        userId: updatedPost.userId,
-        icon: notifIcon,
-        text: notifText
-      }
-    });
-
     return c.json(updatedPost);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2000') {
+      return c.json({ message: 'The updated information is too long for the institutional archive. Please shorten your input.' }, 400);
+    }
     console.error('Failed to update post:', error);
     return c.json({ message: 'Internal server error' }, 500);
   }
 });
 
 // ── POST /api/v1/posts/:id/report (3+ Reports Auto-Flag) ─────────────────────
-router.post('/posts/:id/report', zValidator('json', reportSchema), async (c) => {
+router.post('/posts/:id/report', zValidator('json', reportSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ message: result.error.issues[0].message }, 400);
+  }
+}), async (c) => {
   const postId = parseInt(c.req.param('id'), 10);
   const reporterId = c.get('userId');
 
@@ -471,10 +498,15 @@ router.post('/posts/:id/report', zValidator('json', reportSchema), async (c) => 
       create: { postId, reporterId, reason, details, status: 'pending' }
     });
 
-    // 2. Count reports to trigger auto-flagging (Rule of 3)
-    const reportCount = await prisma.postReport.count({ where: { postId } });
+    // 2. Count non-dismissed reports to trigger auto-flagging (Rule of 3)
+    const activeReportCount = await prisma.postReport.count({ 
+      where: { 
+        postId,
+        status: { in: ['pending', 'reviewed'] } 
+      } 
+    });
     
-    if (reportCount >= 3 && !post.isFlagged) {
+    if (activeReportCount >= 3 && !post.isFlagged) {
       await prisma.post.update({
         where: { id: postId },
         data: { isFlagged: true }
@@ -610,13 +642,25 @@ router.post('/posts/:id/save', async (c) => {
 
     // Only notify if someone ELSE saves it
     if (post.userId !== userId) {
-      await prisma.notification.create({
-        data: {
+      // Institutional Spam Prevention: Check for duplicate recent notifications
+      const notifText = `A fellow scholar has saved your request: "${post.title}".`;
+      const recentNotif = await prisma.notification.findFirst({
+        where: {
           userId: post.userId,
-          icon: 'bookmark_added',
-          text: `A fellow scholar has saved your request: "${post.title}".`
+          text: notifText,
+          createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } // Within last hour
         }
       });
+
+      if (!recentNotif) {
+        await prisma.notification.create({
+          data: {
+            userId: post.userId,
+            icon: 'bookmark_added',
+            text: notifText
+          }
+        });
+      }
     }
 
     return c.json({ success: true });
@@ -631,14 +675,16 @@ router.get('/notifications', async (c) => {
   const userId = c.get('userId');
   if (!userId) return c.json({ message: 'Unauthorized' }, 401);
 
+  const limitParam = c.req.query('limit');
+  const limit = limitParam ? parseInt(limitParam, 10) : 20;
+
   try {
     const notifications = await prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 20
+      take: isNaN(limit) ? 20 : limit
     });
     
-    // We format the time dynamically or map it out
     const formatted = notifications.map(n => ({
       id: n.id,
       icon: n.icon,
@@ -661,7 +707,7 @@ router.put('/notifications/:id/read', async (c) => {
   if (isNaN(id) || !userId) return c.json({ message: 'Invalid request' }, 400);
 
   try {
-    await prisma.notification.update({
+    await prisma.notification.updateMany({
       where: { id, userId },
       data: { read: true }
     });
@@ -684,6 +730,39 @@ router.put('/notifications/mark-all-read', async (c) => {
     return c.json({ success: true });
   } catch (error) {
     return c.json({ message: 'Failed to update notifications' }, 500);
+  }
+});
+
+// ── DELETE /api/v1/notifications/:id ────────────────────────────────────────
+router.delete('/notifications/:id', async (c) => {
+  const userId = c.get('userId');
+  const id = parseInt(c.req.param('id'), 10);
+  if (isNaN(id) || !userId) return c.json({ message: 'Invalid request' }, 400);
+
+  try {
+    await prisma.notification.deleteMany({
+      where: { id, userId }
+    });
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete notification:', error);
+    return c.json({ message: 'Failed to delete notification' }, 500);
+  }
+});
+
+// ── DELETE /api/v1/notifications/clear-all ──────────────────────────────────
+router.delete('/notifications/clear-all', async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
+
+  try {
+    await prisma.notification.deleteMany({
+      where: { userId }
+    });
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Failed to clear notifications:', error);
+    return c.json({ message: 'Failed to clear notifications' }, 500);
   }
 });
 

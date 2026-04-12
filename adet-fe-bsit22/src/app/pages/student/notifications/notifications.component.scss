@@ -127,7 +127,11 @@
     flex-direction: column; align-items: flex-start; gap: 1rem;
   }
 
-  .mark-all-btn-v2 {
+  .header-actions {
+    display: flex; gap: 0.75rem;
+  }
+
+  .header-btn {
     display: flex; align-items: center; gap: 0.5rem;
     padding: 0.6rem 1.25rem; background: var(--surface-container-lowest);
     border: 1px solid var(--outline-variant); border-radius: var(--radius-full);
@@ -136,6 +140,10 @@
     .material-symbols-outlined { font-size: 18px; color: var(--primary); }
     &:hover { background: var(--surface-container-low); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.05); }
     &:active { transform: scale(0.96); }
+    
+    &.clear-btn {
+      color: var(--primary);
+    }
   }
 }
 
@@ -175,9 +183,25 @@
     .notif-time { font-size: 0.8rem; color: var(--outline); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
   }
 
+  .notif-actions {
+    display: flex; align-items: center; gap: 1rem;
+    position: absolute; top: 1.5rem; right: 1.5rem;
+  }
+
+  .delete-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: transparent; color: var(--outline); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; opacity: 0;
+
+    .material-symbols-outlined { font-size: 18px; }
+    &:hover { background: var(--surface-container-high); color: var(--primary); }
+  }
+
+  &:hover .delete-btn { opacity: 1; }
+
   .notif-dot {
     width: 12px; height: 12px; border-radius: 50%; background: var(--primary);
-    position: absolute; top: 50%; right: 1.5rem; transform: translateY(-50%);
     box-shadow: 0 0 0 4px rgba(87,0,0,0.1);
   }
 }

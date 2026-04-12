@@ -1,43 +1,57 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
-import { ApiService } from '../../../core/services/api.service';
+import { FooterComponent } from '../../../shared/footer/footer.component';
+import { NotificationService, Notification } from '../../../core/services/notification.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, NavbarComponent],
+  imports: [CommonModule, NavbarComponent, FooterComponent],
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss']
 })
-export class NotificationsComponent implements OnInit {
-  notifications: Array<{ id: number; icon: string; text: string; time: string; read: boolean }> = [];
+export class NotificationsComponent implements OnInit, OnDestroy {
+  notifications: Notification[] = [];
   loading = true;
+  private sub?: Subscription;
 
-  constructor(private api: ApiService) {}
+  constructor(private notifService: NotificationService) {}
 
   ngOnInit(): void {
-    this.api.get<Array<{ id: number; icon: string; text: string; time: string; read: boolean }>>('/notifications').subscribe({
-      next: (data) => {
-        this.notifications = data ?? [];
-        this.loading = false;
-      },
-      error: () => {
-        this.notifications = [];
-        this.loading = false;
-      }
+    // We want more than 20 if we are on the dedicated page
+    this.notifService.refresh(100);
+    
+    this.sub = this.notifService.notifications$.subscribe(data => {
+      this.notifications = data;
+    });
+
+    this.notifService.loading$.subscribe(loading => {
+      this.loading = loading;
     });
   }
 
-  markAsRead(n: any): void {
-    if (n.read) return;
-    n.read = true;
-    this.api.put(`/notifications/${n.id}/read`, {}).subscribe();
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+
+  markAsRead(n: Notification): void {
+    this.notifService.markAsRead(n.id);
   }
 
   markAllAsRead(): void {
-    if (this.notifications.every(n => n.read)) return;
-    this.notifications.forEach(n => n.read = true);
-    this.api.put('/notifications/mark-all-read', {}).subscribe();
+    this.notifService.markAllRead();
+  }
+
+  deleteNotification(e: Event, id: number): void {
+    e.stopPropagation();
+    this.notifService.delete(id);
+  }
+
+  clearAll(): void {
+    if (confirm('Are you sure you want to clear your scholarly dispatch inbox?')) {
+      this.notifService.clearAll();
+    }
   }
 }

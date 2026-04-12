@@ -5,11 +5,12 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ApiService }        from '../../../core/services/api.service';
 import { ToastService }      from '../../../core/services/toast.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
+import { FooterComponent }   from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-post-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './post-edit.component.html',
   styleUrls: ['../post-create/post-create.component.scss'],
   styles: [`
@@ -115,11 +116,15 @@ export class PostEditComponent implements OnInit {
     const icons: { [key: string]: string } = {
       'Academic Textbooks': 'auto_stories',
       'Lecture Chronicles': 'history_edu',
-      'Laboratory & Scientific Tools': 'biotech',
+      'Scientific Apparatus': 'biotech',
       'Computing & Digital Assets': 'terminal',
-      'Technical & Artistic Equipment': 'construction',
-      'Scholarly Manuscripts': 'menu_book',
+      'Mathematical Instruments': 'calculate',
+      'Technical & Vocational Tools': 'construction',
+      'Artistic Tools & Mediums': 'palette',
+      'Clinical & Medical Supplies': 'medical_services',
       'Physical Education Kits': 'fitness_center',
+      'Institutional Equipment': 'account_balance',
+      'Scholarly Manuscripts': 'menu_book',
       'Miscellaneous Resources': 'extension'
     };
     return icons[name] || 'label';
@@ -148,8 +153,13 @@ export class PostEditComponent implements OnInit {
         this.status = res.status.toLowerCase();
         
         // Find matching category object to extract the ID for the form select
-        const found = this.categories.find(c => c.name.toUpperCase() === res.category.toUpperCase());
-        if (found) this.categoryId = found.id.toString();
+        const found = this.categories.find(c => c.name.trim().toUpperCase() === res.category.trim().toUpperCase());
+        if (found) {
+          this.categoryId = found.id.toString();
+        } else {
+          // If name mismatch occurs, try to find by ID if provided in response, else fallback to first category
+          this.categoryId = res.categoryId ? res.categoryId.toString() : (this.categories[0]?.id?.toString() || '1');
+        }
 
         this.loadingMeta = false;
         this.cdr.detectChanges();
@@ -163,6 +173,7 @@ export class PostEditComponent implements OnInit {
   }
 
   onSubmit() { 
+    if (this.saving) return;
     this.saving = true;
     this.api.put(`/posts/${this.postId}`, {
       title: this.title,

@@ -1,5 +1,6 @@
 import { Context, Next } from 'hono';
 import jwt from 'jsonwebtoken';
+import prisma from '../lib/prisma';
 
 export type AuthVariables = {
   userId?: number;
@@ -14,13 +15,24 @@ export const authenticate = async (c: Context, next: Next) => {
       if (token) {
         const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
         const validUserId = Number(payload.id || payload.userId);
+        
         if (!isNaN(validUserId)) {
-          c.set('userId', validUserId);
-          c.set('role', payload.role);
+          // Institutional Security: Check user status in DB to handle bans/suspensions immediately
+          const user = await prisma.user.findUnique({
+            where: { id: validUserId },
+            select: { status: true }
+          });
+
+          if (user && user.status === 'active') {
+            c.set('userId', validUserId);
+            c.set('role', payload.role);
+          } else if (user) {
+            // User exists but is not active (suspended/banned/pending)
+            console.warn(`[AuthMiddleware] Access denied for user ${validUserId} with status: ${user.status}`);
+          }
         }
       }
     } catch (error) {
-      // Invalid tokens should be handled, but we don't block the request
       console.error(`[AuthMiddleware] JWT Verification Failed!`, error);
     }
   }

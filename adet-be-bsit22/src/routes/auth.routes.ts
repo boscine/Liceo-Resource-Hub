@@ -185,30 +185,39 @@ auth.post('/resend-verify', async (c) => {
 auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), async (c) => {
   try {
     const { email } = c.req.valid('json');
-    const user = await prisma.user.findUnique({ where: { email } });
+    const emailLower = email.toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: emailLower } });
 
-    // For security, always return success even if email doesn't exist
-    if (!user) return c.json({ message: 'If this email is registered, a reset link has been dispatched.' });
+    const genericMsg = 'If this email is registered, a reset link has been dispatched.';
 
-    // Institutional Security: Exclude admins from self-service archival restoration
-    if (user.role === 'admin') {
-      return c.json({ message: 'Administrative credentials must be restored by the System Custodian.' }, 403);
+    // Institutional Security: Silent Admin Block (Prevents User Enumeration)
+    // If the user genuinely is an admin, we SILENTLY return the generic success message
+    // without actually dispatching the Postmark email. This prevents attackers from 
+    // confirming which emails belong to administrative staff.
+    if (user && user.role === 'admin') {
+      return c.json({ message: genericMsg });
     }
 
-    // Generate a 6-digit scholarly restoration code instead of a hex token
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // For security, always return success even if email doesn't exist
+    if (!user) return c.json({ message: genericMsg });
+
+    // Generate a secure restoration token instead of a 6-digit code for the email link flow
+    const resetToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1);
 
     await prisma.passwordReset.create({
       data: {
         userId: user.id,
-        token: verificationCode, // Reuse the token field for the OTP
+        token: resetToken,
         expiresAt
       }
     });
 
-    await sendPasswordResetEmail(email, verificationCode);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(emailLower)}`;
+
+    await sendPasswordResetEmail(email, user.displayName, resetLink);
 
     return c.json({ message: 'If this email is registered, a reset link has been dispatched.' });
   } catch (error) {
@@ -220,14 +229,28 @@ auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), async (c
 // POST /api/auth/reset-password
 auth.post('/reset-password', zValidator('json', resetPasswordSchema), async (c) => {
   try {
-    const { token, password } = c.req.valid('json');
+    const { email, token, password } = c.req.valid('json');
 
-    const resetRequest = await prisma.passwordReset.findUnique({
-      where: { token },
-      include: { user: true }
+    // Scoped Restoration: Find the user first to link the restoration code
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
     });
 
-    if (!resetRequest || resetRequest.usedAt || resetRequest.expiresAt < new Date()) {
+    if (!user) {
+      return c.json({ message: 'Invalid or expired restoration token.' }, 400);
+    }
+
+    // Lookup token restricted to this specific user
+    const resetRequest = await prisma.passwordReset.findFirst({
+      where: { 
+        token,
+        userId: user.id,
+        usedAt: null,
+        expiresAt: { gt: new Date() }
+      }
+    });
+
+    if (!resetRequest) {
       return c.json({ message: 'Invalid or expired restoration token.' }, 400);
     }
 
@@ -236,7 +259,7 @@ auth.post('/reset-password', zValidator('json', resetPasswordSchema), async (c) 
     // Atomic update: Set new password and mark token as used
     await prisma.$transaction([
       prisma.user.update({
-        where: { id: resetRequest.userId },
+        where: { id: user.id },
         data: { passwordHash }
       }),
       prisma.passwordReset.update({

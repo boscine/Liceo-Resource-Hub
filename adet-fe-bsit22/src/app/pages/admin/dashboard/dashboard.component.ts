@@ -4,13 +4,14 @@ import { RouterModule } from '@angular/router';
 import { FormsModule }  from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
 import { ApiService } from '../../../core/services/api.service';
 import { PostService } from '../../../core/services/post.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, RouterModule, FormsModule, NavbarComponent, FooterComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
@@ -55,7 +56,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   get stats() {
     return [
       { label: 'Total Requests',     value: this.posts.length, note: '+12% from last academic week', icon: 'library_books',  highlighted: false },
-      { label: 'Reported Posts',     value: this.posts.filter(p => !!p.is_flagged).length,    note: 'Requires immediate review',   icon: 'report',         highlighted: true  },
+      { label: 'Reported Posts',     value: this.posts.filter(p => !!p.isFlagged).length,    note: 'Requires immediate review',   icon: 'report',         highlighted: true  },
       { label: 'Fulfilled Requests', value: this.posts.filter(p => p.status === 'FULFILLED').length,   note: '84% Success Rate',            icon: 'check_circle',   highlighted: false },
     ];
   }
@@ -63,7 +64,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   setTab(tab: string) { this.activeTab = tab; }
 
   getFilteredPosts() {
-    if (this.activeTab === 'FLAGGED') return this.posts.filter(p => !!p.is_flagged);
+    if (this.activeTab === 'FLAGGED') return this.posts.filter(p => !!p.isFlagged);
     if (this.activeTab === 'REMOVED') return this.posts.filter(p => p.status === 'REMOVED');
     // For 'ALL POSTS', excluding removed but showing everything else (open, fulfilled, flagged)
     return this.posts.filter(p => p.status !== 'REMOVED');

@@ -76,7 +76,7 @@
               <label class="field-label" for="reason">Reason</label>
               <select class="input-academic" [(ngModel)]="reportReason" id="reason" name="reason">
                 <option value="" disabled selected>Select a reason</option>
-                <option *ngFor="let r of reasons" [value]="r">{{ r }}</option>
+                <option *ngFor="let r of reasons" [value]="r.value">{{ r.label }}</option>
               </select>
             </div>
             <div class="field" style="margin-top:1rem">
@@ -84,8 +84,11 @@
               <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details" rows="3" placeholder="Provide more context..."></textarea>
             </div>
             <div class="report-actions">
-              <button class="btn-cancel" (click)="toggleReport()">Cancel</button>
-              <button class="btn-report" (click)="submitReport()">Submit Report</button>
+              <button class="btn-cancel" (click)="toggleReport()" [disabled]="reporting">Cancel</button>
+              <button class="btn-report" (click)="submitReport()" [disabled]="reporting || !reportReason">
+                <span *ngIf="!reporting">Submit Report</span>
+                <span *ngIf="reporting" class="spinner"></span>
+              </button>
             </div>
           </div>
         </article>
@@ -108,12 +111,14 @@
                 Offer Scholarly Cooperation
               </button>
             </div>
-            <div *ngIf="isLoggedIn && showContact" class="contact-revealed">
-              <span class="contact-type">{{ post.contact.type }}</span>
-              <a class="contact-value" href="https://{{ post.contact.value }}" target="_blank">
-                {{ post.contact.value }}
-                <span class="material-symbols-outlined">open_in_new</span>
-              </a>
+            <div *ngIf="isLoggedIn && showContact" class="contact-revealed-list">
+              <div class="contact-item" *ngFor="let c of post.contacts">
+                <span class="contact-type">{{ c.type }}</span>
+                <a class="contact-value" [href]="c.value.startsWith('http') ? c.value : 'https://' + c.value" target="_blank">
+                  {{ c.value }}
+                  <span class="material-symbols-outlined">open_in_new</span>
+                </a>
+              </div>
             </div>
             <p class="contact-note">Contact details are only visible to verified Liceo students.</p>
           </div>

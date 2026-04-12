@@ -21,9 +21,18 @@ export class PostDetailComponent implements OnInit {
   reportDetails = '';
   user: any = {};
   loading = true;
+  reporting = false;
   isDescriptionExpanded = false;
 
-  reasons = ['Inappropriate Content', 'Spam', 'Misleading', 'Not Educational', 'Duplicate Post', 'Fake Contact Info', 'Other'];
+  reasons = [
+    { label: 'Inappropriate Content', value: 'inappropriate' },
+    { label: 'Spam', value: 'spam' },
+    { label: 'Misleading', value: 'misleading' },
+    { label: 'Not Educational', value: 'not_educational' },
+    { label: 'Duplicate Post', value: 'duplicate' },
+    { label: 'Fake Contact Info', value: 'fake_contact' },
+    { label: 'Other', value: 'other' }
+  ];
 
   post: any = null;
 
@@ -71,18 +80,44 @@ export class PostDetailComponent implements OnInit {
   revealContact() { this.showContact = true; }
   getCategoryIcon(name: string): string {
     const icons: { [key: string]: string } = {
-      'Textbook': 'auto_stories',
-      'Notes': 'description',
-      'Tools': 'construction',
-      'Equipment': 'biotech',
-      'Art': 'brush',
-      'Calculator': 'functions',
-      'USB': 'terminal',
-      'Other': 'extension'
+      'Academic Textbooks': 'auto_stories',
+      'Lecture Chronicles': 'history_edu',
+      'Scientific Apparatus': 'biotech',
+      'Computing & Digital Assets': 'terminal',
+      'Mathematical Instruments': 'calculate',
+      'Technical & Vocational Tools': 'construction',
+      'Artistic Tools & Mediums': 'palette',
+      'Clinical & Medical Supplies': 'medical_services',
+      'Physical Education Kits': 'fitness_center',
+      'Institutional Equipment': 'account_balance',
+      'Scholarly Manuscripts': 'menu_book',
+      'Miscellaneous Resources': 'extension'
     };
     return icons[name] || 'bookmark';
   }
   toggleReport()  { this.showReportForm = !this.showReportForm; }
-  submitReport()  { this.showReportForm = false; }
+  submitReport() {
+    if (this.reporting || !this.reportReason) return;
+    
+    this.reporting = true;
+    
+    this.api.post(`/posts/${this.post.id}/report`, {
+      reason: this.reportReason,
+      details: this.reportDetails
+    }).subscribe({
+      next: () => {
+        this.reporting = false;
+        this.showReportForm = false;
+        this.reportReason = '';
+        this.reportDetails = '';
+        alert('Report submitted. Thank you for maintaining HUB integrity.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.reporting = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
   toggleDescription() { this.isDescriptionExpanded = !this.isDescriptionExpanded; }
 }

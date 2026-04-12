@@ -25,6 +25,7 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
+  email: z.string().email('Invalid institutional email format.').toLowerCase(),
   token: z.string().min(1, 'Token is required.'),
   password: z.string().min(8, 'Scholarly security requires at least 8 characters.')
 });
@@ -32,10 +33,10 @@ export const resetPasswordSchema = z.object({
 // ── API Schemas ─────────────────────────────────────────────────────────────
 
 export const postSchema = z.object({
-  title: z.string().min(3, 'Title is too short.').max(200, 'Title exceeds institutional archive limits (200 chars).'),
+  title: z.string().min(3, 'Title is too short.').max(255, 'Title exceeds institutional archive limits (255 chars).'),
   categoryId: z.union([z.number(), z.string()]).transform(val => Number(val)),
-  description: z.string().min(10, 'Please provide a more detailed scholarly description.').max(1000),
-  imageUrl: z.string().url('Invalid image URL format.').optional().or(z.literal(''))
+  description: z.string().min(10, 'Please provide a more detailed scholarly description.').max(500),
+  imageUrl: z.string().optional().refine(val => !val || val.trim() === '' || /^https?:\/\//.test(val), { message: 'Invalid image URL format.' })
 });
 
 export const updatePostSchema = postSchema.partial().extend({
@@ -44,10 +45,11 @@ export const updatePostSchema = postSchema.partial().extend({
 });
 
 export const profileSchema = z.object({
-  displayName: z.string().min(2).max(50),
+  displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
+  college: z.string().max(100).optional().nullable(),
   contacts: z.array(z.object({
     type: z.enum(['messenger', 'phone', 'other']),
-    value: z.string().min(1).max(255)
+    value: z.string().min(1, 'Contact value cannot be empty.').max(255)
   })).max(5, 'Maximum of 5 contact methods allowed.')
 });
 export const reportSchema = z.object({

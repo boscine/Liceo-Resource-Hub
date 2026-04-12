@@ -6,11 +6,12 @@ import { AuthService }       from '../../../core/services/auth.service';
 import { ApiService }        from '../../../core/services/api.service';
 import { ToastService }      from '../../../core/services/toast.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
+import { FooterComponent }   from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
@@ -20,14 +21,33 @@ export class ProfileComponent implements OnInit {
   contacts: Array<{type: string, value: string}> = [];
   newContact: {type: string, value: string} = { type: 'messenger', value: '' };
   
+  college     = '';
+  initialCollege = '';
+  
   saving      = false;
   saved       = false;
   contactError = '';
   contactTypes = ['messenger', 'phone', 'other'];
+  
+  colleges = [
+    'College of Arts and Sciences',
+    'College of Business and Accountancy',
+    'College of Education',
+    'College of Engineering',
+    'College of Information Technology',
+    'College of Nursing',
+    'College of Medical Laboratory Science',
+    'College of Radiologic Technology',
+    'College of Rehabilitation Sciences',
+    'College of Criminal Justice',
+    'School of Graduate Studies',
+    'College of Law'
+  ];
 
   initialDisplayName = '';
   initialContactsStr = '';
   isAdmin = false;
+  validationErrors: any = {};
 
   constructor(
     private auth: AuthService, 
@@ -46,11 +66,13 @@ export class ProfileComponent implements OnInit {
     this.api.get<any>('/profile').subscribe({
       next: (user) => {
         if (user) {
-          this.displayName = (user.displayName || user.display_name || '').trim() || 'User';
+          this.displayName = (user.displayName || '').trim() || 'User';
           this.email = user.email || '';
+          this.college = user.college || '';
           this.contacts = user.contacts ? [...user.contacts] : [];
           
           this.initialDisplayName = this.displayName;
+          this.initialCollege = this.college;
           this.initialContactsStr = JSON.stringify(this.contacts);
         }
         this.cdr.detectChanges();
@@ -59,7 +81,7 @@ export class ProfileComponent implements OnInit {
         console.error('Failed to load profile data:', err);
         const tokenUser = this.auth.getUser() as any;
         if (tokenUser) {
-          this.displayName = tokenUser.displayName || tokenUser.display_name || 'User';
+          this.displayName = tokenUser.displayName || 'User';
           this.initialDisplayName = this.displayName;
           this.email = tokenUser.email || '';
         }
@@ -73,8 +95,14 @@ export class ProfileComponent implements OnInit {
     let val = this.newContact.value?.trim();
     if (!val) return;
 
+    if (this.contacts.length >= 5) {
+      this.contactError = 'Scholarly limit exceeded: Maximum 5 contact methods allowed.';
+      return;
+    }
+
     if (this.newContact.type === 'messenger') {
-      if (!val.includes('/') && !val.startsWith('http')) {
+      // Improved logic: only prefix if it's a simple username/ID
+      if (!val.includes('/') && !val.includes('.') && !val.startsWith('http')) {
         val = `m.me/${val}`;
       }
     }
@@ -114,12 +142,15 @@ export class ProfileComponent implements OnInit {
   }
 
   onSave() {
+    if (this.saving) return;
+    this.validationErrors = {};
     const currentContactsStr = JSON.stringify(this.contacts);
     
     const hasDisplayNameChanged = this.displayName.trim() !== this.initialDisplayName.trim();
+    const hasCollegeChanged     = this.college !== this.initialCollege;
     const hasContactsChanged    = currentContactsStr !== this.initialContactsStr;
 
-    if (!hasDisplayNameChanged && !hasContactsChanged) {
+    if (!hasDisplayNameChanged && !hasCollegeChanged && !hasContactsChanged) {
       this.toast.info('No changes were made to your profile.');
       return;
     }
@@ -127,6 +158,7 @@ export class ProfileComponent implements OnInit {
     this.saving = true;
     this.api.put('/profile', { 
       displayName: this.displayName.trim(), 
+      college: this.college,
       contacts: this.contacts
     }).subscribe({
       next: (res: any) => {
@@ -136,10 +168,12 @@ export class ProfileComponent implements OnInit {
         
         if (res?.user) {
           this.displayName = res.user.displayName;
+          this.college = res.user.college || '';
           this.contacts = [...res.user.contacts];
         }
 
         this.initialDisplayName = this.displayName;
+        this.initialCollege = this.college;
         this.initialContactsStr = JSON.stringify(this.contacts);
         
         setTimeout(() => {
@@ -148,8 +182,15 @@ export class ProfileComponent implements OnInit {
         }, 3000);
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.saving = false;
+        if (err?.status === 400 && err?.error?.errors) {
+          this.validationErrors = err.error.errors;
+          this.toast.error('Validation failed. Please check the highlighted fields.');
+        } else {
+          const msg = err?.error?.message || 'Failed to sync profile changes.';
+          this.toast.error(msg);
+        }
         this.cdr.detectChanges();
       }
     });

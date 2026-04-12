@@ -13,6 +13,10 @@
     <div class="nav-links"></div>
 
     <div class="nav-actions">
+      <button class="icon-btn" (click)="toggleHelp()" *ngIf="showHelpButton">
+        <span class="material-symbols-outlined">help_outline</span>
+      </button>
+
       <!-- Guest Actions -->
       <ng-container *ngIf="!isLoggedIn">
         <a routerLink="/login" class="nav-guest-link">Login</a>

@@ -1,16 +1,6 @@
 <div class="register-page">
 
-  <!-- NAV -->
-  <header class="app-nav">
-    <div class="nav-inner">
-      <a class="nav-brand" routerLink="/">Liceo Resource Hub</a>
-      <div class="nav-actions">
-        <button class="icon-btn" (click)="toggleHelp()">
-          <span class="material-symbols-outlined">help_outline</span>
-        </button>
-      </div>
-    </div>
-  </header>
+  <app-navbar [showHelpButton]="true" (helpClick)="toggleHelp()"></app-navbar>
 
   <!-- SPLIT CARD -->
   <main class="register-main">
@@ -152,19 +142,7 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="app-footer">
-    <div class="footer-brand">
-      Liceo de Cagayan University
-      <span>© 2026 The Academic Curator.</span>
-    </div>
-    <div class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">University Portal</a>
-      <a href="#">Contact Support</a>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 
   <!-- BG DECORATION -->
   <div class="bg-decoration">

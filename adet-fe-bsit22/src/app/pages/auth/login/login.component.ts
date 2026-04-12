@@ -5,11 +5,13 @@ import { RouterModule }                   from '@angular/router';
 import { Router }                         from '@angular/router';
 import { AuthService }                    from '../../../core/services/auth.service';
 import { ToastService }                   from '../../../core/services/toast.service';
+import { NavbarComponent }              from '../../../shared/navbar/navbar.component';
+import { FooterComponent }              from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
@@ -34,9 +36,10 @@ export class LoginComponent {
   }
 
   onSubmit() {
+    if (this.loading) return;
     this.loading = true;
     
-    this.auth.login(this.email, this.password).subscribe({
+    this.auth.login(this.email.trim().toLowerCase(), this.password).subscribe({
       next: () => {
         this.loading = false;
         this.isAdmin = this.auth.isAdmin();

@@ -27,11 +27,19 @@ Ensure the environment has the following installed:
 
 ## ⚙️ 3. Environment Configuration
 ### Backend (`adet-be-bsit22/.env`)
-Create a `.env` file inside `adet-be-bsit22` with these exact contents:
+Create a `.env` file inside `adet-be-bsit22` with these contents:
 ```env
+# Database & Auth
 DATABASE_URL="mysql://root:12345@localhost:3306/adet_bsitdb22"
 JWT_SECRET="liceo_academic_curator_secret_2026"
 PORT=3000
+
+# Frontend & CORS
+FRONTEND_URL="http://localhost:4200"
+
+# Postmark (Email)
+POSTMARK_SERVER_TOKEN="your_postmark_token"
+POSTMARK_FROM="noreply@liceo.edu.ph"
 ```
 *(Update `root:12345` if your local shell uses a different username or password)*.
 
