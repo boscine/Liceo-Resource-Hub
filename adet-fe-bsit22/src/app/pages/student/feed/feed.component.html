@@ -331,29 +331,45 @@
           </div>
 
           <div class="report-form-modal" *ngIf="showReportForm">
-            <h3 class="serif-italic">Maintain Scholarly Integrity</h3>
-            <p style="font-size: 0.85rem; color: var(--on-surface-variant); margin-bottom: 1rem;">Flag this request for administrative review if it violates institutional standards.</p>
-            
-            <div class="field">
-              <label class="field-label" for="reason">Reason for flagging</label>
-              <select class="input-academic" [(ngModel)]="reportReason" id="reason" name="reason">
-                <option value="" disabled selected>Select a reason...</option>
-                <option *ngFor="let r of reasons" [value]="r.value">{{ r.label }}</option>
-              </select>
+
+            <!-- Success State -->
+            <div class="report-success-state" *ngIf="reportSuccess">
+              <span class="material-symbols-outlined report-success-icon">verified</span>
+              <h3 class="serif-italic">Report Received</h3>
+              <p>Our institutional moderators will review this request shortly. Thank you for upholding HUB standards.</p>
+              <button class="btn-cancel" style="margin-top:1.25rem" (click)="showReportForm = false; reportSuccess = false;">Return to Post</button>
             </div>
-            
-            <div class="field" style="margin-top:1rem">
-              <label class="field-label" for="details">Additional Context (Optional)</label>
-              <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details" rows="3" placeholder="Explain the violation..."></textarea>
-            </div>
-            
-            <div class="report-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-              <button class="btn-cancel" (click)="toggleReport()" style="flex: 1;">Cancel</button>
-              <button class="btn-error" (click)="submitReport()" [disabled]="reporting || !reportReason" style="flex: 2;">
-                <span *ngIf="!reporting">Submit to Moderation</span>
-                <span *ngIf="reporting" class="spinner"></span>
-              </button>
-            </div>
+
+            <!-- Report Form -->
+            <ng-container *ngIf="!reportSuccess">
+              <h3 class="serif-italic">Maintain Scholarly Integrity</h3>
+              <p style="font-size: 0.85rem; color: var(--outline); margin-bottom: 1.25rem; line-height:1.5;">Flag this request for administrative review if it violates institutional standards.</p>
+
+              <div class="field">
+                <label class="field-label">Reason for Flagging</label>
+                <div class="reason-chips">
+                  <label class="reason-chip" *ngFor="let r of reasons" [class.selected]="reportReason === r.value">
+                    <input type="radio" [(ngModel)]="reportReason" [value]="r.value" name="reportReason" style="display:none"/>
+                    {{ r.label }}
+                  </label>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:1rem">
+                <label class="field-label" for="details">Additional Context <span style="font-weight:400;text-transform:none;letter-spacing:0;">(Optional)</span></label>
+                <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details"
+                          rows="3" placeholder="Briefly describe the violation..."></textarea>
+              </div>
+
+              <div class="report-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn-cancel" (click)="toggleReport()" style="flex: 1;">Cancel</button>
+                <button class="btn-error" (click)="submitReport()" [disabled]="reporting || !reportReason" style="flex: 2;">
+                  <span *ngIf="!reporting">Submit to Moderation</span>
+                  <span *ngIf="reporting">Submitting...</span>
+                  <span *ngIf="reporting" class="spinner" style="width:14px;height:14px;margin-left:0.5rem;"></span>
+                </button>
+              </div>
+            </ng-container>
           </div>
 
           <!-- Contact Section in Modal (Hidden if Owner and if Reporting) -->

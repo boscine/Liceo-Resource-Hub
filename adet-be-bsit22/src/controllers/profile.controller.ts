@@ -43,7 +43,7 @@ export const updateProfile = async (c: Context) => {
   }
 
   try {
-    const { displayName, contacts } = c.req.valid('json');
+    const { displayName, contacts } = await c.req.json();
 
     // ── Database Update ─────────────────────────────────────────────────────
     const updatedUser = await prisma.user.update({

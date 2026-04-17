@@ -7,6 +7,7 @@ import { ApiService }        from '../../../core/services/api.service';
 import { AuthService }       from '../../../core/services/auth.service';
 import { PostService }       from '../../../core/services/post.service';
 import { ThemeService }      from '../../../core/services/theme.service';
+import { ToastService }      from '../../../core/services/toast.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 import { FooterComponent }   from '../../../shared/footer/footer.component';
 
@@ -51,9 +52,10 @@ export class FeedComponent implements OnInit, OnDestroy {
   
   // Reporting logic
   showReportForm = false;
-  reportReason = '';
-  reportDetails = '';
-  reporting = false;
+  reportSuccess  = false;
+  reportReason   = '';
+  reportDetails  = '';
+  reporting      = false;
   reasons = [
     { label: 'Inappropriate Content', value: 'inappropriate' },
     { label: 'Spam', value: 'spam' },
@@ -79,12 +81,13 @@ export class FeedComponent implements OnInit, OnDestroy {
   }
 
   constructor(
-    private api: ApiService, 
+    private api: ApiService,
     private cdr: ChangeDetectorRef,
     private auth: AuthService,
     private router: Router,
     private postService: PostService,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -103,7 +106,12 @@ export class FeedComponent implements OnInit, OnDestroy {
     // Subscribe to stateful post stream
     this.postSub = this.postService.posts$.subscribe(data => {
       this.posts = data;
-      this.loading = false;
+      this.cdr.detectChanges();
+    });
+
+    // Subscribe to loading state to ensure UI doesn't hang on error
+    this.postService.loading$.subscribe(l => {
+      this.loading = l;
       this.cdr.detectChanges();
     });
 
@@ -237,7 +245,7 @@ export class FeedComponent implements OnInit, OnDestroy {
       error: (e) => {
         console.error('Failed deleting post:', e);
         this.deleting = false;
-        alert('Failed to delete the request.');
+        this.toast.error('Failed to delete the request. Please try again.');
       }
     });
   }
@@ -257,7 +265,7 @@ export class FeedComponent implements OnInit, OnDestroy {
       error: (e) => {
         console.error('Bulk deletion failed:', e);
         this.deleting = false;
-        alert(e.error?.message || 'Failed to perform bulk scholarly cleanup.');
+        this.toast.error(e.error?.message || 'Failed to perform bulk scholarly cleanup.');
       }
     });
   }
@@ -298,32 +306,43 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.showDetailModal = false;
     this.selectedPost = null;
     this.isDescriptionExpanded = false;
-    this.showReportForm = false; // Reset report form
+    this.showReportForm = false;
+    this.reportSuccess  = false;
+    this.reportReason   = '';
+    this.reportDetails  = '';
   }
 
   toggleReport() {
     this.showReportForm = !this.showReportForm;
+    if (!this.showReportForm) {
+      // Full reset when closing the panel
+      this.reportSuccess = false;
+      this.reportReason  = '';
+      this.reportDetails = '';
+    }
   }
 
   submitReport() {
     if (this.reporting || !this.reportReason || !this.selectedPost) return;
-    
+
     this.reporting = true;
-    
+
     this.api.post(`/posts/${this.selectedPost.id}/report`, {
       reason: this.reportReason,
       details: this.reportDetails
     }).subscribe({
       next: () => {
-        this.reporting = false;
-        this.showReportForm = false;
-        this.reportReason = '';
-        this.reportDetails = '';
-        alert('Report submitted. Thank you for maintaining HUB integrity.');
+        this.reporting      = false;
+        this.reportSuccess  = true;
+        this.reportReason   = '';
+        this.reportDetails  = '';
+        this.toast.success('Report submitted. Thank you for maintaining HUB integrity.');
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.reporting = false;
+        const msg = err.error?.message || 'Failed to submit the report.';
+        this.toast.error(msg);
         this.cdr.detectChanges();
       }
     });
@@ -337,7 +356,7 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.showContact = true;
     // Trigger the scholarly cooperation notification to the author
     if (post && this.isLoggedIn && !this.isMyPost(post)) {
-      this.api.post(`/posts/${post.id}/save`, {}).subscribe({
+      this.api.post(`/posts/${post.id}/cooperate`, {}).subscribe({
         error: (e) => console.error('Failed to notify author on cooperation:', e)
       });
     }

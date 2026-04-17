@@ -6,9 +6,11 @@ import { ApiService } from './api.service';
 export class PostService {
   private _posts = new BehaviorSubject<any[]>([]);
   private _categories = new BehaviorSubject<any[]>([]);
+  private _loading = new BehaviorSubject<boolean>(false);
   
   posts$ = this._posts.asObservable();
   categories$ = this._categories.asObservable();
+  loading$ = this._loading.asObservable();
 
   private _categoriesLoaded = false;
 
@@ -20,12 +22,19 @@ export class PostService {
    */
   getPosts(forceRefresh = false): void {
     if (!forceRefresh && this._posts.getValue().length > 0) {
-      return; // Already have data
+      return; 
     }
 
+    this._loading.next(true);
     this.api.get<any[]>('/posts').subscribe({
-      next: (data) => this._posts.next(data),
-      error: (e) => console.error('Failed to sync posts', e)
+      next: (data) => {
+        this._posts.next(data);
+        this._loading.next(false);
+      },
+      error: (e) => {
+        console.error('Failed to sync posts', e);
+        this._loading.next(false);
+      }
     });
   }
 

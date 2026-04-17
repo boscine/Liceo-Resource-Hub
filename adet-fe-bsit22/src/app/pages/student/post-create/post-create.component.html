@@ -23,7 +23,6 @@
         <span class="material-symbols-outlined success-icon">verified</span>
         <h2>Request Published</h2>
         <p>Your request is now live in the student feed and visible to the university community.</p>
-        
         <div class="form-actions" style="max-width: 280px; margin: 0 auto;">
           <a routerLink="/feed" class="btn-primary" style="text-decoration: none;">
             Return to Feed
@@ -34,7 +33,30 @@
 
       <!-- Form Card -->
       <div class="form-card" *ngIf="!success">
-        <form (ngSubmit)="onSubmit()" #createForm="ngForm" class="create-form">
+        
+        <!-- Checking Profile State -->
+        <div class="checking-state" *ngIf="checkingProfile">
+          <span class="spinner"></span>
+          <p>Verifying institutional credentials...</p>
+        </div>
+
+        <!-- Missing Contact Info Warning -->
+        <div class="contact-warning" *ngIf="!checkingProfile && !hasContactInfo">
+          <div class="warning-header">
+            <span class="material-symbols-outlined warning-icon">account_circle_off</span>
+            <h2>Profile Incomplete</h2>
+          </div>
+          <p>Scholarly accountability requires at least one verified contact method (Messenger, Instagram, or Phone) before you can publish requests. This ensures other students can reach you for cooperation.</p>
+          <div class="warning-actions">
+            <a routerLink="/profile" class="btn-primary">
+              <span class="material-symbols-outlined">edit_square</span>
+              Complete My Profile
+            </a>
+            <a routerLink="/feed" class="btn-cancel">Return to Feed</a>
+          </div>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #createForm="ngForm" class="create-form" *ngIf="!checkingProfile && hasContactInfo">
 
           <!-- Title Field -->
           <div class="field">
@@ -50,10 +72,10 @@
             <label class="field-label">Academic Category</label>
             <div class="category-grid">
               <label class="category-card" *ngFor="let cat of categories">
-                <input type="radio" 
-                  [(ngModel)]="categoryId" 
+                <input type="radio"
+                  [(ngModel)]="categoryId"
                   [value]="cat.id.toString()"
-                  name="category" 
+                  name="category"
                   required>
                 <div class="card-content">
                   <span class="material-symbols-outlined">{{ getCategoryIcon(cat.name) }}</span>
@@ -78,18 +100,51 @@
               rows="6" required></textarea>
           </div>
 
-          <!-- Image URL Field (New) -->
+          <!-- Direct Upload Field -->
           <div class="field">
-            <label class="field-label" for="imageUrl">Visual Evidence (Optional Archive Link)</label>
-            <div class="input-with-icon">
-              <span class="material-symbols-outlined input-icon">image</span>
-              <input class="input-academic icon-padding" id="imageUrl" type="url"
-                [(ngModel)]="imageUrl" name="imageUrl"
-                placeholder="https://institutional-archive.com/item.jpg"/>
-            </div>
-            <p class="field-hint">Provide a valid image URL to help fellow scholars identify the requested resource.</p>
-          </div>
+            <label class="field-label">
+              Visual Evidence
+              <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:0.7rem; color:var(--outline);">Optional · Max 5MB · JPEG, PNG, WebP, GIF</span>
+            </label>
 
+            <!-- Single persistent file input -->
+            <input #fileInput type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                   style="display:none" (change)="onFileSelected($event)"/>
+
+            <!-- Preview State -->
+            <div class="upload-preview" *ngIf="previewUrl">
+              <img [src]="previewUrl" alt="Selected image preview" class="upload-preview-img"
+                   title="Click to change image" (click)="fileInput.click()" style="cursor:pointer"/>
+              <div class="upload-preview-actions">
+                <button type="button" class="upload-action-btn upload-change-btn" (click)="fileInput.click()">
+                  <span class="material-symbols-outlined">swap_horiz</span>
+                  Change
+                </button>
+                <button type="button" class="upload-action-btn upload-remove-btn" (click)="removeImage()">
+                  <span class="material-symbols-outlined">close</span>
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Drop Zone (shown when no file selected) -->
+            <div class="upload-zone"
+                 *ngIf="!previewUrl"
+                 [class.drag-over]="isDragOver"
+                 (dragover)="onDragOver($event)"
+                 (dragleave)="onDragLeave()"
+                 (drop)="onDrop($event)"
+                 (click)="fileInput.click()">
+              <span class="material-symbols-outlined upload-zone-icon">cloud_upload</span>
+              <p class="upload-zone-title">Drag & drop an image here</p>
+              <p class="upload-zone-sub">or <strong>click to browse</strong> your device</p>
+            </div>
+
+            <!-- Upload Progress -->
+            <div class="upload-progress-bar" *ngIf="uploadProgress">
+              <div class="upload-progress-bar-inner"></div>
+            </div>
+          </div>
 
           <!-- Privacy Protection Notice -->
           <aside class="privacy-notice">
@@ -103,9 +158,10 @@
           <!-- Form Actions -->
           <div class="form-actions">
             <button type="submit" class="btn-primary" [disabled]="loading || !createForm.valid">
-              <span *ngIf="!loading">Publish Request</span>
-              <span *ngIf="!loading" class="material-symbols-outlined">send</span>
-              <span *ngIf="loading" class="spinner"></span>
+              <span *ngIf="!loading && !uploadProgress">Publish Request</span>
+              <span *ngIf="uploadProgress">Uploading image...</span>
+              <span *ngIf="loading && !uploadProgress" class="spinner"></span>
+              <span *ngIf="!loading && !uploadProgress" class="material-symbols-outlined">send</span>
             </button>
           </div>
 
@@ -113,14 +169,12 @@
       </div>
 
       <!-- Help Section -->
-      <!-- Help Section -->
       <section class="help-section">
         <p class="help-text">
-          Unsure about how to post? 
+          Unsure about how to post?
           <a routerLink="/curator-guide">Consult the Curator's Guide</a>
         </p>
       </section>
-
 
     </div>
   </main>

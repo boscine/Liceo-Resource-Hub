@@ -37,66 +37,103 @@
         <!-- PRIVACY POLICY -->
         <article *ngIf="currentSection === 'privacy'" class="scholarly-doc ripple-in">
           <header class="doc-header">
-            <span class="doc-tag">Liceo Regulation V1.2</span>
-            <h2>Digital Privacy & Data Protection</h2>
-            <p>Institutional protocols for the safeguarding of scholarly data and student identities.</p>
+            <div class="doc-badge">
+              <span class="material-symbols-outlined">verified_user</span>
+              Liceo Regulation V1.2
+            </div>
+            <h2>Digital Privacy & <em class="serif-italic">Data Protection</em></h2>
+            <p>Institutional protocols for the safeguarding of scholarly data and student identities within the Liceo de Cagayan University ecosystem.</p>
           </header>
           
           <div class="doc-body">
-            <h3>1. Scholarly Data Collection</h3>
-            <p>We collect essential institutional metadata to facilitate academic resource sharing. This includes your university-issued email address, collegiate affiliation, and profile descriptors provided during registration.</p>
+            <section class="doc-section">
+              <h3>1. Scholarly Data Collection</h3>
+              <p>Following the Data Privacy Act of 2012, we collect essential institutional metadata to facilitate academic resource sharing. This includes your university-issued email address (`@liceo.edu.ph`), name, and profile descriptors provided during registration.</p>
+            </section>
             
-            <h3>2. Information Usage</h3>
-            <p>Your data is processed exclusively to maintain the integrity of the Liceo Resource Hub. Contact information is redacted for unauthenticated visitors and is only revealed to verified peers during "Scholarly Cooperation" offers.</p>
+            <section class="doc-section">
+              <h3>2. Redaction & Transparency</h3>
+              <p>Your academic identity is handled with utmost discretion. Contact information is redacted for unauthenticated visitors and is only revealed to verified fellow scholars when a "Cooperation Offer" is explicitly accepted. No data is shared with third-party commercial entities.</p>
+            </section>
             
-            <h3>3. Archival Security</h3>
-            <p>We utilize hardware-accelerated encryption and secure JWT-based authentication to protect your archival records. Access to the portal is strictly governed by institutional credentials.</p>
+            <section class="doc-section">
+              <h3>3. Archival Security</h3>
+              <p>We utilize industry-standard encryption and secure JWT-based authentication to protect your archival records. Access to the portal is strictly governed by institutional credentials to prevent unauthorized data extraction.</p>
+            </section>
           </div>
         </article>
 
         <!-- TERMS OF SERVICE -->
         <article *ngIf="currentSection === 'terms'" class="scholarly-doc ripple-in">
           <header class="doc-header">
-            <span class="doc-tag">Archive Protocol V2.0</span>
-            <h2>Terms of Scholarly Exchange</h2>
-            <p>The ethical framework governing peer-to-peer material sharing within the institution.</p>
+            <div class="doc-badge">
+              <span class="material-symbols-outlined">gavel</span>
+              Archive Protocol V2.0
+            </div>
+            <h2>Terms of <em class="serif-italic">Scholarly Exchange</em></h2>
+            <p>The ethical framework and digital code of conduct governing peer-to-peer material sharing within our institution.</p>
           </header>
           
           <div class="doc-body">
-            <h3>1. Scholar Eligibility</h3>
-            <p>Access is strictly limited to verified students of Liceo de Cagayan University with an active `@liceo.edu.ph` domain. Suspended or banned accounts lose immediate access to all archival features.</p>
+            <section class="doc-section">
+              <h3>1. Scholar Eligibility</h3>
+              <p>Access is strictly limited to verified students and faculty of Liceo de Cagayan University. Use of non-institutional email domains for archival purposes is prohibited. Accounts found to be "squatting" or impersonating scholars will be purged.</p>
+            </section>
             
-            <h3>2. Material Integrity</h3>
-            <p>Users are prohibited from listing illegal, inappropriate, or non-educational materials. The institutional moderator maintains the right to purge any request that violates scholarly standards.</p>
+            <section class="doc-section">
+              <h3>2. Material Integrity & Prohibited Content</h3>
+              <p>All listings must serve a legitimate scholarly purpose. Prohibited items include illegal substances, non-academic tools, or materials that violate intellectual property rights. Academic dishonesty (e.g., selling test answers) is strictly forbidden and will be reported to the Dean.</p>
+            </section>
             
-            <h3>3. Liability & Responsibility</h3>
-            <p>The Liceo Resource Hub is a curation platform. All physical exchanges and cooperation occur outside the digital interface. The institution is not liable for the condition of physical materials exchanged.</p>
+            <section class="doc-section">
+              <h3>3. Digital Conduct</h3>
+              <p>Members must maintain the "Curator's Standard"—professional communication and reliable cooperation. Repeated failure to fulfill scholarly agreements or harassment of fellow scholars will result in immediate suspension from the Hub.</p>
+            </section>
           </div>
         </article>
 
         <!-- CONTACT SUPPORT -->
         <article *ngIf="currentSection === 'support'" class="scholarly-doc ripple-in">
           <header class="doc-header">
-            <span class="doc-tag">Operational Support</span>
-            <h2>Support & Assistance</h2>
-            <p>Connecting you with institutional facilitators for portal-related inquiries.</p>
+            <div class="doc-badge">
+              <span class="material-symbols-outlined">contact_emergency</span>
+              Operational Support
+            </div>
+            <h2>Support & <em class="serif-italic">Scholarly Assistance</em></h2>
+            <p>Connecting you with institutional facilitators for portal-related inquiries and technical stewardship.</p>
           </header>
           
           <div class="doc-body">
             <div class="support-grid">
               <div class="support-card">
-                <span class="material-symbols-outlined">contact_support</span>
-                <h4>Technical Help</h4>
-                <p>Issues with login, restoration, or notifications? Contact the ICT Department.</p>
-                <a href="mailto:ict@liceo.edu.ph" class="doc-link">ict&#64;liceo.edu.ph</a>
+                <span class="material-symbols-outlined">terminal</span>
+                <h4>Technical Stewardship</h4>
+                <p>Encountering issues with login, credential restoration, or notification dispatch? Our technical scholars are available for system debugging.</p>
+                <div class="card-footer">
+                  <a href="mailto:ict@liceo.edu.ph" class="doc-link">ict&#64;liceo.edu.ph</a>
+                </div>
               </div>
               
               <div class="support-card">
-                <span class="material-symbols-outlined">policy</span>
-                <h4>Policy Clarification</h4>
-                <p>Questions regarding the terms of scholarly exchange or privacy protocols?</p>
-                <a href="mailto:support@liceo.edu.ph" class="doc-link">support&#64;liceo.edu.ph</a>
+                <span class="material-symbols-outlined">verified</span>
+                <h4>Institutional Moderation</h4>
+                <p>If you've encountered materials that violate scholarly integrity or need to report a breach of digital conduct, contact the moderation board.</p>
+                <div class="card-footer">
+                  <a href="mailto:curator@liceo.edu.ph" class="doc-link">curator&#64;liceo.edu.ph</a>
+                </div>
               </div>
+            </div>
+
+            <div class="faq-minimal">
+              <h3>Frequent Inquiries</h3>
+              <details class="faq-item">
+                <summary>How do I reset my scholarly credentials?</summary>
+                <div class="faq-content">Use the "Dispatch Restoration Link" on the login page to receive a secure restoration key via your institutional email.</div>
+              </details>
+              <details class="faq-item">
+                <summary>Why is my profile missing contact info?</summary>
+                <div class="faq-content">Scholarly requests require at least one verified contact channel to ensure your peers can reach you for cooperation.</div>
+              </details>
             </div>
           </div>
         </article>

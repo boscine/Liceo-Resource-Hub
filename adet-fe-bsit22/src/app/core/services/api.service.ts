@@ -9,4 +9,5 @@ export class ApiService {
   put<T>(path: string, body: any)   { return this.http.put<T>(`/api/v1${path}`, body); }
   patch<T>(path: string, body: any) { return this.http.patch<T>(`/api/v1${path}`, body); }
   delete<T>(path: string)           { return this.http.delete<T>(`/api/v1${path}`); }
+  upload<T>(path: string, form: FormData) { return this.http.post<T>(`/api/v1${path}`, form); }
 }

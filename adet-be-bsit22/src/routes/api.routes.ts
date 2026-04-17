@@ -1,4 +1,7 @@
 import { Hono } from 'hono';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join, extname } from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { AuthVariables } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import { updateProfile, getProfile } from '../controllers/profile.controller';
@@ -308,6 +311,18 @@ router.post('/posts', zValidator('json', postSchema, (result, c) => {
 
   try {
     const { title, categoryId, description, imageUrl } = c.req.valid('json');
+    const userIdNum = Number(userId);
+
+    // ── Contact Info Check ──────────────────────────────────────────
+    const userContacts = await prisma.contact.count({
+      where: { userId: userIdNum }
+    });
+
+    if (userContacts === 0 && c.get('role') !== 'admin') {
+      return c.json({ 
+        message: 'Account Incomplete: You must add at least one contact method (Messenger, Phone, etc.) to your profile before publishing scholarly requests so others can reach you.' 
+      }, 403);
+    }
 
     // ── Moderation Check ───────────────────────────────────────────
     if (containsInappropriateContent(title) || containsInappropriateContent(description)) {
@@ -366,6 +381,18 @@ router.put('/posts/:id', zValidator('json', updatePostSchema, (result, c) => {
 
   try {
     const { title, categoryId, description, imageUrl, status, isFlagged } = c.req.valid('json');
+    const userIdNum = Number(userId);
+
+    // ── Contact Info Check ──────────────────────────────────────────
+    const userContacts = await prisma.contact.count({
+      where: { userId: userIdNum }
+    });
+
+    if (userContacts === 0 && role !== 'admin') {
+      return c.json({ 
+        message: 'Account Incomplete: You must have at least one contact method in your profile to maintain scholarly requests.' 
+      }, 403);
+    }
 
     // ── Moderation Check ───────────────────────────────────────────
     if ((title && containsInappropriateContent(title)) || (description && containsInappropriateContent(description))) {
@@ -626,6 +653,38 @@ router.delete('/posts/:id', async (c) => {
     return c.json({ message: 'Internal server error' }, 500);
   }
 });
+// ── POST /api/v1/posts/:id/cooperate (Offer Help) ──────────────────────────
+router.post('/posts/:id/cooperate', async (c) => {
+  const postId = parseInt(c.req.param('id'), 10);
+  const userId = c.get('userId'); 
+  if (isNaN(postId) || !userId) return c.json({ message: 'Invalid request' }, 400);
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { userId: true, title: true }
+    });
+
+    if (!post) return c.json({ message: 'Post not found' }, 404);
+
+    if (post.userId !== userId) {
+      const notifText = `A fellow scholar is interested in cooperating on your request: "${post.title}".`;
+      await prisma.notification.create({
+        data: {
+          userId: post.userId,
+          icon: 'handshake',
+          text: notifText
+        }
+      });
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Failed to notify author on cooperation:', error);
+    return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
 // ── POST /api/v1/posts/:id/save (Notify Author) ─────────────────────────────
 router.post('/posts/:id/save', async (c) => {
   const postId = parseInt(c.req.param('id'), 10);
@@ -825,6 +884,46 @@ router.put('/admin/users/:id/status', async (c) => {
   } catch (error) {
     console.error('Failed to update user status:', error);
     return c.json({ message: 'Internal server error during status modification.' }, 500);
+  }
+});
+
+// ── POST /api/v1/upload (Direct Image Upload) ────────────────────────────────
+router.post('/upload', async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
+
+  try {
+    const body = await c.req.parseBody();
+    const file = body['file'];
+
+    if (!file || typeof file === 'string') {
+      return c.json({ message: 'No file provided.' }, 400);
+    }
+
+    // ── Validation ────────────────────────────────────────────────────────────
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return c.json({ message: 'Invalid file type. Only JPEG, PNG, WebP, and GIF images are permitted.' }, 400);
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    if (arrayBuffer.byteLength > MAX_SIZE_BYTES) {
+      return c.json({ message: 'File exceeds the 5MB institutional archive limit.' }, 400);
+    }
+
+    // ── Persistence ───────────────────────────────────────────────────────────
+    const ext = extname(file.name) || '.jpg';
+    const uniqueName = `${randomBytes(16).toString('hex')}${ext}`;
+    const uploadDir = join(process.cwd(), 'public', 'api', 'uploads');
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(join(uploadDir, uniqueName), Buffer.from(arrayBuffer));
+
+    return c.json({ url: `/api/uploads/${uniqueName}` }, 201);
+  } catch (error) {
+    console.error('Upload failed:', error);
+    return c.json({ message: 'Internal server error during upload.' }, 500);
   }
 });
 

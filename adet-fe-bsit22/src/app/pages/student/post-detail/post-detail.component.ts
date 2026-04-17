@@ -5,11 +5,12 @@ import { FormsModule }       from '@angular/forms';
 import { AuthService }       from '../../../core/services/auth.service';
 import { ApiService }        from '../../../core/services/api.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
+import { FooterComponent }   from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, RouterModule, FormsModule, NavbarComponent, FooterComponent],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.scss'],
 })
@@ -77,7 +78,14 @@ export class PostDetailComponent implements OnInit {
     });
   }
 
-  revealContact() { this.showContact = true; }
+  revealContact() { 
+    this.showContact = true; 
+    if (this.post && this.isLoggedIn && this.user.id !== this.post.authorId) {
+      this.api.post(`/posts/${this.post.id}/cooperate`, {}).subscribe({
+        error: (e) => console.error('Failed to notify author on cooperation:', e)
+      });
+    }
+  }
   getCategoryIcon(name: string): string {
     const icons: { [key: string]: string } = {
       'Academic Textbooks': 'auto_stories',

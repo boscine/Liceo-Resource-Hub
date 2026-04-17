@@ -365,13 +365,13 @@ textarea.input-academic {
   .help-text {
     font-size: 0.9rem;
     color: var(--on-surface-variant);
-    
+
     a {
       color: var(--primary);
       font-weight: 700;
       text-decoration: none;
       position: relative;
-      
+
       &::after {
         content: '';
         position: absolute;
@@ -389,6 +389,151 @@ textarea.input-academic {
   }
 }
 
+// ── Direct Upload Zone ────────────────────────────────────────────────────────
+
+.upload-zone {
+  border: 2px dashed var(--outline-variant);
+  border-radius: var(--radius-md);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--surface-container-low);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+
+  &:hover, &.drag-over {
+    border-color: var(--primary);
+    background: rgba(87, 0, 0, 0.04);
+
+    .upload-zone-icon {
+      color: var(--primary);
+      transform: translateY(-4px) scale(1.1);
+    }
+  }
+
+  &.drag-over {
+    border-style: solid;
+    background: rgba(87, 0, 0, 0.07);
+  }
+}
+
+.upload-zone-icon {
+  font-size: 2.5rem;
+  color: var(--outline);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-variation-settings: 'wght' 300;
+}
+
+.upload-zone-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+.upload-zone-sub {
+  font-size: 0.8rem;
+  color: var(--outline);
+  margin: 0;
+
+  strong {
+    color: var(--primary);
+  }
+}
+
+// ── Upload Preview ─────────────────────────────────────────────────────────────
+
+.upload-preview {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--outline-variant);
+}
+
+.upload-preview-img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  transition: filter 0.25s ease;
+
+  &:hover {
+    filter: brightness(0.88);
+  }
+}
+
+.upload-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(10, 10, 10, 0.72);
+  backdrop-filter: blur(6px);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content: flex-end;
+}
+
+.upload-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.9rem;
+  border: none;
+  border-radius: 2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  letter-spacing: 0.04em;
+
+  .material-symbols-outlined { font-size: 15px; }
+
+  &:hover { transform: translateY(-1px); }
+}
+
+.upload-change-btn {
+  background: var(--secondary);
+  color: #000;
+
+  &:hover { background: #d4ac22; }
+}
+
+.upload-remove-btn {
+  background: rgba(87, 0, 0, 0.85);
+  color: #fff;
+
+  &:hover { background: var(--primary); }
+}
+
+// ── Upload Progress Bar ────────────────────────────────────────────────────────
+
+.upload-progress-bar {
+  height: 4px;
+  background: var(--outline-variant);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.upload-progress-bar-inner {
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 2px;
+  animation: progressPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+  0%   { width: 5%;  margin-left: 0; }
+  50%  { width: 60%; margin-left: 20%; }
+  100% { width: 5%;  margin-left: 95%; }
+}
+
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -402,4 +547,90 @@ textarea.input-academic {
 @keyframes scaleUp {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
+}
+
+// ── Institutional Verification States ────────────────────────────────────────
+
+.checking-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1.5rem;
+  text-align: center;
+  
+  .spinner {
+    width: 3rem;
+    height: 3rem;
+    border-width: 3px;
+  }
+  
+  p {
+    color: var(--on-surface-variant);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    opacity: 0.8;
+  }
+}
+
+.contact-warning {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeInDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  .warning-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--primary);
+
+    .warning-icon {
+      font-size: 3rem;
+      opacity: 0.9;
+    }
+
+    h2 {
+      font-family: var(--font-headline);
+      font-size: 1.75rem;
+      font-style: italic;
+      margin: 0;
+    }
+  }
+
+  p {
+    color: var(--on-surface-variant);
+    line-height: 1.6;
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .warning-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    .btn-primary, .btn-cancel {
+      padding: 0 1.5rem;
+      height: 3rem;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+    }
+    
+    .btn-cancel {
+      border: 1px solid var(--outline-variant);
+      color: var(--on-surface);
+      background: transparent;
+      &:hover {
+        background: var(--surface-container-low);
+      }
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
@@ -23,7 +23,8 @@ export class VerifyComponent implements OnInit {
     private auth: AuthService, 
     private router: Router, 
     private route: ActivatedRoute,
-    private toast: ToastService
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -45,10 +46,16 @@ export class VerifyComponent implements OnInit {
       next: () => {
         this.loading = false;
         this.toast.success('Account activated! Welcome to the Liceo Resource Hub.');
+        this.cdr.detectChanges();
         this.router.navigate(['/feed']);
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
+        // Reset the input field for a fresh attempt
+        this.code = '';
+        this.cdr.detectChanges(); // <-- Critical fix to reset the submit button state
+        // The errorInterceptor handles the toast message for 400/500 errors
+        console.error('[Verification Error]:', err);
       }
     });
   }
@@ -57,7 +64,11 @@ export class VerifyComponent implements OnInit {
     if (!this.email) return;
     this.auth.resendVerificationCode(this.email.trim().toLowerCase()).subscribe({
       next: () => this.toast.info('A new verification code has been dispatched to your email.'),
-      error: () => {}
+      error: (err) => {
+        // Fallback toast if the interceptor is bypassed or needs specific messaging
+        this.toast.error('Failed to dispatch a new code. Please try again in a few moments.');
+        console.error('[Resend Error]:', err);
+      }
     });
   }
 }

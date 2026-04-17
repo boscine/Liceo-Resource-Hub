@@ -109,43 +109,6 @@ model PasswordReset {
   @@map("password_reset")
 }
 
-model accounts {
-  account_id     Int                    @id @default(autoincrement())
-  account_holder String                 @db.VarChar(100)
-  account_type   accounts_account_type?
-  balance        Decimal                @default(0.00) @db.Decimal(15, 2)
-  interest_rate  Decimal                @db.Decimal(5, 4)
-  created_at     DateTime?              @default(now()) @db.DateTime(0)
-}
-
-model departments {
-  dept_id   Int         @id @default(autoincrement())
-  dept_name String      @db.VarChar(50)
-  employees employees[]
-  projects  projects[]
-}
-
-model employees {
-  emp_id      Int          @id @default(autoincrement())
-  first_name  String?      @db.VarChar(50)
-  last_name   String?      @db.VarChar(50)
-  dept_id     Int?
-  salary      Decimal?     @db.Decimal(10, 2)
-  departments departments? @relation(fields: [dept_id], references: [dept_id], onDelete: Cascade, map: "fk_dept")
-
-  @@index([dept_id], map: "fk_dept")
-}
-
-model projects {
-  project_id   Int          @id @default(autoincrement())
-  project_name String?      @db.VarChar(100)
-  dept_id      Int?
-  budget       Int?
-  departments  departments? @relation(fields: [dept_id], references: [dept_id], onDelete: Cascade, onUpdate: NoAction, map: "projects_ibfk_1")
-
-  @@index([dept_id], map: "dept_id")
-}
-
 enum Role {
   student
   admin
@@ -178,12 +141,6 @@ enum ReportStatus {
   pending
   reviewed
   dismissed
-}
-
-enum accounts_account_type {
-  Savings
-  Checking
-  Business
 }
 
 enum user_status {

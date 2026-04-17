@@ -5,7 +5,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'feed', pathMatch: 'full' },
   {
     path: 'login',
     canActivate: [GuestGuard],
@@ -33,7 +33,6 @@ export const routes: Routes = [
   },
   {
     path: 'feed',
-    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent)
   },
   {
@@ -52,7 +51,6 @@ export const routes: Routes = [
   },
   {
     path: 'post/:id',
-    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/post-detail/post-detail.component').then(m => m.PostDetailComponent)
   },
   {
@@ -78,7 +76,6 @@ export const routes: Routes = [
   },
   {
     path: 'profile/:id',
-    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
   },
   {

@@ -36,7 +36,7 @@ export const postSchema = z.object({
   title: z.string().min(3, 'Title is too short.').max(255, 'Title exceeds institutional archive limits (255 chars).'),
   categoryId: z.union([z.number(), z.string()]).transform(val => Number(val)),
   description: z.string().min(10, 'Please provide a more detailed scholarly description.').max(500),
-  imageUrl: z.string().optional().refine(val => !val || val.trim() === '' || /^https?:\/\//.test(val), { message: 'Invalid image URL format.' })
+  imageUrl: z.string().optional().refine(val => !val || val.trim() === '' || /^https?:\/\//.test(val) || /^\/api\/uploads\//.test(val), { message: 'Invalid image URL format.' })
 });
 
 export const updatePostSchema = postSchema.partial().extend({
