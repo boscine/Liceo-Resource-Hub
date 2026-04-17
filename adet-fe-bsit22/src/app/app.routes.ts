@@ -81,5 +81,9 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
   },
+  {
+    path: 'portal',
+    loadComponent: () => import('./pages/institutional/institutional-portal.component').then(m => m.InstitutionalPortalComponent)
+  },
   { path: '**', redirectTo: 'feed' }
 ];

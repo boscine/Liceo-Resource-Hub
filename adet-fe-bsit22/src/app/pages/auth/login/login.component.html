@@ -1,6 +1,6 @@
 <div class="login-page">
 
-  <app-navbar [showHelpButton]="true" (helpClick)="toggleHelp()"></app-navbar>
+
 
   <!-- HERO SPLIT -->
   <main class="hero-split">
@@ -103,6 +103,13 @@
         <p class="signup-link">
           New student? <a routerLink="/register">Create an account</a>
         </p>
+
+        <div class="card-footer-actions">
+          <button type="button" class="help-mini-btn" (click)="toggleHelp()">
+            <span class="material-symbols-outlined">help</span>
+            Need assistance?
+          </button>
+        </div>
       </div>
     </div>
 

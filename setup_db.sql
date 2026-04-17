@@ -80,15 +80,19 @@ INSERT IGNORE INTO `category` (`id`, `name`) VALUES
 (1, 'Academic Textbooks'),
 (2, 'Lecture Chronicles'),
 (3, 'Scientific Apparatus'),
-(4, 'Institutional Equipment'),
-(5, 'Artistic Mediums'),
-(6, 'Mathematical Instruments'),
-(7, 'Digital Repositories'),
-(8, 'Scholarly Manuscripts'),
-(9, 'Technical Tools'),
-(10, 'Other Resources');
+(4, 'Computing & Digital Assets'),
+(5, 'Mathematical Instruments'),
+(6, 'Technical & Vocational Tools'),
+(7, 'Artistic Tools & Mediums'),
+(8, 'Clinical & Medical Supplies'),
+(9, 'Physical Education Kits'),
+(10, 'Institutional Equipment'),
+(11, 'Scholarly Manuscripts'),
+(12, 'Miscellaneous Resources');
 
--- Create a Default Admin (Password: admin123)
--- Hash generated via bcrypt (you should change this in production)
-INSERT IGNORE INTO `user` (`email`, `password_hash`, `display_name`, `role`, `status`, `college`) VALUES
-('admin@liceo.edu.ph', '$2a$10$rN7cW5uXh.Gv.qZc8xG/2uD0ZzJzG/6/w7Q8Q9Q9Q9Q9Q9Q9Q9Q9Q', 'System Admin', 'admin', 'active', 'University Administration');
+-- ⚠️  PRODUCTION SETUP: Do NOT use a hardcoded admin insert in production.
+-- To create the first admin account safely:
+-- 1. Register normally at /register using an @liceo.edu.ph email.
+-- 2. Verify the account via OTP.
+-- 3. Then run the following in your DB shell to elevate to admin:
+--    UPDATE `user` SET `role` = 'admin' WHERE `email` = 'your-email@liceo.edu.ph';

@@ -5,13 +5,12 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 
-import { NavbarComponent }   from '../../shared/navbar/navbar.component';
 import { FooterComponent }   from '../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-verify',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterModule, FooterComponent],
   templateUrl: './verify.html',
   styleUrls: ['./verify.scss'] // Assuming there is a verify.scss or adding styles locally
 })

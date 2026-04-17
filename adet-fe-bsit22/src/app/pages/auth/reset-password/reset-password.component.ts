@@ -5,16 +5,15 @@ import { RouterModule }      from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService }       from '../../../core/services/auth.service';
 
-import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 import { FooterComponent }   from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterModule, FooterComponent],
   template: `
 <div class="auth-centered-page">
-  <app-navbar></app-navbar>
+  
   <main class="auth-main" style="padding-top: 40px;">
     <div class="auth-card">
       <div class="auth-icon"><span class="material-symbols-outlined">restart_alt</span></div>

@@ -46,7 +46,6 @@ export const updatePostSchema = postSchema.partial().extend({
 
 export const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
-  college: z.string().max(100).optional().nullable(),
   contacts: z.array(z.object({
     type: z.enum(['messenger', 'phone', 'other']),
     value: z.string().min(1, 'Contact value cannot be empty.').max(255)

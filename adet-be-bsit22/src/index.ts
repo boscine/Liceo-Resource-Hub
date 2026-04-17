@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import 'dotenv/config';
@@ -15,6 +16,9 @@ app.use('*', cors({
   origin: origin,
   credentials: true 
 }));
+
+// 1.1 Serve Static Files (Post Images)
+app.use('/api/uploads/*', serveStatic({ root: './public' }));
 
 // 2. Public Authentication Routes
 app.route('/api/auth', authRoutes);

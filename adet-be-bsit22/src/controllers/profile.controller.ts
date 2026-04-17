@@ -18,7 +18,6 @@ export const getProfile = async (c: Context) => {
         email: true,
         role: true,
         status: true,
-        college: true,
         contacts: {
           select: { type: true, value: true }
         }
@@ -44,14 +43,13 @@ export const updateProfile = async (c: Context) => {
   }
 
   try {
-    const { displayName, college, contacts } = c.req.valid('json');
+    const { displayName, contacts } = c.req.valid('json');
 
     // ── Database Update ─────────────────────────────────────────────────────
     const updatedUser = await prisma.user.update({
       where: { id: Number(userId) },
       data: {
         displayName,
-        college,
         contacts: {
           deleteMany: {},
           create: contacts
@@ -68,7 +66,6 @@ export const updateProfile = async (c: Context) => {
       message: 'Profile updated successfully', 
       user: {
         displayName: updatedUser.displayName,
-        college: updatedUser.college,
         contacts: updatedUser.contacts
       }
     });

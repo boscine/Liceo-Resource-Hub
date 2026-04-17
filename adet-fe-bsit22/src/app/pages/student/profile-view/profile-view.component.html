@@ -37,6 +37,8 @@
             <h1 class="user-name serif-italic">{{ user.displayName }}</h1>
             <p class="user-role">{{ user.role | uppercase }}</p>
 
+
+
             <div class="user-meta" *ngIf="user.email">
               <span class="material-symbols-outlined">mail</span>
               {{ user.email }}

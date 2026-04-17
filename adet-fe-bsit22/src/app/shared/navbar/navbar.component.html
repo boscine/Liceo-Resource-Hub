@@ -25,7 +25,10 @@
 
       <ng-container *ngIf="isLoggedIn">
         <!-- Notification Bell -->
-        <div class="notif-wrapper" (click)="$event.stopPropagation()">
+        <div class="notif-wrapper">
+          <!-- Backdrop: closes panel on outside click -->
+          <div class="notif-backdrop" *ngIf="notificationsOpen" (click)="closeNotifications()"></div>
+
           <div class="notif-trigger-wrap" (click)="toggleNotifications($event)">
             <span class="material-symbols-outlined">notifications</span>
             <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
@@ -51,7 +54,7 @@
             </div>
 
             <div class="notif-panel-footer">
-              <a routerLink="/notifications" (click)="closeNotificationsDeferred()">View all notifications</a>
+              <a (click)="goToNotifications(); $event.stopPropagation()">View all notifications</a>
             </div>
           </div>
         </div>

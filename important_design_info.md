@@ -1,4 +1,5 @@
 # Important Design Info: Liceo Resource Hub
+> Technical setup instructions are documented in **[SETUP_GUIDE.md](./SETUP_GUIDE.md)**.
 
 ## 1. Visual Identity
 The platform is branded as "The Academic Curator," reflecting a premium, scholarly, and secure environment for Liceo de Cagayan University students.

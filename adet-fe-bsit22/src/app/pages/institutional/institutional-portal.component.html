@@ -1,0 +1,109 @@
+<div class="portal-page">
+  <app-navbar [active]="'portal'"></app-navbar>
+
+  <main class="portal-main">
+    <div class="portal-header">
+      <h1 class="serif-italic">Institutional Resource Portal</h1>
+      <p>Documentation and scholarly standards for Liceo de Cagayan University's digital ecosystem.</p>
+    </div>
+
+    <div class="portal-layout">
+      <!-- SIDEBAR -->
+      <aside class="portal-sidebar">
+        <button [class.active]="currentSection === 'privacy'" (click)="setSection('privacy')">
+          <span class="material-symbols-outlined">shield</span>
+          Privacy Policy
+        </button>
+        <button [class.active]="currentSection === 'terms'" (click)="setSection('terms')">
+          <span class="material-symbols-outlined">gavel</span>
+          Terms of Service
+        </button>
+        <button [class.active]="currentSection === 'support'" (click)="setSection('support')">
+          <span class="material-symbols-outlined">support_agent</span>
+          Contact Support
+        </button>
+        
+        <div class="sidebar-divider"></div>
+        
+        <a href="https://liceo.edu.ph" target="_blank" class="external-link">
+          <span class="material-symbols-outlined">open_in_new</span>
+          University Portal
+        </a>
+      </aside>
+
+      <!-- CONTENT AREA -->
+      <section class="portal-content">
+        
+        <!-- PRIVACY POLICY -->
+        <article *ngIf="currentSection === 'privacy'" class="scholarly-doc ripple-in">
+          <header class="doc-header">
+            <span class="doc-tag">Liceo Regulation V1.2</span>
+            <h2>Digital Privacy & Data Protection</h2>
+            <p>Institutional protocols for the safeguarding of scholarly data and student identities.</p>
+          </header>
+          
+          <div class="doc-body">
+            <h3>1. Scholarly Data Collection</h3>
+            <p>We collect essential institutional metadata to facilitate academic resource sharing. This includes your university-issued email address, collegiate affiliation, and profile descriptors provided during registration.</p>
+            
+            <h3>2. Information Usage</h3>
+            <p>Your data is processed exclusively to maintain the integrity of the Liceo Resource Hub. Contact information is redacted for unauthenticated visitors and is only revealed to verified peers during "Scholarly Cooperation" offers.</p>
+            
+            <h3>3. Archival Security</h3>
+            <p>We utilize hardware-accelerated encryption and secure JWT-based authentication to protect your archival records. Access to the portal is strictly governed by institutional credentials.</p>
+          </div>
+        </article>
+
+        <!-- TERMS OF SERVICE -->
+        <article *ngIf="currentSection === 'terms'" class="scholarly-doc ripple-in">
+          <header class="doc-header">
+            <span class="doc-tag">Archive Protocol V2.0</span>
+            <h2>Terms of Scholarly Exchange</h2>
+            <p>The ethical framework governing peer-to-peer material sharing within the institution.</p>
+          </header>
+          
+          <div class="doc-body">
+            <h3>1. Scholar Eligibility</h3>
+            <p>Access is strictly limited to verified students of Liceo de Cagayan University with an active `@liceo.edu.ph` domain. Suspended or banned accounts lose immediate access to all archival features.</p>
+            
+            <h3>2. Material Integrity</h3>
+            <p>Users are prohibited from listing illegal, inappropriate, or non-educational materials. The institutional moderator maintains the right to purge any request that violates scholarly standards.</p>
+            
+            <h3>3. Liability & Responsibility</h3>
+            <p>The Liceo Resource Hub is a curation platform. All physical exchanges and cooperation occur outside the digital interface. The institution is not liable for the condition of physical materials exchanged.</p>
+          </div>
+        </article>
+
+        <!-- CONTACT SUPPORT -->
+        <article *ngIf="currentSection === 'support'" class="scholarly-doc ripple-in">
+          <header class="doc-header">
+            <span class="doc-tag">Operational Support</span>
+            <h2>Support & Assistance</h2>
+            <p>Connecting you with institutional facilitators for portal-related inquiries.</p>
+          </header>
+          
+          <div class="doc-body">
+            <div class="support-grid">
+              <div class="support-card">
+                <span class="material-symbols-outlined">contact_support</span>
+                <h4>Technical Help</h4>
+                <p>Issues with login, restoration, or notifications? Contact the ICT Department.</p>
+                <a href="mailto:ict@liceo.edu.ph" class="doc-link">ict&#64;liceo.edu.ph</a>
+              </div>
+              
+              <div class="support-card">
+                <span class="material-symbols-outlined">policy</span>
+                <h4>Policy Clarification</h4>
+                <p>Questions regarding the terms of scholarly exchange or privacy protocols?</p>
+                <a href="mailto:support@liceo.edu.ph" class="doc-link">support&#64;liceo.edu.ph</a>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </section>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -1,0 +1,252 @@
+@use 'design-system';
+
+.portal-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.portal-main {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  width: 100%;
+}
+
+.portal-header {
+  margin-bottom: 4rem;
+  text-align: center;
+  
+  h1 {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--on-surface-variant);
+    font-size: 1.1rem;
+    opacity: 0.8;
+  }
+}
+
+.portal-layout {
+  display: flex;
+  gap: 4rem;
+  align-items: flex-start;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 2rem;
+  }
+}
+
+.portal-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: sticky;
+  top: 6rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    position: static;
+  }
+  
+  button, .external-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border: none;
+    background: var(--surface-container-low);
+    color: var(--on-surface-variant);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    text-decoration: none;
+    
+    .material-symbols-outlined {
+      font-size: 20px;
+      color: var(--primary);
+      opacity: 0.7;
+    }
+    
+    &:hover {
+      background: var(--surface-container-high);
+      transform: translateX(4px);
+    }
+    
+    &.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--shadow-md);
+      
+      .material-symbols-outlined {
+        color: white;
+        opacity: 1;
+      }
+    }
+  }
+  
+  .sidebar-divider {
+    height: 1px;
+    background: var(--outline-variant);
+    margin: 1rem 0;
+    opacity: 0.5;
+  }
+  
+  .external-link {
+    background: transparent;
+    border: 1px dashed var(--outline);
+    
+    &:hover {
+      background: rgba(197, 160, 33, 0.05); // Gold tint
+      border-color: var(--secondary-container);
+    }
+  }
+}
+
+.portal-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.scholarly-doc {
+  background: var(--surface-container-lowest);
+  padding: 4rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border-left: 6px solid var(--primary);
+  
+  @media (max-width: 640px) {
+    padding: 2.5rem;
+  }
+}
+
+.doc-tag {
+  display: inline-block;
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 2rem;
+}
+
+.doc-header {
+  margin-bottom: 3.5rem;
+  
+  h2 {
+    font-family: var(--font-headline);
+    font-style: italic;
+    font-size: 2.25rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    color: var(--on-surface-variant);
+    line-height: 1.5;
+  }
+}
+
+.doc-body {
+  h3 {
+    font-family: var(--font-headline);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--on-surface);
+    margin: 2.5rem 0 1rem;
+    
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  
+  p {
+    font-size: 1rem;
+    color: var(--on-surface-variant);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.support-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.support-card {
+  background: var(--surface-container-low);
+  padding: 2.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-4px);
+  }
+  
+  .material-symbols-outlined {
+    font-size: 40px;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+  }
+  
+  h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--on-surface);
+    margin-bottom: 0.75rem;
+  }
+  
+  p {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .doc-link {
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.ripple-in {
+  animation: rippleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes rippleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

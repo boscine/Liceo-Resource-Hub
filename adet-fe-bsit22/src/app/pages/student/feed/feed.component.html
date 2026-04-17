@@ -366,10 +366,11 @@
              
              <div *ngIf="isLoggedIn && !showContact" class="contact-hidden">
                 <div class="contact-blur">
-                  <span class="contact-type">{{ selectedPost.contact?.type || 'Messenger' }}</span>
+                  <span class="contact-type" *ngIf="selectedPost.contacts && selectedPost.contacts.length > 0">{{ selectedPost.contacts[0].type }}</span>
+                  <span class="contact-type" *ngIf="!selectedPost.contacts || selectedPost.contacts.length === 0">Messenger</span>
                   <span class="contact-value-blur">••••••••••••••••</span>
                 </div>
-                <button class="btn-primary" (click)="revealContact()">
+                <button class="btn-primary" (click)="revealContact(selectedPost)">
                   <span class="material-symbols-outlined">handshake</span>
                   Offer Scholarly Cooperation
                 </button>

@@ -7,7 +7,10 @@
 Ensure the environment has the following installed:
 - **Node.js v18+** (Required for Hono and Angular 18)
 - **MariaDB v10+** (or MySQL) running on default port **3306**
-- **Git Bash** (Recommended for Windows)
+- **Terminal Requirements**:
+  - **Windows**: Git Bash (Recommended) or PowerShell
+  - **macOS (MacBook)**: Standard Terminal (zsh/bash)
+- **Package Manager (macOS)**: [Homebrew](https://brew.sh/) is highly recommended.
 
 ---
 
@@ -18,9 +21,8 @@ Ensure the environment has the following installed:
     ```
 2.  **Import Schema & Seed Data**:
     Run the following command while inside the root directory (or use your SQL client to source it):
-    ```bash
-    mysql -u root -p adet_bsitdb22 < setup_db.sql
-    ```
+    - **Windows**: `mysql -u root -p adet_bsitdb22 < setup_db.sql`
+    - **macOS (MacBook)**: `mysql -u root -p adet_bsitdb22 < setup_db.sql` (Ensure `mysql` is in your PATH via `brew link mariadb`)
     *(Note: Default password in development is usually `12345` per `MASTER_CONTEXT.md`)*.
 
 ---
@@ -73,15 +75,20 @@ npm run start
 ## 🧪 5. Verification Checklist
 - [ ] **Database Connection**: Backend logs should not show Prisma connection errors.
 - [ ] **Login/Register**: Navigate to `http://localhost:4200`. Use an `@liceo.edu.ph` email for registration.
-- [ ] **Verification**: Enter the code from the backend console. Test the **"Dispatch New Code"** link if needed.
+- [ ] **Verification**: Enter the OTP code from your email inbox. Test **"Dispatch New Code"** if needed.
+- [ ] **Admin Elevation**: After verifying your account, run in your DB shell:
+  ```sql
+  UPDATE `user` SET `role` = 'admin' WHERE `email` = 'your-email@liceo.edu.ph';
+  ```
 - [ ] **Proxy Check**: Ensure `/api/...` requests from the frontend are correctly proxied to port 3000.
 
 ---
 
 ## 🧭 6. Automation Scripts (Windows)
 Alternatively, you can use the built-in startup scripts in the root directory:
-- **Batch**: Double-click `start-dev.bat`
-- **PowerShell**: Run `./start-dev.ps1`
+- **Windows (Batch)**: Double-click `start-dev.bat`
+- **Windows (PowerShell)**: Run `./start-dev.ps1`
+- **macOS (MacBook)**: Run `npm run be:dev` and `npm run fe:start` in separate terminal tabs, or use a custom `start.sh`.
 
 ---
 

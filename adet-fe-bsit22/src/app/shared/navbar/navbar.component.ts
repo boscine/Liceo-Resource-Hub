@@ -13,7 +13,7 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | '' = '';
+  @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | 'portal' | '' = '';
   @Input() showHelpButton = false;
   @Input() showMenuButton = false;
   @Input() hideLinks      = false;
@@ -66,11 +66,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
   markAllRead() { this.notifService.markAllRead(); }
   markRead(n: any) { this.notifService.markAsRead(n.id); }
 
-  @HostListener('document:click')
   closeNotifications() { this.notificationsOpen = false; }
 
   closeNotificationsDeferred() {
     setTimeout(() => { this.notificationsOpen = false; }, 50);
+  }
+
+  goToNotifications() {
+    this.notificationsOpen = false;
+    this.router.navigate(['/notifications']);
   }
 
   toggleHelp() { this.helpClick.emit(); }

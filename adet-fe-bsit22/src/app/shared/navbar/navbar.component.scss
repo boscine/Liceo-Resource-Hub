@@ -42,6 +42,15 @@
 .notif-wrapper {
   position: relative;
 
+  // Transparent backdrop to catch outside clicks
+  .notif-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199; // just below the panel (z-index: 200)
+    background: transparent;
+    cursor: default;
+  }
+
   .notif-btn { position: relative; }
 
   .notif-badge {

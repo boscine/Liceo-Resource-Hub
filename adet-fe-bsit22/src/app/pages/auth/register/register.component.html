@@ -1,6 +1,6 @@
 <div class="register-page">
 
-  <app-navbar [showHelpButton]="true" (helpClick)="toggleHelp()"></app-navbar>
+
 
   <!-- SPLIT CARD -->
   <main class="register-main">
@@ -110,6 +110,12 @@
             <a routerLink="/login">Log in</a>
           </div>
 
+          <div class="form-footer-actions">
+            <button type="button" class="help-mini-btn" (click)="toggleHelp()">
+              <span class="material-symbols-outlined">help</span>
+              Need assistance?
+            </button>
+          </div>
         </form>
       </div>
 

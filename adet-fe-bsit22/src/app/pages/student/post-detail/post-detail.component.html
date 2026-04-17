@@ -103,7 +103,8 @@
             </p>
             <div *ngIf="isLoggedIn && !showContact" class="contact-hidden">
               <div class="contact-blur">
-                <span class="contact-type">{{ post.contact.type }}</span>
+                <span class="contact-type" *ngIf="post.contacts && post.contacts.length > 0">{{ post.contacts[0].type }}</span>
+                <span class="contact-type" *ngIf="!post.contacts || post.contacts.length === 0">No Contact Info</span>
                 <span class="contact-value-blur">••••••••••••••••</span>
               </div>
               <button class="btn-primary" (click)="revealContact()">

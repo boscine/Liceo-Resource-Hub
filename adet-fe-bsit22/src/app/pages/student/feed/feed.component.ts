@@ -33,7 +33,7 @@ export class FeedComponent implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 12;
 
-  savedPosts = new Set<string>();
+  savedPosts = new Set<number>();
   selectedPosts = new Set<string | number>();
   
   // Custom delete confirmation
@@ -333,8 +333,14 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.isDescriptionExpanded = !this.isDescriptionExpanded;
   }
 
-  revealContact() {
+  revealContact(post?: any) {
     this.showContact = true;
+    // Trigger the scholarly cooperation notification to the author
+    if (post && this.isLoggedIn && !this.isMyPost(post)) {
+      this.api.post(`/posts/${post.id}/save`, {}).subscribe({
+        error: (e) => console.error('Failed to notify author on cooperation:', e)
+      });
+    }
   }
 
   @HostListener('document:keydown.escape')

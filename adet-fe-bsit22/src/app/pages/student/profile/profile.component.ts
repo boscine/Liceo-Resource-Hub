@@ -21,28 +21,12 @@ export class ProfileComponent implements OnInit {
   contacts: Array<{type: string, value: string}> = [];
   newContact: {type: string, value: string} = { type: 'messenger', value: '' };
   
-  college     = '';
-  initialCollege = '';
-  
   saving      = false;
   saved       = false;
   contactError = '';
   contactTypes = ['messenger', 'phone', 'other'];
   
-  colleges = [
-    'College of Arts and Sciences',
-    'College of Business and Accountancy',
-    'College of Education',
-    'College of Engineering',
-    'College of Information Technology',
-    'College of Nursing',
-    'College of Medical Laboratory Science',
-    'College of Radiologic Technology',
-    'College of Rehabilitation Sciences',
-    'College of Criminal Justice',
-    'School of Graduate Studies',
-    'College of Law'
-  ];
+
 
   initialDisplayName = '';
   initialContactsStr = '';
@@ -68,11 +52,9 @@ export class ProfileComponent implements OnInit {
         if (user) {
           this.displayName = (user.displayName || '').trim() || 'User';
           this.email = user.email || '';
-          this.college = user.college || '';
           this.contacts = user.contacts ? [...user.contacts] : [];
           
           this.initialDisplayName = this.displayName;
-          this.initialCollege = this.college;
           this.initialContactsStr = JSON.stringify(this.contacts);
         }
         this.cdr.detectChanges();
@@ -147,10 +129,9 @@ export class ProfileComponent implements OnInit {
     const currentContactsStr = JSON.stringify(this.contacts);
     
     const hasDisplayNameChanged = this.displayName.trim() !== this.initialDisplayName.trim();
-    const hasCollegeChanged     = this.college !== this.initialCollege;
     const hasContactsChanged    = currentContactsStr !== this.initialContactsStr;
 
-    if (!hasDisplayNameChanged && !hasCollegeChanged && !hasContactsChanged) {
+    if (!hasDisplayNameChanged && !hasContactsChanged) {
       this.toast.info('No changes were made to your profile.');
       return;
     }
@@ -158,7 +139,6 @@ export class ProfileComponent implements OnInit {
     this.saving = true;
     this.api.put('/profile', { 
       displayName: this.displayName.trim(), 
-      college: this.college,
       contacts: this.contacts
     }).subscribe({
       next: (res: any) => {
@@ -168,12 +148,10 @@ export class ProfileComponent implements OnInit {
         
         if (res?.user) {
           this.displayName = res.user.displayName;
-          this.college = res.user.college || '';
           this.contacts = [...res.user.contacts];
         }
 
         this.initialDisplayName = this.displayName;
-        this.initialCollege = this.college;
         this.initialContactsStr = JSON.stringify(this.contacts);
         
         setTimeout(() => {

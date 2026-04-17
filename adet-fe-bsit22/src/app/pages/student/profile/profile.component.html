@@ -24,7 +24,6 @@
 
             <h1 class="user-name username">{{ initialDisplayName || 'Academic Curator' }}</h1>
             <span class="user-role">{{ isAdmin ? 'Administrator' : 'Student Researcher' }}</span>
-            <span class="user-college" *ngIf="initialCollege">{{ initialCollege }}</span>
             
             <div class="user-meta">
               <span class="material-symbols-outlined">mail</span>
@@ -85,17 +84,7 @@
                 <p class="error-text small" *ngIf="validationErrors.displayName">{{ validationErrors.displayName[0] }}</p>
               </div>
 
-              <div class="field">
-                <label class="field-label" for="college">College / Department</label>
-                <div class="input-wrap">
-                  <span class="material-symbols-outlined input-icon">school</span>
-                  <select class="input-academic" id="college" [(ngModel)]="college" name="college">
-                    <option value="">Select your college...</option>
-                    <option *ngFor="let c of colleges" [value]="c">{{ c }}</option>
-                  </select>
-                </div>
-                <p class="error-text small" *ngIf="validationErrors.college">{{ validationErrors.college[0] }}</p>
-              </div>
+
 
               <div class="field disabled">
                 <label class="field-label">Institutional Email</label>

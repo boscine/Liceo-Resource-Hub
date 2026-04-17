@@ -6,13 +6,12 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 
-import { NavbarComponent }              from '../../../shared/navbar/navbar.component';
 import { FooterComponent }              from '../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterModule, FooterComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
 })
