@@ -1,5 +1,5 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
-> Unified session synchronization file. Last updated: 2026-04-12 (Documentation & Design Finalization)
+> Unified session synchronization file. Last updated: 2026-04-17 (Auth Hardening & Revert)
 
 ## 🏁 Getting Started & Installation
 
@@ -45,8 +45,8 @@ Use the provided automation scripts in the root directory:
 ## 1. Project Overview
 A web-based academic resource-sharing platform for Liceo de Cagayan University students.
 - **Theme:** "The Academic Curator" (Maroon `#570000`, Academia Gold `#c5a021`)
-- **Access:** `@liceo.edu.ph` only. Guests can't see contact info.
-- **Core Loop:** Students post requests (textbooks/tools) → Others contact via external links.
+- **Access:** `@liceo.edu.ph` only. Guests land on the **Institutional Portal** (Privacy/Support) and have NO access to the scholarly feed.
+- **Core Loop:** Logged-in students browse the feed → Post requests → Others contact via external links.
 
 ## 2. Tech Stack & Environment
 - **Frontend:** Angular 18 (Standalone, SCSS, RxJS, jwt-decode)
@@ -87,15 +87,19 @@ liceo-resource-hub/
 - **State & Notifications**: Real-time RxJS notification service with atomic inbox clearing and scholarly cooperation dispatch.
 - **Institutional Standardization**: Unified `app-footer` and `app-navbar` across all portals (Auth, Student, Admin).
 - **Security & Moderation**: Integrated Zod validation layer, backend inappropriate content filter (V15), and auto-flagging report system.
+- **Auth Hardening**: Implemented JWT expiration validation in `AuthService` to prevent redirection loops and ensure session integrity across all guards.
 - **Public Scholarly Portal**: Fully redesigned Institutional Portal (Privacy, Terms, Support) with guest-enabled discovery and contact redaction.
 - **Institutional Purity**: Purged legacy database tables (`accounts`, `employees`, etc.) and sanitized the schema to focus exclusively on the Liceo Academic Hub.
 - **Portal Routing Optimization**: Resolved persistent footer clickability issues by transitioning to standard Angular `routerLink` directives and high-priority `z-index: 2000` layers. [7/7]
+- **Guest Access Hardening**: Restricted the feed to logged-in students only; guests now land exclusively on the informational Institutional Portal.
+- **Premium Login Redevelopment**: Implemented hardware-accelerated glassmorphism, responsive "Social Proof" badges, and optimized layout pacing for standard and compact viewports.
 
 ## 6. Pending / Next Steps (⬜)
 1. ⬜ **Production Launch:** Deploy to Railway (BE+DB) and Netlify/Vercel (FE).
 2. ⬜ **Performance Tuning:** Monitor impact of complex image grids on legacy hardware.
 3. ⬜ **Testing:** Unit & Integration tests for critical API routes.
 4. ⬜ **Notification Cleanup Job:** Implement a scheduled task to prune notifications older than 30 days (no backend TTL currently exists).
+5. ✅ **Requirements Tracking Enhancement:** Implemented status and verification checkboxes in `functional_requirements.md` and `non_functional_requirements.md` for better traceability.
 
 ## 7. Quick Setup Guide (Another Machine)
 1. **DB Setup**: Ensure MySQL/MariaDB is on port 3306. 

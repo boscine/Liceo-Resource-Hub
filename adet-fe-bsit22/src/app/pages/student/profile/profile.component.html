@@ -98,50 +98,87 @@
 
             <!-- SECTION 2: Reachability -->
             <section class="form-section">
-              <div class="section-title">
-                <span class="material-symbols-outlined">connect_without_contact</span>
-                Reachability
+              <div class="section-top">
+                <div class="section-title">
+                  <span class="material-symbols-outlined">connect_without_contact</span>
+                  Institutional Reachability
+                </div>
+                <p class="section-subtitle">How should peers connect with you regarding resource exchanges?</p>
               </div>
 
               <!-- Contact Methods List -->
               <div class="contacts-grid" *ngIf="contacts.length > 0">
-                <div class="contact-pill" *ngFor="let c of contacts; let i = index">
-                  <span class="material-symbols-outlined pill-icon">
-                    {{ c.type.toLowerCase() === 'messenger' ? 'chat' : (c.type.toLowerCase() === 'phone' ? 'phone_iphone' : 'link') }}
-                  </span>
-                  <div class="pill-text">
-                    <span class="pill-type">{{ c.type }}</span>
-                    <span class="pill-val">{{ c.value }}</span>
+                <div class="contact-card" *ngFor="let c of contacts; let i = index">
+                  <div class="card-icon-wrap" [attr.data-type]="c.type">
+                    <span class="material-symbols-outlined">
+                      {{ 
+                        c.type === 'messenger' ? 'chat' : 
+                        c.type === 'phone' ? 'phone_iphone' : 
+                        c.type === 'telegram' ? 'send' : 
+                        c.type === 'whatsapp' ? 'call' : 
+                        c.type === 'instagram' ? 'photo_camera' : 
+                        c.type === 'viber' ? 'mobile_friendly' : 'link' 
+                      }}
+                    </span>
                   </div>
-                  <button type="button" class="pill-close" (click)="removeContact(i)">
-                    <span class="material-symbols-outlined">close</span>
+                  <div class="card-body">
+                    <span class="card-type">{{ c.type }}</span>
+                    <span class="card-val">{{ c.value }}</span>
+                  </div>
+                  <button type="button" class="card-remove" (click)="removeContact(i)" aria-label="Remove contact method">
+                    <span class="material-symbols-outlined">delete_outline</span>
                   </button>
                 </div>
               </div>
 
               <!-- Empty State -->
-              <div class="empty-state" *ngIf="contacts.length === 0">
-                <span class="material-symbols-outlined">link_off</span>
-                <p>No active contact methods linked to your profile.</p>
+              <div class="empty-state-refined" *ngIf="contacts.length === 0">
+                <div class="empty-icon-ring">
+                  <span class="material-symbols-outlined">contact_support</span>
+                </div>
+                <h4>No Reachability Channels</h4>
+                <p>Link at least one scholarly contact method to ensure peers can coordinate material handovers efficiently.</p>
               </div>
 
               <!-- Contact Composer -->
-              <div class="composer">
+              <div class="composer-refined">
+                <div class="composer-header">
+                  <span class="material-symbols-outlined">add_circle</span>
+                  Add New Method
+                </div>
                 <div class="composer-grid">
                   <div class="field">
-                    <select class="input-academic" [(ngModel)]="newContact.type" name="newType">
-                      <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
-                    </select>
+                    <label class="compact-label">Platform</label>
+                    <div class="input-wrap">
+                      <select class="input-academic select-premium" [(ngModel)]="newContact.type" name="newType">
+                        <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
+                      </select>
+                      <span class="material-symbols-outlined select-arrow">expand_more</span>
+                    </div>
                   </div>
                   <div class="field">
-                    <input class="input-academic" type="text" [(ngModel)]="newContact.value" name="newValue"
-                      [placeholder]="newContact.type === 'messenger' ? 'm.me/username' : 'Value...'" (keyup.enter)="addContact()"/>
+                    <label class="compact-label">Handle / Number</label>
+                    <div class="input-wrap">
+                      <span class="material-symbols-outlined input-icon">info</span>
+                      <input class="input-academic" type="text" [(ngModel)]="newContact.value" name="newValue"
+                        [placeholder]="
+                          newContact.type === 'messenger' ? 'm.me/username' : 
+                          newContact.type === 'phone' ? '0912 345 6789' : 
+                          newContact.type === 'telegram' ? '@username' : 
+                          newContact.type === 'instagram' ? '@username' : 
+                          'Enter handle...'
+                        " (keyup.enter)="addContact()"/>
+                    </div>
                   </div>
-                  <button type="button" class="btn-primary-outline" (click)="addContact()" [disabled]="!newContact.value">
-                    Add Method
+                  <button type="button" class="btn-add-method" (click)="addContact()" [disabled]="!newContact.value">
+                    <span class="material-symbols-outlined">add</span>
+                    Connect
                   </button>
                 </div>
-                <p class="error-text" *ngIf="contactError">{{ contactError }}</p>
+                <p class="error-text-mini" *ngIf="contactError">
+                  <span class="material-symbols-outlined">warning</span>
+                  {{ contactError }}
+                </p>
               </div>
             </section>
 

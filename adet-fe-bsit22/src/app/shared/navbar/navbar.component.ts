@@ -13,7 +13,7 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | 'portal' | '' = '';
+  @Input() active: 'feed' | 'create' | 'admin' | 'profile' | 'guide' | 'public' | '' = '';
   @Input() showHelpButton = false;
   @Input() showMenuButton = false;
   @Input() hideLinks      = false;

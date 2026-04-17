@@ -11,7 +11,7 @@
   flex: 1;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem;
+  padding: 6rem 2rem 4rem;
   width: 100%;
 }
 
@@ -122,33 +122,55 @@
 
 .scholarly-doc {
   background: var(--surface-container-lowest);
-  padding: 4rem;
+  padding: 5rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  border-left: 6px solid var(--primary);
+  border-left: 8px solid var(--primary);
   
   @media (max-width: 640px) {
-    padding: 2.5rem;
+    padding: 2rem;
+  }
+}
+
+.doc-header {
+  margin-bottom: 4rem;
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: 3rem;
+  
+  h2 {
+    font-size: 2.75rem;
+    color: var(--primary);
+    margin: 1.5rem 0 1rem;
+    line-height: 1.1;
+    font-family: var(--font-headline);
+  }
+  
+  p {
+    font-size: 1.2rem;
+    color: var(--on-surface-variant);
+    font-style: italic;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 800px;
   }
 }
 
 .doc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--secondary-container);
-  color: var(--on-secondary-container);
-  font-size: 0.7rem;
+  gap: 0.6rem;
+  background: var(--primary-container);
+  color: white;
+  font-size: 0.75rem;
   font-weight: 800;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.25rem;
   border-radius: 100px;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: 2.5rem;
-  box-shadow: 0 4px 12px rgba(197, 160, 33, 0.15);
+  letter-spacing: 0.2em;
+  box-shadow: 0 4px 20px rgba(87, 0, 0, 0.2);
   
   .material-symbols-outlined {
-    font-size: 16px;
+    font-size: 18px;
     font-variation-settings: 'FILL' 1;
   }
 }

@@ -45,8 +45,8 @@ Use the provided automation scripts in the root directory:
 ## 1. Project Overview
 A web-based academic resource-sharing platform for Liceo de Cagayan University students.
 - **Theme:** "The Academic Curator" (Maroon `#570000`, Academia Gold `#c5a021`)
-- **Access:** `@liceo.edu.ph` only. Guests can't see contact info.
-- **Core Loop:** Students post requests (textbooks/tools) → Others contact via external links.
+- **Access:** `@liceo.edu.ph` only. Guests land on the **Institutional Portal** (Privacy/Support) and have NO access to the scholarly feed.
+- **Core Loop:** Logged-in students browse the feed → Post requests → Others contact via external links.
 
 ## 2. Tech Stack & Environment
 - **Frontend:** Angular 18 (Standalone, SCSS, RxJS, jwt-decode)
@@ -87,9 +87,13 @@ liceo-resource-hub/
 - **State & Notifications**: Real-time RxJS notification service with atomic inbox clearing and scholarly cooperation dispatch.
 - **Institutional Standardization**: Unified `app-footer` and `app-navbar` across all portals (Auth, Student, Admin).
 - **Security & Moderation**: Integrated Zod validation layer, backend inappropriate content filter (V15), and auto-flagging report system.
+- **Auth Hardening**: Implemented JWT expiration validation in `AuthService` to prevent redirection loops and ensure session integrity across all guards.
 - **Public Scholarly Portal**: Fully redesigned Institutional Portal (Privacy, Terms, Support) with guest-enabled discovery and contact redaction.
 - **Institutional Purity**: Purged legacy database tables (`accounts`, `employees`, etc.) and sanitized the schema to focus exclusively on the Liceo Academic Hub.
 - **Portal Routing Optimization**: Resolved persistent footer clickability issues by transitioning to standard Angular `routerLink` directives and high-priority `z-index: 2000` layers. [7/7]
+- **Guest Access Hardening**: Restricted the feed to logged-in students only; guests now land exclusively on the informational Institutional Portal.
+- **Premium Login Redevelopment**: Implemented hardware-accelerated glassmorphism, responsive "Social Proof" badges, and optimized layout pacing for standard and compact viewports.
+
 
 ## 6. Pending / Next Steps (⬜)
 1. ⬜ **Production Launch:** Deploy to Railway (BE+DB) and Netlify/Vercel (FE).

@@ -27,9 +27,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             if (req.url.includes('/login')) {
               errorMessage = error.error?.message || 'Invalid credentials.';
             } else {
-              errorMessage = 'Your session has expired. Please log in again.';
-              authService.logout();
-              router.navigate(['/login']);
+              // ── PUBLIC PAGE SAFETY NET ───────────────────────────────────────────
+              // If we are on a public page, do NOT redirect to login even if the API 
+              // returns 401. This allows components like Navbar (notifications) to 
+              // fail silently without kidnapping the user from the Portal/Feed.
+              const publicRoutes = ['/public', '/feed', '/curator-guide', '/post/', '/login', '/register', '/forgot-password', '/reset-password'];
+              const currentPath = router.url.toLowerCase(); // Use router.url instead of window.location to properly handle mid-navigation paths
+              const isPublicPage = publicRoutes.some(r => currentPath === r || currentPath.startsWith(r + '/') || currentPath.startsWith(r + '?'));
+
+              if (!isPublicPage) {
+                errorMessage = 'Your session has expired. Please log in again.';
+                authService.logout();
+                router.navigate(['/login']);
+              }
             }
             break;
           case 403:

@@ -1,49 +1,40 @@
 <div class="login-page">
-
-
-
   <!-- HERO SPLIT -->
   <main class="hero-split">
 
     <!-- Left: Branding -->
     <div class="hero-left">
-      <div class="hero-left-content">
-        <span class="badge">Your Official Student Platform</span>
-        <h1 class="hero-title serif-italic">A University Material Request Platform</h1>
+      <div class="hero-left-content animate-in-staggered">
+        <span class="badge premium-badge">
+          <span class="material-symbols-outlined">verified_user</span>
+          Official Institutional Portal
+        </span>
+        <h1 class="hero-title serif-italic">A University Material <br><span class="text-gold">Request Platform</span></h1>
         <p class="hero-desc">Designed exclusively for Liceo de Cagayan University students. Streamlining access to
           academic resources through a curated, peer-to-peer exchange ecosystem.</p>
-        <div class="social-proof">
-          <div class="avatars">
-            <div class="avatar">JD</div>
-            <div class="avatar">MR</div>
-            <div class="avatar">KW</div>
-            <div class="avatar avatar-count">+500</div>
-          </div>
-          <span>Join over 500+ Adelantes in sharing resources today.</span>
-        </div>
       </div>
 
-      <div class="how-it-works">
-        <h2 class="serif-italic">How It Works</h2>
+      <div class="how-it-works animate-in-staggered delay-1">
+        <h2 class="serif-italic section-title">The Academic Journey</h2>
         <div class="steps">
           <div class="step">
-            <div class="step-num">1</div>
-            <div>
-              <h4>Register with Liceo Email</h4>
+            <div class="step-num gold-glow">1</div>
+            <div class="step-content">
+              <h4>Secure Registration</h4>
               <p>Security first. Use your official @liceo.edu.ph email to verify your student status.</p>
             </div>
           </div>
           <div class="step">
-            <div class="step-num">2</div>
-            <div>
-              <h4>Post what you need</h4>
+            <div class="step-num gold-glow">2</div>
+            <div class="step-content">
+              <h4>Resource Curation</h4>
               <p>Books, lab gowns, or drafting tools — create a request with specific details.</p>
             </div>
           </div>
           <div class="step">
-            <div class="step-num">3</div>
-            <div>
-              <h4>Connect externally</h4>
+            <div class="step-num gold-glow">3</div>
+            <div class="step-content">
+              <h4>Scholarly Exchange</h4>
               <p>Once a peer accepts your request, connect via university-sanctioned channels.</p>
             </div>
           </div>
@@ -52,22 +43,26 @@
     </div>
 
     <!-- Right: Login Form -->
-    <div class="hero-right">
-      <div class="login-card">
-        <h2 class="card-title">Portal Login</h2>
-        <p class="card-subtitle">Authenticity is key. Please use your official university credentials.</p>
-
+    <div class="hero-right animate-in-staggered delay-2">
+      <div class="login-card glass-morphism">
+        <header class="card-header">
+          <h2 class="card-title">Portal Login</h2>
+          <p class="card-subtitle">Please authenticate using your university credentials.</p>
+        </header>
 
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
 
           <div class="field">
-            <label class="field-label" for="email">University Email</label>
+            <label class="field-label" for="email">
+              University Email
+              <span class="required-dot"></span>
+            </label>
             <div class="input-wrap">
               <span class="material-symbols-outlined input-icon">mail</span>
-              <input class="input-academic" id="email" type="email" [(ngModel)]="email" name="email"
+              <input class="input-premium" id="email" type="email" [(ngModel)]="email" name="email"
                 placeholder="student.name@liceo.edu.ph" required autocomplete="email" />
             </div>
-            <p class="field-hint">Must end with @liceo.edu.ph</p>
+            <p class="field-hint">Locked to @liceo.edu.ph domain</p>
           </div>
 
           <div class="field">
@@ -77,48 +72,54 @@
             </label>
             <div class="input-wrap">
               <span class="material-symbols-outlined input-icon">lock</span>
-              <input class="input-academic" id="password" [type]="showPassword ? 'text' : 'password'"
+              <input class="input-premium" id="password" [type]="showPassword ? 'text' : 'password'"
                 [(ngModel)]="password" name="password" placeholder="••••••••" required
                 autocomplete="current-password" />
-              <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+              <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" aria-label="Toggle password visibility">
                 <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
               </button>
             </div>
           </div>
 
           <div class="remember-row">
-            <label class="checkbox-label">
+            <label class="custom-checkbox">
               <input type="checkbox" [(ngModel)]="remember" name="remember" />
-              Remember session
+              <span class="checkmark"></span>
+              <span class="label-text">Remember session</span>
             </label>
           </div>
 
-          <button type="submit" class="btn-primary" [disabled]="loading || !loginForm.valid">
-            <span *ngIf="!loading">Enter Resource Hub</span>
-            <span *ngIf="loading" class="spinner"></span>
+          <button type="submit" class="btn-premium" [disabled]="loading || !loginForm.valid">
+            <span *ngIf="!loading" class="btn-content">
+              <span>Enter Resource Hub</span>
+              <span class="material-symbols-outlined">arrow_forward</span>
+            </span>
+            <span *ngIf="loading" class="spinner-premium"></span>
           </button>
 
         </form>
 
-        <p class="signup-link">
-          New student? <a routerLink="/register">Create an account</a>
-        </p>
+        <footer class="card-footer">
+          <p class="signup-link">
+            New student? <a routerLink="/register">Create an account</a>
+          </p>
 
-        <div class="card-footer-actions">
-          <button type="button" class="help-mini-btn" (click)="toggleHelp()">
-            <span class="material-symbols-outlined">help</span>
-            Need assistance?
-          </button>
-        </div>
+          <div class="card-footer-actions">
+            <button type="button" class="help-mini-btn" (click)="toggleHelp()">
+              <span class="material-symbols-outlined">support_agent</span>
+              Need assistance?
+            </button>
+          </div>
+        </footer>
       </div>
     </div>
 
   </main>
 
-  <!-- HELP MODAL -->
+  <!-- HELP MODAL (Simplified for this task) -->
   <div class="modal-overlay" *ngIf="showHelp" (click)="toggleHelp()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
+    <div class="modal-card premium-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header premium-header">
         <span class="material-symbols-outlined">help_center</span>
         <h3>Portal Help</h3>
         <button class="close-btn" (click)="toggleHelp()">
@@ -127,16 +128,16 @@
       </div>
       <div class="modal-body">
         <section>
-          <h4>Need an Account?</h4>
-          <p>Access is restricted to verified students. If you haven't registered yet, please use your <strong>@liceo.edu.ph</strong> email to create an account.</p>
+          <h4>Restricted Access</h4>
+          <p>This platform is exclusively for Liceo de Cagayan University students. Your account must be verified via the official university email system.</p>
         </section>
         <section>
-          <h4>Forgot Password?</h4>
-          <p>If you've lost access, use the "Forgot?" link in the password field to initiate a secure recovery via your university email.</p>
+          <h4>Secure Authentication</h4>
+          <p>We use industry-standard encryption for your credentials. If you experience issues, please reset your password via the link on the login page.</p>
         </section>
       </div>
       <div class="modal-footer">
-        <button class="btn-primary" (click)="toggleHelp()">Understood</button>
+        <button class="btn-premium" (click)="toggleHelp()">Understood</button>
       </div>
     </div>
   </div>

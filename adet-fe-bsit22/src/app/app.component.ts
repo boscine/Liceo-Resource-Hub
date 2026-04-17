@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';  
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { ToastComponent } from './shared/toast/toast.component';
 import { ThemeService }  from './core/services/theme.service';
 import { AuthService }   from './core/services/auth.service';
-import { filter }        from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-root',
@@ -25,10 +25,16 @@ export class AppComponent {
     this.themeService.syncAuthState(this.authService.isLoggedIn());
 
     // Watch for route changes to re-sync (in case of login/logout redirects)
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.themeService.syncAuthState(this.authService.isLoggedIn());
+    this.router.events.subscribe(event => {
+      // Diagnostic logging to track all navigation events
+      if (event && (event as any).url) {
+        console.log(`[Router] ${event.constructor.name}:`, (event as any).url, '| ID:', (event as any).id);
+      }
+      if ((event as any).reason) console.warn('[Router Cancel Reason]:', (event as any).reason);
+
+      if (event instanceof NavigationEnd) {
+        this.themeService.syncAuthState(this.authService.isLoggedIn());
+      }
     });
   }
 }

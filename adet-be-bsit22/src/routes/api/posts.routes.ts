@@ -1,32 +1,15 @@
 import { Hono } from 'hono';
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join, extname } from 'node:path';
-import { randomBytes } from 'node:crypto';
-import { AuthVariables } from '../middleware/auth.middleware';
-import prisma from '../lib/prisma';
-import { updateProfile, getProfile } from '../controllers/profile.controller';
+import { AuthVariables } from '../../middleware/auth.middleware';
+import prisma from '../../lib/prisma';
 import { zValidator } from '@hono/zod-validator';
-import { postSchema, updatePostSchema, profileSchema, reportSchema } from '../lib/validation';
-import { containsInappropriateContent } from '../lib/moderation';
+import { postSchema, updatePostSchema, reportSchema } from '../../lib/validation';
+import { containsInappropriateContent } from '../../lib/moderation';
+import { getTimeAgo } from '../../lib/utils';
 
-
-// Specify the Variables type so c.get('userId') works
 const router = new Hono<{ Variables: AuthVariables }>();
 
-function getTimeAgo(date: Date): string {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  if (seconds < 60) return 'Just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return date.toLocaleDateString();
-}
-
 // ── GET /api/v1/posts (Student Feed - Only show active) ────────────────────────
-router.get('/posts', async (c) => {
+router.get('/', async (c) => {
   try {
     const posts = await prisma.post.findMany({
       where: { 
@@ -63,40 +46,8 @@ router.get('/posts', async (c) => {
   }
 });
 
-// ── GET /api/v1/admin/posts (Admin Dashboard - Show EVERYTHING) ───────────────
-router.get('/admin/posts', async (c) => {
-  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
-  
-  try {
-    const posts = await prisma.post.findMany({
-      include: {
-        category: { select: { name: true } },
-        user: { select: { id: true, displayName: true } }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    const formattedPosts = posts.map(p => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      status: p.status.toUpperCase(),
-      category: p.category.name,
-      author: p.user.displayName,
-      authorId: p.user.id,
-      timeAgo: getTimeAgo(p.createdAt),
-      createdAt: p.createdAt,
-      isFlagged: p.isFlagged
-    }));
-
-    return c.json(formattedPosts);
-  } catch (error) {
-    return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
 // ── GET /api/v1/posts/:id ─────────────────────────────────────────────────────
-router.get('/posts/:id', async (c) => {
+router.get('/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId');
   const role = c.get('role');
@@ -154,151 +105,8 @@ router.get('/posts/:id', async (c) => {
   }
 });
 
-// ── GET /api/v1/categories ────────────────────────────────────────────────────
-router.get('/categories', async (c) => {
-  try {
-    const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' }
-    });
-    return c.json(categories);
-  } catch (error) {
-    return c.json({ message: 'Failed to fetch categories' }, 500);
-  }
-});
-
-// ── GET /api/v1/profile ───────────────────────────────────────────────────────
-router.get('/profile', getProfile);
-
-router.put('/profile', zValidator('json', profileSchema, (result, c) => {
-  if (!result.success) {
-    return c.json({ message: result.error.issues[0].message }, 400);
-  }
-}), updateProfile);
-
-// ── GET /api/v1/profile/:id (Public Profile View) ───────────────────────────
-router.get('/profile/:id', async (c) => {
-  const id = parseInt(c.req.param('id'), 10);
-  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
-
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        displayName: true,
-        email: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        contacts: { select: { type: true, value: true } },
-        posts: {
-          where: { 
-            AND: [
-              { status: 'open' },
-              { isFlagged: false }
-            ]
-          },
-          include: { category: { select: { name: true } } },
-          orderBy: { createdAt: 'desc' }
-        }
-      }
-    });
-
-    if (!user) return c.json({ message: 'User not found' }, 404);
-
-    // Hide profiles of restricted users
-    if (user.status !== 'active' && user.id !== c.get('userId') && c.get('role') !== 'admin') {
-       return c.json({ message: 'This account is restricted.' }, 403);
-    }
-
-    // Redact contact info for guests
-    if (!c.get('userId')) {
-      user.contacts = [];
-      user.email = ''; // Redact institutional email for unauthenticated visitors
-    }
-
-    const formattedPosts = user.posts.map(p => ({
-      id: p.id,
-      title: p.title,
-      status: p.status.toUpperCase(),
-      category: p.category.name,
-      timeAgo: getTimeAgo(p.createdAt),
-      createdAt: p.createdAt
-    }));
-
-    return c.json({
-      ...user,
-      posts: formattedPosts,
-      joinedDate: user.createdAt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-    });
-  } catch (error) {
-    console.error('Failed to fetch public profile:', error);
-    return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
-// ── GET /api/v1/admin/reports ───────────────────────────────────────────────
-router.get('/admin/reports', async (c) => {
-  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
-
-  try {
-    const reports = await prisma.postReport.findMany({
-      include: {
-        post: { select: { title: true } },
-        reporter: { select: { displayName: true } }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 20
-    });
-
-    const formatted = reports.map(r => ({
-      id: r.id,
-      postId: r.postId,
-      postTitle: r.post.title,
-      reportedBy: r.reporter.displayName,
-      reason: r.reason.toUpperCase().replace('_', ' '),
-      details: r.details,
-      status: r.status,
-      timeAgo: getTimeAgo(r.createdAt)
-    }));
-
-    return c.json(formatted);
-  } catch (error) {
-    console.error('Failed to fetch reports:', error);
-    return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
-// ── PUT /api/v1/admin/reports/:id ───────────────────────────────────────────
-router.put('/admin/reports/:id', async (c) => {
-  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
-
-  const id = parseInt(c.req.param('id'), 10);
-  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
-
-  try {
-    const body = await c.req.json();
-    const { status } = body;
-
-    const validStatuses = ['pending', 'reviewed', 'dismissed'];
-    if (!status || !validStatuses.includes(status)) {
-      return c.json({ message: 'Invalid status' }, 400);
-    }
-
-    const report = await prisma.postReport.update({
-      where: { id },
-      data: { status }
-    });
-
-    return c.json(report);
-  } catch (error) {
-    console.error('Failed to update report:', error);
-    return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
 // ── POST /api/v1/posts ────────────────────────────────────────────────────────
-router.post('/posts', zValidator('json', postSchema, (result, c) => {
+router.post('/', zValidator('json', postSchema, (result, c) => {
   if (!result.success) {
     return c.json({ message: result.error.issues[0].message }, 400);
   }
@@ -330,7 +138,6 @@ router.post('/posts', zValidator('json', postSchema, (result, c) => {
     }
 
     const catId = categoryId;
-
 
     const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
     if (!categoryExists) {
@@ -368,7 +175,7 @@ router.post('/posts', zValidator('json', postSchema, (result, c) => {
 });
 
 // ── PUT /api/v1/posts/:id (Supports Admin Moderation) ──────────────────────────
-router.put('/posts/:id', zValidator('json', updatePostSchema, (result, c) => {
+router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
   if (!result.success) {
     return c.json({ message: result.error.issues[0].message }, 400);
   }
@@ -398,7 +205,6 @@ router.put('/posts/:id', zValidator('json', updatePostSchema, (result, c) => {
     if ((title && containsInappropriateContent(title)) || (description && containsInappropriateContent(description))) {
       return c.json({ message: 'Scholarly Integrity Violation: Your updates contain inappropriate or unprofessional language prohibited by HUB standards.' }, 400);
     }
-
 
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) return c.json({ message: 'Post not found' }, 404);
@@ -496,7 +302,7 @@ router.put('/posts/:id', zValidator('json', updatePostSchema, (result, c) => {
 });
 
 // ── POST /api/v1/posts/:id/report (3+ Reports Auto-Flag) ─────────────────────
-router.post('/posts/:id/report', zValidator('json', reportSchema, (result, c) => {
+router.post('/:id/report', zValidator('json', reportSchema, (result, c) => {
   if (!result.success) {
     return c.json({ message: result.error.issues[0].message }, 400);
   }
@@ -557,7 +363,7 @@ router.post('/posts/:id/report', zValidator('json', reportSchema, (result, c) =>
 });
 
 // ── POST /api/v1/posts/bulk-delete (Highly Efficient) ──────────────────────
-router.post('/posts/bulk-delete', async (c) => {
+router.post('/bulk-delete', async (c) => {
   const userId = c.get('userId');
   const role = c.get('role');
   
@@ -618,7 +424,7 @@ router.post('/posts/bulk-delete', async (c) => {
 });
 
 // ── DELETE /api/v1/posts/:id (Supports Admin Override) ────────────────────────
-router.delete('/posts/:id', async (c) => {
+router.delete('/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId');
   const role = c.get('role');
@@ -653,8 +459,9 @@ router.delete('/posts/:id', async (c) => {
     return c.json({ message: 'Internal server error' }, 500);
   }
 });
+
 // ── POST /api/v1/posts/:id/cooperate (Offer Help) ──────────────────────────
-router.post('/posts/:id/cooperate', async (c) => {
+router.post('/:id/cooperate', async (c) => {
   const postId = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId'); 
   if (isNaN(postId) || !userId) return c.json({ message: 'Invalid request' }, 400);
@@ -686,7 +493,7 @@ router.post('/posts/:id/cooperate', async (c) => {
 });
 
 // ── POST /api/v1/posts/:id/save (Notify Author) ─────────────────────────────
-router.post('/posts/:id/save', async (c) => {
+router.post('/:id/save', async (c) => {
   const postId = parseInt(c.req.param('id'), 10);
   const userId = c.get('userId'); 
   if (isNaN(postId) || !userId) return c.json({ message: 'Invalid request' }, 400);
@@ -726,204 +533,6 @@ router.post('/posts/:id/save', async (c) => {
   } catch (error) {
     console.error('Failed to notify author on save:', error);
     return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
-// ── GET /api/v1/notifications ────────────────────────────────────────────────
-router.get('/notifications', async (c) => {
-  const userId = c.get('userId');
-  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
-
-  const limitParam = c.req.query('limit');
-  const limit = limitParam ? parseInt(limitParam, 10) : 20;
-
-  try {
-    const notifications = await prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: isNaN(limit) ? 20 : limit
-    });
-    
-    const formatted = notifications.map(n => ({
-      id: n.id,
-      icon: n.icon,
-      text: n.text,
-      time: getTimeAgo(n.createdAt),
-      read: n.read
-    }));
-
-    return c.json(formatted);
-  } catch (error) {
-    console.error('Failed to fetch notifications:', error);
-    return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
-// ── PUT /api/v1/notifications/:id/read ──────────────────────────────────────
-router.put('/notifications/:id/read', async (c) => {
-  const userId = c.get('userId');
-  const id = parseInt(c.req.param('id'), 10);
-  if (isNaN(id) || !userId) return c.json({ message: 'Invalid request' }, 400);
-
-  try {
-    await prisma.notification.updateMany({
-      where: { id, userId },
-      data: { read: true }
-    });
-    return c.json({ success: true });
-  } catch (error) {
-    return c.json({ message: 'Failed to update notification' }, 500);
-  }
-});
-
-// ── PUT /api/v1/notifications/mark-all-read ─────────────────────────────────
-router.put('/notifications/mark-all-read', async (c) => {
-  const userId = c.get('userId');
-  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
-
-  try {
-    await prisma.notification.updateMany({
-      where: { userId, read: false },
-      data: { read: true }
-    });
-    return c.json({ success: true });
-  } catch (error) {
-    return c.json({ message: 'Failed to update notifications' }, 500);
-  }
-});
-
-// ── DELETE /api/v1/notifications/:id ────────────────────────────────────────
-router.delete('/notifications/:id', async (c) => {
-  const userId = c.get('userId');
-  const id = parseInt(c.req.param('id'), 10);
-  if (isNaN(id) || !userId) return c.json({ message: 'Invalid request' }, 400);
-
-  try {
-    await prisma.notification.deleteMany({
-      where: { id, userId }
-    });
-    return c.json({ success: true });
-  } catch (error) {
-    console.error('Failed to delete notification:', error);
-    return c.json({ message: 'Failed to delete notification' }, 500);
-  }
-});
-
-// ── DELETE /api/v1/notifications/clear-all ──────────────────────────────────
-router.delete('/notifications/clear-all', async (c) => {
-  const userId = c.get('userId');
-  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
-
-  try {
-    await prisma.notification.deleteMany({
-      where: { userId }
-    });
-    return c.json({ success: true });
-  } catch (error) {
-    console.error('Failed to clear notifications:', error);
-    return c.json({ message: 'Failed to clear notifications' }, 500);
-  }
-});
-
-// ── GET /api/v1/admin/users (Admin Management) ─────────────────────────────
-router.get('/admin/users', async (c) => {
-  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
-
-  try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        displayName: true,
-        role: true,
-        status: true,
-        college: true,
-        createdAt: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    return c.json(users);
-  } catch (error) {
-    console.error('Failed to fetch users:', error);
-    return c.json({ message: 'Internal server error' }, 500);
-  }
-});
-
-// ── PUT /api/v1/admin/users/:id/status (Ban/Unban/Suspend) ──────────────────
-router.put('/admin/users/:id/status', async (c) => {
-  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
-
-  const id = parseInt(c.req.param('id'), 10);
-  if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
-
-  try {
-    const { status } = await c.req.json();
-    const validStatuses = ['active', 'pending', 'suspended', 'banned'];
-
-    if (!status || !validStatuses.includes(status)) {
-      return c.json({ message: 'Invalid scholarly status provided.' }, 400);
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: { status: status as any }
-    });
-
-    // Notify the user of status change (If they can even see notifications while banned/suspended?)
-    // Note: If they are NOT 'active', they are blocked by the middleware, but adding a record is good practice.
-    await prisma.notification.create({
-      data: {
-        userId: id,
-        icon: status === 'active' ? 'check_circle' : 'block',
-        text: `Institutional Status Update: Your account status has been changed to ${status.toUpperCase()}.`
-      }
-    });
-
-    return c.json({ message: `Account status updated to ${status}.`, user: updatedUser });
-  } catch (error) {
-    console.error('Failed to update user status:', error);
-    return c.json({ message: 'Internal server error during status modification.' }, 500);
-  }
-});
-
-// ── POST /api/v1/upload (Direct Image Upload) ────────────────────────────────
-router.post('/upload', async (c) => {
-  const userId = c.get('userId');
-  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
-
-  try {
-    const body = await c.req.parseBody();
-    const file = body['file'];
-
-    if (!file || typeof file === 'string') {
-      return c.json({ message: 'No file provided.' }, 400);
-    }
-
-    // ── Validation ────────────────────────────────────────────────────────────
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return c.json({ message: 'Invalid file type. Only JPEG, PNG, WebP, and GIF images are permitted.' }, 400);
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    if (arrayBuffer.byteLength > MAX_SIZE_BYTES) {
-      return c.json({ message: 'File exceeds the 5MB institutional archive limit.' }, 400);
-    }
-
-    // ── Persistence ───────────────────────────────────────────────────────────
-    const ext = extname(file.name) || '.jpg';
-    const uniqueName = `${randomBytes(16).toString('hex')}${ext}`;
-    const uploadDir = join(process.cwd(), 'public', 'api', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(join(uploadDir, uniqueName), Buffer.from(arrayBuffer));
-
-    return c.json({ url: `/api/uploads/${uniqueName}` }, 201);
-  } catch (error) {
-    console.error('Upload failed:', error);
-    return c.json({ message: 'Internal server error during upload.' }, 500);
   }
 });
 

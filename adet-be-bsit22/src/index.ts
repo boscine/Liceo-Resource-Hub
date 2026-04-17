@@ -5,7 +5,7 @@ import { cors } from 'hono/cors';
 import 'dotenv/config';
 
 import authRoutes from './routes/auth.routes';
-import apiRoutes from './routes/api.routes';
+import apiRoutes from './routes/api/index';
 import { verifyToken, AuthVariables } from './middleware/auth.middleware';
 
 const app = new Hono<{ Variables: AuthVariables }>();

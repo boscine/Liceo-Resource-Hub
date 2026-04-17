@@ -35,7 +35,7 @@ This document summarizes the functional requirements for the Liceo Resource Hub,
 *   Differentiate between student and admin roles.
     * [x] Status: Done
     * [x] Verification: Verified
-*   Allow unauthenticated guests to view the Curator's Guide and Feed cards, but not contact information.
+*   Allow unauthenticated guests to view the Institutional Portal (Privacy, Terms, Support) and Curator's Guide. Landing on the hub (Feed) requires an authenticated institutional account.
     * [x] Status: Done
     * [x] Verification: Verified
 

@@ -24,7 +24,7 @@ export class ProfileComponent implements OnInit {
   saving      = false;
   saved       = false;
   contactError = '';
-  contactTypes = ['messenger', 'phone', 'other'];
+  contactTypes = ['messenger', 'phone', 'telegram', 'whatsapp', 'instagram', 'viber', 'other'];
   
 
 

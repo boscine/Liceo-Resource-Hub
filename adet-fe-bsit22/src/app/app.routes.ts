@@ -3,36 +3,37 @@ import { Routes } from '@angular/router';
 import { AdminGuard } from './core/guards/admin.guard';
 import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/guest.guard';
+import { PublicPortalComponent } from './pages/public/public-portal.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'feed', pathMatch: 'full' },
+  {
+    path: 'public',
+    component: PublicPortalComponent
+  },
+  { path: '', redirectTo: '/public', pathMatch: 'full' },
   {
     path: 'login',
-    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
-    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
     path: 'verify',
-    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/verify').then(m => m.VerifyComponent)
   },
   {
     path: 'forgot-password',
-    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
   },
   {
     path: 'reset-password',
-    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
   },
   {
     path: 'feed',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/feed/feed.component').then(m => m.FeedComponent)
   },
   {
@@ -51,6 +52,7 @@ export const routes: Routes = [
   },
   {
     path: 'post/:id',
+    canActivate: [AuthGuard], // Protection for deep links
     loadComponent: () => import('./pages/student/post-detail/post-detail.component').then(m => m.PostDetailComponent)
   },
   {
@@ -78,9 +80,5 @@ export const routes: Routes = [
     path: 'profile/:id',
     loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
   },
-  {
-    path: 'portal',
-    loadComponent: () => import('./pages/institutional/institutional-portal.component').then(m => m.InstitutionalPortalComponent)
-  },
-  { path: '**', redirectTo: 'feed' }
+  { path: '**', redirectTo: '/public' }
 ];

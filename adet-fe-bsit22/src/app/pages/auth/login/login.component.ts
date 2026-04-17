@@ -47,7 +47,7 @@ export class LoginComponent {
         this.toast.success(`Welcome back, ${user?.display_name || 'Academic Curator'}!`);
         
         this.cdr.detectChanges();
-        this.router.navigate([this.isAdmin ? '/admin' : '/feed']);
+        this.router.navigate(['/feed']);
       },
       error: (err) => {
         this.loading = false;

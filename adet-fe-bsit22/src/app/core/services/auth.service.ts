@@ -52,20 +52,54 @@ export class AuthService {
     this.themeService.setLightMode();
   }
   getToken() { return localStorage.getItem(TOKEN_KEY); }
-  isLoggedIn() { return !!this.getToken(); }
 
-  forgotPassword(email: string) { return this.http.post('/api/auth/forgot-password', { email }); }
-  resetPassword(email: string, token: string, password: string) { return this.http.post('/api/auth/reset-password', { email, token, password }); }
+  /** Returns the raw token ONLY if it is valid and not expired. Use this for HTTP requests. */
+  getValidToken(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = jwtDecode<TokenPayload>(token);
+      if (payload.exp * 1000 < Date.now()) {
+        this.logout();
+        return null;
+      }
+      return token;
+    } catch {
+      this.logout();
+      return null;
+    }
+  }
+  isLoggedIn() {
+    return this.getDecodedToken() !== null;
+  }
 
   isAdmin(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-    try { return jwtDecode<TokenPayload>(token).role === 'admin'; } catch { return false; }
+    const payload = this.getDecodedToken();
+    return payload?.role === 'admin';
   }
 
   getUser(): TokenPayload | null {
+    return this.getDecodedToken();
+  }
+
+  private getDecodedToken(): TokenPayload | null {
     const token = this.getToken();
     if (!token) return null;
-    try { return jwtDecode<TokenPayload>(token); } catch { return null; }
+
+    try {
+      const payload = jwtDecode<TokenPayload>(token);
+      const isExpired = payload.exp * 1000 < Date.now();
+      if (isExpired) {
+        this.logout();
+        return null;
+      }
+      return payload;
+    } catch {
+      this.logout();
+      return null;
+    }
   }
+
+  forgotPassword(email: string) { return this.http.post('/api/auth/forgot-password', { email }); }
+  resetPassword(email: string, token: string, password: string) { return this.http.post('/api/auth/reset-password', { email, token, password }); }
 }
