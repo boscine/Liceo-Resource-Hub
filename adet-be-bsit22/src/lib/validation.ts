@@ -12,7 +12,8 @@ export const registerSchema = z.object({
     .regex(/^[a-zA-Z0-9._%+-]+@liceo\.edu\.ph$/, 'Only @liceo.edu.ph emails are permitted.')
     .toLowerCase(),
   password: z.string().min(8, 'Scholarly security requires at least 8 characters.'),
-  displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50)
+  displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
+  phone: z.string().min(10, 'Contact number is too short.').max(20)
 });
 
 export const verifySchema = z.object({
@@ -41,7 +42,8 @@ export const postSchema = z.object({
 
 export const updatePostSchema = postSchema.partial().extend({
   status: z.enum(['open', 'fulfilled', 'closed', 'removed']).optional(),
-  isFlagged: z.boolean().optional()
+  isFlagged: z.boolean().optional(),
+  moderationReason: z.string().max(255).optional()
 });
 
 export const profileSchema = z.object({

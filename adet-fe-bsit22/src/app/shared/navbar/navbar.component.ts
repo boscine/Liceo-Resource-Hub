@@ -1,8 +1,7 @@
-import { Component, OnInit, OnDestroy, HostListener, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
@@ -33,7 +32,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   constructor(
     private auth: AuthService, 
     private router: Router, 
-    private api: ApiService,
     private notifService: NotificationService
   ) {}
 

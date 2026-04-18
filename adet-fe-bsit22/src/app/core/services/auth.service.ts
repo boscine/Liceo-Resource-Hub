@@ -32,8 +32,8 @@ export class AuthService {
       }));
   }
 
-  register(email: string, password: string, displayName: string) {
-    return this.http.post<{ message: string; email: string }>('/api/auth/register', { email, password, displayName });
+  register(email: string, password: string, displayName: string, phone?: string) {
+    return this.http.post<{ message: string; email: string }>('/api/auth/register', { email, password, displayName, phone });
   }
 
   verify(email: string, code: string) {

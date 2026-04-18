@@ -1,5 +1,5 @@
 # MASTER_CONTEXT.md — Liceo Resource Hub
-> Unified session synchronization file. Last updated: 2026-04-17 (Auth Hardening & Revert)
+> Unified session synchronization file. Last updated: 2026-04-18 (Registration Hardening & Portal Refinement)
 
 ## 🏁 Getting Started & Installation
 
@@ -88,11 +88,17 @@ liceo-resource-hub/
 - **Institutional Standardization**: Unified `app-footer` and `app-navbar` across all portals (Auth, Student, Admin).
 - **Security & Moderation**: Integrated Zod validation layer, backend inappropriate content filter (V15), and auto-flagging report system.
 - **Auth Hardening**: Implemented JWT expiration validation in `AuthService` to prevent redirection loops and ensure session integrity across all guards.
-- **Public Scholarly Portal**: Fully redesigned Institutional Portal (Privacy, Terms, Support) with guest-enabled discovery and contact redaction.
-- **Institutional Purity**: Purged legacy database tables (`accounts`, `employees`, etc.) and sanitized the schema to focus exclusively on the Liceo Academic Hub.
-- **Portal Routing Optimization**: Resolved persistent footer clickability issues by transitioning to standard Angular `routerLink` directives and high-priority `z-index: 2000` layers. [7/7]
-- **Guest Access Hardening**: Restricted the feed to logged-in students only; guests now land exclusively on the informational Institutional Portal.
-- **Premium Login Redevelopment**: Implemented hardware-accelerated glassmorphism, responsive "Social Proof" badges, and optimized layout pacing for standard and compact viewports.
+- **Public Scholarly Portal**: Fully redesigned Institutional Portal with guest-enabled discovery, contact redaction, and minimalist document sections (purged legacy badges).
+- **Institutional Purity**: Purged legacy database tables and sanitized the schema to focus exclusively on the Liceo Academic Hub.
+- **Portal Routing Optimization**: Resolved persistent footer clickability issues and designated the Login portal as the primary institutional landing page.
+- **Guest Access Hardening**: Restricted the feed to logged-in students; unknown or root paths now direct to the scholarly authentication gateway.
+- **Premium Login Redevelopment**: Implemented hardware-accelerated glassmorphism, responsive badges, and optimized layout pacing.
+- **Registration Hardening**: Implemented mandatory institutional contact collection (phone) during onboarding, automatically creating verified peer-to-peer channels.
+- **Accountability Verification**: Implemented a state-of-the-art "Institutional Accountability" warning for users with missing contact methods.
+- **Admin Dashboard Hardening**: Resolved routing loops and broken links in the administrative portal; added formal redirects for `/admin` to `/admin/dashboard`.
+- **Moderation Justification**: Implemented a mandatory reason-based moderation workflow for flagging and removing posts, including author notifications.
+- **Registration Refinement**: Hardened onboarding with multi-error feedback summaries, streamlined fields (removed confirm password/reveal), and premium 'Academic Curator' input designs. [7/7]
+
 
 ## 6. Pending / Next Steps (⬜)
 1. ⬜ **Production Launch:** Deploy to Railway (BE+DB) and Netlify/Vercel (FE).

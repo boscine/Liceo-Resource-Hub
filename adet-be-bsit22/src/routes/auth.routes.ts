@@ -61,8 +61,8 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
 // POST /api/auth/register
 auth.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
-    const { email, password, displayName } = c.req.valid('json');
-
+    const { email, password, displayName, phone } = c.req.valid('json');
+    
     const emailLower = email.toLowerCase();
     const existing = await prisma.user.findUnique({ where: { email: emailLower } });
     if (existing) return c.json({ message: 'Email already registered' }, 409);
@@ -80,7 +80,13 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
         role: 'student', 
         status: 'pending',
         verificationToken,
-        verificationExpiresAt: expiresAt
+        verificationExpiresAt: expiresAt,
+        contacts: phone ? {
+          create: {
+            type: 'phone',
+            value: phone
+          }
+        } : undefined
       },
     });
 

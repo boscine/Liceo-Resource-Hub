@@ -83,6 +83,7 @@ export class PostCreateComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: () => {
+        this.hasContactInfo = false; // Assume no contacts if we can't fetch profile
         this.checkingProfile = false;
         this.cdr.detectChanges();
       }

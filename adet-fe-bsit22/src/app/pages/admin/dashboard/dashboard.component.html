@@ -128,4 +128,42 @@
 
   <app-footer></app-footer>
 
+  <!-- MODERATION REASON MODAL -->
+  <div class="editor-overlay" *ngIf="reasonModalOpen" (click)="cancelModeration()">
+    <div class="editor-modal reason-modal animate-modal" (click)="$event.stopPropagation()">
+      <div class="editor-header">
+        <div class="modal-handle"></div>
+        <h2 class="serif-italic">Action Justification</h2>
+        <button class="icon-btn close-btn" (click)="cancelModeration()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="editor-body">
+        <div class="action-alert" [class.remove]="moderationAction === 'remove'">
+          <span class="material-symbols-outlined">{{ moderationAction === 'flag' ? 'flag' : 'delete_forever' }}</span>
+          <div>
+            <strong>{{ moderationAction === 'flag' ? 'Flagging' : 'Removing' }} Request</strong>
+            <p>Provide a scholarly reason for this moderation action. This will be sent to the author.</p>
+          </div>
+        </div>
+
+        <div class="field mt-4">
+          <label class="field-label">Institutional Reason</label>
+          <textarea class="input-academic" [(ngModel)]="moderationReason" 
+            rows="4"></textarea>
+          <div class="field-hint">Maximum 255 characters.</div>
+        </div>
+      </div>
+
+      <div class="editor-footer">
+        <button class="btn-cancel" (click)="cancelModeration()">Abstain</button>
+        <button class="btn-primary" [disabled]="!moderationReason.trim()" (click)="submitModeration()">
+          <span>Commence {{ moderationAction === 'flag' ? 'Flagging' : 'Removal' }}</span>
+          <span class="material-symbols-outlined">gavel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

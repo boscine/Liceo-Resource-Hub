@@ -30,18 +30,46 @@
         </div>
 
         <!-- Missing Contact Info Warning -->
-        <div class="contact-warning" *ngIf="!checkingProfile && !hasContactInfo">
-          <div class="warning-header">
-            <span class="material-symbols-outlined warning-icon">account_circle_off</span>
-            <h2>Profile Incomplete</h2>
-          </div>
-          <p>Scholarly accountability requires at least one verified contact method (Messenger, Instagram, or Phone) to maintain active requests. Please update your profile to continue manages your scholarly archives.</p>
-          <div class="warning-actions">
-            <a routerLink="/profile" class="btn-primary">
-              <span class="material-symbols-outlined">edit_square</span>
-              Complete My Profile
-            </a>
-            <a routerLink="/feed" class="btn-cancel">Return to Feed</a>
+        <div class="contact-warning-premium" *ngIf="!checkingProfile && !hasContactInfo">
+          <div class="warning-glass-card">
+            <div class="institutional-seal">
+              <span class="material-symbols-outlined seal-icon">account_balance</span>
+              <div class="seal-badge">
+                <span class="material-symbols-outlined">security</span>
+              </div>
+            </div>
+            
+            <header class="warning-text-content">
+              <h2>Accountability <em class="serif-italic">Requirement</em></h2>
+              <p>To maintain the scholarly integrity of the Liceo Resource Hub, all active contributors must establish at least one verified institutional contact method.</p>
+            </header>
+
+            <div class="requirement-list">
+              <div class="req-item">
+                <span class="material-symbols-outlined">verified_user</span>
+                <div class="req-desc">
+                  <strong>Verification</strong>
+                  <span>Ensures peer-to-peer trust within the university.</span>
+                </div>
+              </div>
+              <div class="req-item">
+                <span class="material-symbols-outlined">handshake</span>
+                <div class="req-desc">
+                  <strong>Cooperation</strong>
+                  <span>Enables efficient exchange of academic materials.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="warning-actions-row">
+              <a routerLink="/profile" class="btn-primary-elevated">
+                <span class="material-symbols-outlined">person_add</span>
+                Establish Contacts
+              </a>
+              <a routerLink="/feed" class="btn-ghost">
+                Return to Repository
+              </a>
+            </div>
           </div>
         </div>
 

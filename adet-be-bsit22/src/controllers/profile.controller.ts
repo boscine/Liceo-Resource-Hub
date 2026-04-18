@@ -1,6 +1,5 @@
 import { Context } from 'hono';
 import prisma from '../lib/prisma';
-import { profileSchema } from '../lib/validation';
 
 export const getProfile = async (c: Context) => {
   // Use the 'userId' field set by our custom authenticate middleware

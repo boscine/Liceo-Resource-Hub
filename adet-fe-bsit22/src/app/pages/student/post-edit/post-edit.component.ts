@@ -141,6 +141,7 @@ export class PostEditComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: () => {
+        this.hasContactInfo = false;
         this.checkingProfile = false;
         this.cdr.detectChanges();
       }

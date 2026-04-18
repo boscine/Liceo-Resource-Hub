@@ -36,17 +36,16 @@ import { FooterComponent }   from '../../../shared/footer/footer.component';
         <form (ngSubmit)="onSubmit()" #rpForm="ngForm">
           <div class="field">
             <label class="field-label" for="pw">New Scholarly Password</label>
-            <input class="input-academic" id="pw" type="password" [(ngModel)]="password" name="pw" placeholder="••••••••" required minlength="8"/>
+            <input class="input-academic" id="pw" type="password" [(ngModel)]="password" name="pw" required minlength="8"/>
           </div>
 
           <div class="field">
             <label class="field-label" for="cpw">Confirm Password</label>
-            <input class="input-academic" id="cpw" type="password" [(ngModel)]="confirm" name="cpw" placeholder="••••••••" required/>
+            <input class="input-academic" id="cpw" type="password" [(ngModel)]="confirm" name="cpw" required/>
           </div>
 
           <button type="submit" class="btn-primary" [disabled]="loading || !rpForm.valid">
             <span *ngIf="!loading">Restore Access</span>
-            <span *ngIf="!loading" class="material-symbols-outlined">history_edu</span>
             <span *ngIf="loading" class="spinner"></span>
           </button>
         </form>

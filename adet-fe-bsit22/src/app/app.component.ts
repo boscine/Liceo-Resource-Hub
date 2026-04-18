@@ -34,6 +34,16 @@ export class AppComponent {
 
       if (event instanceof NavigationEnd) {
         this.themeService.syncAuthState(this.authService.isLoggedIn());
+
+        // EXCLUDE 'INSTITUTIONAL PORTALS' (/public, /curator-guide) FROM DEFAULT SCROLL RESET
+        // This ensures archival reading remains stable and internal smooth-scrolling 
+        // logic (if any) takes precedence over the global viewport refresh.
+        const excludedPaths = ['/public', '/curator-guide'];
+        const isExcluded = excludedPaths.some(p => event.urlAfterRedirects.startsWith(p));
+        
+        if (!isExcluded) {
+          window.scrollTo(0, 0);
+        }
       }
     });
   }

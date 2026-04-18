@@ -27,7 +27,6 @@ export class FeedComponent implements OnInit, OnDestroy {
   posts: any[] = [];
   user: any = {};
   isAdmin = false;
-  isNearBottom = false;
   isLoggedIn = false;
   viewMode: 'all' | 'saved' | 'requests' = 'all';
   
@@ -71,14 +70,6 @@ export class FeedComponent implements OnInit, OnDestroy {
   
   private postSub?: Subscription;
   private catSub?: Subscription;
-
-  @HostListener('window:scroll', [])
-  onWindowScroll() {
-    const threshold = 100; 
-    const position = window.innerHeight + window.scrollY;
-    const height = document.documentElement.scrollHeight;
-    this.isNearBottom = (position > (height - threshold));
-  }
 
   constructor(
     private api: ApiService,
@@ -398,12 +389,14 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.router.navigate(['/post', id, 'edit']);
   }
 
+  getSelectedPostPreviews() {
+    return this.posts.filter(p => this.selectedPosts.has(p.id));
+  }
+
   get paginatedPosts() {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.allFilteredPosts.slice(start, start + this.pageSize);
   }
-
-  get Math() { return Math; }
 
   get totalPages(): number {
     return Math.ceil(this.allFilteredPosts.length / this.pageSize) || 1;

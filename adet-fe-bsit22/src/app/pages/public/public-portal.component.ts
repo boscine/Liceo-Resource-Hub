@@ -27,6 +27,5 @@ export class PublicPortalComponent implements OnInit {
 
   setSection(section: 'privacy' | 'terms' | 'support') {
     this.currentSection = section;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

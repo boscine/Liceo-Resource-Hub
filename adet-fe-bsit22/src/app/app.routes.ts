@@ -10,13 +10,15 @@ export const routes: Routes = [
     path: 'public',
     component: PublicPortalComponent
   },
-  { path: '', redirectTo: '/public', pathMatch: 'full' },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
   {
     path: 'login',
+    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
+    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
@@ -50,6 +52,7 @@ export const routes: Routes = [
     canActivate: [AdminGuard],
     loadComponent: () => import('./pages/admin/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
+  { path: 'admin', redirectTo: 'admin/dashboard', pathMatch: 'full' },
   {
     path: 'post/:id',
     canActivate: [AuthGuard], // Protection for deep links
@@ -66,6 +69,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/posts/posts.component').then(m => m.PostsComponent)
   },
   {
+    path: 'admin/reports',
+    canActivate: [AdminGuard],
+    loadComponent: () => import('./pages/admin/reports/reports.component').then(m => m.ReportsComponent)
+  },
+  {
     path: 'notifications',
     canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/notifications/notifications.component').then(m => m.NotificationsComponent)
@@ -80,5 +88,5 @@ export const routes: Routes = [
     path: 'profile/:id',
     loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
   },
-  { path: '**', redirectTo: '/public' }
+  { path: '**', redirectTo: '/login' }
 ];

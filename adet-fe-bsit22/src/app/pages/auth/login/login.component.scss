@@ -128,13 +128,6 @@
   overflow: hidden;
   padding: 3.5rem;
   position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
-  }
 }
 
 .card-header {

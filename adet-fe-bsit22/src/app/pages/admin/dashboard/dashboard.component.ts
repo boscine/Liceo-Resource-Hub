@@ -21,6 +21,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   posts: any[] = [];
   urgentReports: any[] = [];
   loading = true;
+  
+  // Moderation Reason State
+  reasonModalOpen = false;
+  moderationReason = '';
+  moderationAction: 'flag' | 'remove' | null = null;
+  targetPostId: any = null;
 
   private postSub?: Subscription;
   private reportSub?: Subscription;
@@ -66,7 +72,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getFilteredPosts() {
     if (this.activeTab === 'FLAGGED') return this.posts.filter(p => !!p.isFlagged);
     if (this.activeTab === 'REMOVED') return this.posts.filter(p => p.status === 'REMOVED');
-    // For 'ALL POSTS', excluding removed but showing everything else (open, fulfilled, flagged)
     return this.posts.filter(p => p.status !== 'REMOVED');
   }
 
@@ -74,11 +79,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.api.put(`/posts/${id}`, { isFlagged: false, status: 'open' }).subscribe(() => this.postService.getAdminPosts());
   }
 
-  flagPost(id: any) {
-    this.api.put(`/posts/${id}`, { isFlagged: true }).subscribe(() => this.postService.getAdminPosts());
+  // --- Moderation Flow ---
+
+  confirmModeration(id: any, action: 'flag' | 'remove') {
+    this.targetPostId = id;
+    this.moderationAction = action;
+    this.moderationReason = '';
+    this.reasonModalOpen = true;
   }
 
-  removePost(id: any) {
-    this.api.put(`/posts/${id}`, { status: 'removed' }).subscribe(() => this.postService.getAdminPosts());
+  cancelModeration() {
+    this.reasonModalOpen = false;
+    this.moderationReason = '';
+    this.targetPostId = null;
+    this.moderationAction = null;
   }
+
+  submitModeration() {
+    if (!this.targetPostId || !this.moderationAction) return;
+
+    const payload: any = { moderationReason: this.moderationReason };
+    if (this.moderationAction === 'flag') payload.isFlagged = true;
+    if (this.moderationAction === 'remove') payload.status = 'removed';
+
+    this.api.put(`/posts/${this.targetPostId}`, payload).subscribe({
+      next: () => {
+        this.postService.getAdminPosts();
+        this.cancelModeration();
+      },
+      error: (err) => {
+        console.error('Moderation failed:', err);
+      }
+    });
+  }
+
+  // Legacy stubs for existing templates if needed, but better to call confirmModeration
+  flagPost(id: any) { this.confirmModeration(id, 'flag'); }
+  removePost(id: any) { this.confirmModeration(id, 'remove'); }
 }

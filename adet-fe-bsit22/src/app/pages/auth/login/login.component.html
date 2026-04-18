@@ -5,10 +5,7 @@
     <!-- Left: Branding -->
     <div class="hero-left">
       <div class="hero-left-content animate-in-staggered">
-        <span class="badge premium-badge">
-          <span class="material-symbols-outlined">verified_user</span>
-          Official Institutional Portal
-        </span>
+
         <h1 class="hero-title serif-italic">A University Material <br><span class="text-gold">Request Platform</span></h1>
         <p class="hero-desc">Designed exclusively for Liceo de Cagayan University students. Streamlining access to
           academic resources through a curated, peer-to-peer exchange ecosystem.</p>
@@ -18,21 +15,21 @@
         <h2 class="serif-italic section-title">The Academic Journey</h2>
         <div class="steps">
           <div class="step">
-            <div class="step-num gold-glow">1</div>
+            <div class="step-num">1</div>
             <div class="step-content">
               <h4>Secure Registration</h4>
               <p>Security first. Use your official @liceo.edu.ph email to verify your student status.</p>
             </div>
           </div>
           <div class="step">
-            <div class="step-num gold-glow">2</div>
+            <div class="step-num">2</div>
             <div class="step-content">
               <h4>Resource Curation</h4>
               <p>Books, lab gowns, or drafting tools — create a request with specific details.</p>
             </div>
           </div>
           <div class="step">
-            <div class="step-num gold-glow">3</div>
+            <div class="step-num">3</div>
             <div class="step-content">
               <h4>Scholarly Exchange</h4>
               <p>Once a peer accepts your request, connect via university-sanctioned channels.</p>
@@ -60,7 +57,7 @@
             <div class="input-wrap">
               <span class="material-symbols-outlined input-icon">mail</span>
               <input class="input-premium" id="email" type="email" [(ngModel)]="email" name="email"
-                placeholder="student.name@liceo.edu.ph" required autocomplete="email" />
+                required autocomplete="email" />
             </div>
             <p class="field-hint">Locked to @liceo.edu.ph domain</p>
           </div>
@@ -73,7 +70,7 @@
             <div class="input-wrap">
               <span class="material-symbols-outlined input-icon">lock</span>
               <input class="input-premium" id="password" [type]="showPassword ? 'text' : 'password'"
-                [(ngModel)]="password" name="password" placeholder="••••••••" required
+                [(ngModel)]="password" name="password" required
                 autocomplete="current-password" />
               <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" aria-label="Toggle password visibility">
                 <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
@@ -92,7 +89,6 @@
           <button type="submit" class="btn-premium" [disabled]="loading || !loginForm.valid">
             <span *ngIf="!loading" class="btn-content">
               <span>Enter Resource Hub</span>
-              <span class="material-symbols-outlined">arrow_forward</span>
             </span>
             <span *ngIf="loading" class="spinner-premium"></span>
           </button>

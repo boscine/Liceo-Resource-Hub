@@ -57,58 +57,68 @@
           </div>
         </aside>
 
-        <!-- MAIN CONTENT: Edit Profile -->
-        <div class="profile-content animate-in-right">
-          <header class="content-header">
-            <h2>Profile Settings</h2>
-            <p>Curate your public identity and institutional reachability channels.</p>
-          </header>
+          <!-- MAIN CONTENT: Edit Profile -->
+          <div class="profile-content animate-in-right">
+            <header class="content-header">
+              <h2>Profile Settings</h2>
+              <p>Curate your public identity and institutional reachability channels.</p>
+            </header>
 
-          <form (ngSubmit)="onSave()" #profileForm="ngForm" class="edit-form">
-            
             <!-- SECTION 1: Identity -->
-            <section class="form-section">
-              <div class="section-title">
-                <span class="material-symbols-outlined">badge</span>
-                Identity
-              </div>
-
-              <div class="field">
-                <label class="field-label" for="displayName">Scholarly Display Name</label>
-                <div class="input-wrap">
-                  <span class="material-symbols-outlined input-icon">person_edit</span>
-                  <input class="input-academic" id="displayName" type="text"
-                    [(ngModel)]="displayName" name="displayName"
-                    placeholder="Enter your name..."/>
+            <form (ngSubmit)="onSave()" #profileForm="ngForm" class="edit-form">
+              <section class="form-section">
+                <div class="section-title">
+                  <span class="material-symbols-outlined">badge</span>
+                  Identity
                 </div>
-                <p class="error-text small" *ngIf="validationErrors.displayName">{{ validationErrors.displayName[0] }}</p>
-              </div>
 
-
-
-              <div class="field disabled">
-                <label class="field-label">Institutional Email</label>
-                <div class="input-wrap">
-                  <span class="material-symbols-outlined input-icon">mail_lock</span>
-                  <input class="input-academic" [value]="email" readonly disabled />
+                <div class="field">
+                  <label class="field-label" for="displayName">Scholarly Display Name</label>
+                  <div class="input-wrap">
+                    <span class="material-symbols-outlined input-icon">person_edit</span>
+                    <input class="input-academic" id="displayName" type="text"
+                      [(ngModel)]="displayName" name="displayName"
+                      placeholder="Enter your name..."/>
+                  </div>
+                  <p class="error-text small" *ngIf="validationErrors.displayName">{{ validationErrors.displayName[0] }}</p>
                 </div>
-                <p class="field-hint">Your university-issued email cannot be altered.</p>
-              </div>
-            </section>
 
-            <!-- SECTION 2: Reachability -->
-            <section class="form-section">
+                <div class="field disabled">
+                  <label class="field-label">Institutional Email</label>
+                  <div class="input-wrap">
+                    <span class="material-symbols-outlined input-icon">mail_lock</span>
+                    <input class="input-academic" [value]="email" readonly disabled />
+                  </div>
+                  <p class="field-hint">Your university-issued email cannot be altered.</p>
+                </div>
+
+                <div class="form-actions mt-4">
+                  <button type="submit" class="btn-primary" [disabled]="saving">
+                    <span *ngIf="!saving">{{ saved ? 'Identity Secured' : 'Update Identity' }}</span>
+                    <span *ngIf="saving" class="spinner-small"></span>
+                    <span class="material-symbols-outlined" *ngIf="!saving">{{ saved ? 'verified' : 'save' }}</span>
+                  </button>
+                </div>
+              </section>
+            </form>
+
+            <!-- SECTION 2: Reachability (Separated & Auto-saving) -->
+            <section class="form-section reachability-section">
               <div class="section-top">
                 <div class="section-title">
                   <span class="material-symbols-outlined">connect_without_contact</span>
                   Institutional Reachability
+                  <span class="sync-status" *ngIf="contactSaving">
+                    <span class="spinner-tiny"></span>
+                    Syncing...
+                  </span>
                 </div>
-                <p class="section-subtitle">How should peers connect with you regarding resource exchanges?</p>
+                <p class="section-subtitle">How should peers connect with you regarding resource exchanges? <b>Changes are saved automatically.</b></p>
               </div>
 
               <!-- Contact Methods List -->
               <div class="contacts-grid" *ngIf="contacts.length > 0">
-                <div class="contact-card" *ngFor="let c of contacts; let i = index">
+                <div class="contact-card" *ngFor="let c of contacts; let i = index" [class.syncing]="contactSaving">
                   <div class="card-icon-wrap" [attr.data-type]="c.type">
                     <span class="material-symbols-outlined">
                       {{ 
@@ -125,7 +135,7 @@
                     <span class="card-type">{{ c.type }}</span>
                     <span class="card-val">{{ c.value }}</span>
                   </div>
-                  <button type="button" class="card-remove" (click)="removeContact(i)" aria-label="Remove contact method">
+                  <button type="button" class="card-remove" (click)="removeContact(i)" aria-label="Remove contact method" [disabled]="contactSaving">
                     <span class="material-symbols-outlined">delete_outline</span>
                   </button>
                 </div>
@@ -167,12 +177,13 @@
                           newContact.type === 'telegram' ? '@username' : 
                           newContact.type === 'instagram' ? '@username' : 
                           'Enter handle...'
-                        " (keyup.enter)="addContact()"/>
+                        " (keyup.enter)="addContact()" [disabled]="contactSaving"/>
                     </div>
                   </div>
-                  <button type="button" class="btn-add-method" (click)="addContact()" [disabled]="!newContact.value">
-                    <span class="material-symbols-outlined">add</span>
-                    Connect
+                  <button type="button" class="btn-add-method" (click)="addContact()" [disabled]="!newContact.value || contactSaving">
+                    <span *ngIf="!contactSaving" class="material-symbols-outlined">add</span>
+                    <span *ngIf="contactSaving" class="spinner-small"></span>
+                    {{ contactSaving ? 'Syncing...' : 'Connect' }}
                   </button>
                 </div>
                 <p class="error-text-mini" *ngIf="contactError">
@@ -181,18 +192,7 @@
                 </p>
               </div>
             </section>
-
-            <!-- FORM ACTIONS -->
-            <div class="form-actions">
-              <button type="submit" class="btn-primary" [disabled]="saving">
-                <span *ngIf="!saving">{{ saved ? 'Identity Secured' : 'Sync Changes' }}</span>
-                <span *ngIf="saving" class="spinner-small"></span>
-                <span class="material-symbols-outlined" *ngIf="!saving">{{ saved ? 'verified' : 'sync' }}</span>
-              </button>
-            </div>
-
-          </form>
-        </div>
+          </div>
 
       </div>
     </div>

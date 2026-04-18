@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef }    from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { AuthService }  from '../../../core/services/auth.service';
 
 import { FooterComponent }   from '../../../shared/footer/footer.component';
@@ -21,8 +21,7 @@ export class ForgotPasswordComponent {
 
   constructor(
     private auth: AuthService, 
-    private cdr: ChangeDetectorRef,
-    private router: Router
+    private cdr: ChangeDetectorRef
   ) {}
 
   onSubmit() {

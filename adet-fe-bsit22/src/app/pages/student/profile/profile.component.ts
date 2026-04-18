@@ -23,10 +23,10 @@ export class ProfileComponent implements OnInit {
   
   saving      = false;
   saved       = false;
+  contactSaving = false;
   contactError = '';
   contactTypes = ['messenger', 'phone', 'telegram', 'whatsapp', 'instagram', 'viber', 'other'];
   
-
 
   initialDisplayName = '';
   initialContactsStr = '';
@@ -72,7 +72,34 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  syncContacts() {
+    this.contactSaving = true;
+    this.api.put('/profile', { 
+      // Use initialDisplayName so name changes remain manual/intentional
+      displayName: this.initialDisplayName, 
+      contacts: this.contacts
+    }).subscribe({
+      next: (res: any) => {
+        this.contactSaving = false;
+        if (res?.user) {
+          this.contacts = [...res.user.contacts];
+        }
+        this.initialContactsStr = JSON.stringify(this.contacts);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.contactSaving = false;
+        const msg = err?.error?.message || 'Failed to sync contact changes.';
+        this.toast.error(msg);
+        // Rollback or refresh on error?
+        this.fetchProfile();
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   addContact() {
+    if (this.contactSaving) return;
     this.contactError = '';
     let val = this.newContact.value?.trim();
     if (!val) return;
@@ -83,7 +110,6 @@ export class ProfileComponent implements OnInit {
     }
 
     if (this.newContact.type === 'messenger') {
-      // Improved logic: only prefix if it's a simple username/ID
       if (!val.includes('/') && !val.includes('.') && !val.startsWith('http')) {
         val = `m.me/${val}`;
       }
@@ -115,24 +141,26 @@ export class ProfileComponent implements OnInit {
     this.contacts.push({ type: this.newContact.type, value: val });
     this.newContact = { type: 'messenger', value: '' };
     this.contactError = '';
+    
+    this.syncContacts();
     this.cdr.detectChanges();
   }
 
   removeContact(i: number) {
+    if (this.contactSaving) return;
     this.contacts.splice(i, 1);
+    this.syncContacts();
     this.cdr.detectChanges();
   }
 
   onSave() {
     if (this.saving) return;
     this.validationErrors = {};
-    const currentContactsStr = JSON.stringify(this.contacts);
     
     const hasDisplayNameChanged = this.displayName.trim() !== this.initialDisplayName.trim();
-    const hasContactsChanged    = currentContactsStr !== this.initialContactsStr;
 
-    if (!hasDisplayNameChanged && !hasContactsChanged) {
-      this.toast.info('No changes were made to your profile.');
+    if (!hasDisplayNameChanged) {
+      this.toast.info('No changes were made to your identity.');
       return;
     }
 
@@ -144,16 +172,13 @@ export class ProfileComponent implements OnInit {
       next: (res: any) => {
         this.saving = false;
         this.saved = true;
-        this.toast.success('Your profile changes have been secured.');
+        this.toast.success('Your scholastic identity has been updated.');
         
         if (res?.user) {
           this.displayName = res.user.displayName;
-          this.contacts = [...res.user.contacts];
+          this.initialDisplayName = this.displayName;
         }
 
-        this.initialDisplayName = this.displayName;
-        this.initialContactsStr = JSON.stringify(this.contacts);
-        
         setTimeout(() => {
           this.saved = false;
           this.cdr.detectChanges();
@@ -166,7 +191,7 @@ export class ProfileComponent implements OnInit {
           this.validationErrors = err.error.errors;
           this.toast.error('Validation failed. Please check the highlighted fields.');
         } else {
-          const msg = err?.error?.message || 'Failed to sync profile changes.';
+          const msg = err?.error?.message || 'Failed to sync identity changes.';
           this.toast.error(msg);
         }
         this.cdr.detectChanges();

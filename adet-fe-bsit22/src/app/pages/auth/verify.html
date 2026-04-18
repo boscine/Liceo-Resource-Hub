@@ -10,12 +10,11 @@
   
       <form (ngSubmit)="onSubmit()" class="verify-form">
         <div class="code-field">
-          <input type="text" [(ngModel)]="code" name="code" class="v-input" placeholder="000...0" maxlength="6" autofocus required />
+          <input type="text" [(ngModel)]="code" name="code" class="v-input" maxlength="6" autofocus required />
         </div>
         
         <button type="submit" class="btn-primary" [disabled]="loading || code.length < 6">
           <span *ngIf="!loading">Verify Identity</span>
-          <span *ngIf="!loading" class="material-symbols-outlined">shield_person</span>
           <span *ngIf="loading" class="spinner"></span>
         </button>
       </form>

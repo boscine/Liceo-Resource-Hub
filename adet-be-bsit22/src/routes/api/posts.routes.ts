@@ -187,7 +187,7 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 
   try {
-    const { title, categoryId, description, imageUrl, status, isFlagged } = c.req.valid('json');
+    const { title, categoryId, description, imageUrl, status, isFlagged, moderationReason } = c.req.valid('json');
     const userIdNum = Number(userId);
 
     // ── Contact Info Check ──────────────────────────────────────────
@@ -280,6 +280,11 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
       } else if (flagChanged && updatedPost.isFlagged) {
         notifText = `Your request "${updatedPost.title}" is currently under moderation review.`;
         notifIcon = 'flag';
+      }
+
+      // Append reason if provided by admin
+      if (moderationReason && role === 'admin' && (flagChanged || statusChanged)) {
+        notifText += ` Reason: ${moderationReason}`;
       }
 
       await prisma.notification.create({
