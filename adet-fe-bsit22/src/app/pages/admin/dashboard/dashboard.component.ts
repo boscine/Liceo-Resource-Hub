@@ -86,6 +86,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // --- Moderation Flow ---
 
+  resolveReport(id: any) {
+    this.api.put(`/admin/reports/${id}`, { status: 'reviewed' }).subscribe({
+      next: () => {
+        this.postService.getAdminReports();
+      },
+      error: (err) => {
+        console.error('Failed to resolve report:', err);
+      }
+    });
+  }
+
   confirmModeration(id: any, action: 'flag' | 'remove') {
     this.targetPostId = id;
     this.moderationAction = action;
