@@ -3,8 +3,15 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 /**
- * Uses Gemini AI to analyze if the post content is appropriate for the Liceo Resource Hub.
- * Returns { isAppropriate: boolean, reason?: string }
+ * Scholarly AI Moderation Module
+ * 
+ * CORE ALGORITHM: 
+ * 1. Zero-Shot Prompting: Sends post metadata to Google Gemini 1.5 Flash.
+ * 2. Institutional Constraint Mapping: Evaluates content against 3 academic pillars:
+ *    - Linguistic Professionalism (No profanity)
+ *    - Academic Relevance (Resource-sharing focus)
+ *    - Community Safety (No harassment)
+ * 3. JSON Serialization: Forces a structured response for programmatic decision-making.
  */
 export async function analyzePostContent(title: string, description: string) {
   if (!process.env.GEMINI_API_KEY) {

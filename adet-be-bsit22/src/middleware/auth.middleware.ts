@@ -7,6 +7,15 @@ export type AuthVariables = {
   role?: string;
 };
 
+/**
+ * Institutional Authentication Middleware
+ * 
+ * ARCHITECTURE:
+ * - Layer 1 (Transport): Intercepts Bearer tokens from the Authorization header.
+ * - Layer 2 (Verification): Decodes JWT using the Liceo-proprietary RSA/HS256 secret.
+ * - Layer 3 (Database Sync): Performs a real-time check of the user status (Active vs. Suspended).
+ * - Layer 4 (Role Injection): Securely attaches the userId and role to the Hono context.
+ */
 export const authenticate = async (c: Context, next: Next) => {
   const authHeader = c.req.header('Authorization');
   

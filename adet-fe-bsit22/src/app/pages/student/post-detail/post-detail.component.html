@@ -177,7 +177,7 @@
 
   <!-- Scholarly Image Viewer (Lightbox) -->
   <div class="lightbox-overlay" *ngIf="isImageViewerOpen" (click)="toggleImageViewer()">
-    <button class="lightbox-close" (click)="toggleImageViewer()">
+    <button class="lightbox-close" (click)="toggleImageViewer(); $event.stopPropagation()">
       <span class="material-symbols-outlined">close</span>
     </button>
     <div class="lightbox-content" (click)="$event.stopPropagation()">
