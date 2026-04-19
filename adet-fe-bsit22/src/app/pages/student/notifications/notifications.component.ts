@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/footer/footer.component';
 import { NotificationService, Notification } from '../../../core/services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -14,27 +15,80 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./notifications.component.scss']
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
+  allNotifications: Notification[] = [];
   notifications: Notification[] = [];
   loading = true;
-  private sub?: Subscription;
+  unreadCount = 0;
+  filterModes: ('all' | 'resolved' | 'saved')[] = ['all'];
+  sidebarOpen = false;
+  
+  private subs = new Subscription();
+  
+  constructor(
+    private notifService: NotificationService, 
+    private auth: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  constructor(private notifService: NotificationService) {}
-
-  ngOnInit(): void {
-    // We want more than 20 if we are on the dedicated page
-    this.notifService.refresh(100);
-    
-    this.sub = this.notifService.notifications$.subscribe(data => {
-      this.notifications = data;
-    });
-
-    this.notifService.loading$.subscribe(loading => {
-      this.loading = loading;
-    });
+  toggleSidebar(): void { 
+    this.sidebarOpen = !this.sidebarOpen; 
   }
 
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
+  }
+
+  ngOnInit(): void {
+    this.notifService.refresh(100);
+    
+    this.subs.add(this.notifService.notifications$.subscribe(data => {
+      this.allNotifications = data;
+      this.applyFilter();
+      this.unreadCount = data.filter(n => !n.read).length;
+      this.cdr.detectChanges();
+    }));
+
+    this.subs.add(this.notifService.loading$.subscribe(loading => {
+      this.loading = loading;
+      this.cdr.detectChanges();
+    }));
+  }
+
+  setFilter(mode: 'all' | 'resolved' | 'saved'): void {
+    if (mode === 'all') {
+      this.filterModes = ['all'];
+    } else {
+      const index = this.filterModes.indexOf(mode);
+      if (index > -1) {
+        this.filterModes.splice(index, 1);
+        if (this.filterModes.length === 0) this.filterModes = ['all'];
+      } else {
+        const allIndex = this.filterModes.indexOf('all');
+        if (allIndex > -1) this.filterModes.splice(allIndex, 1);
+        this.filterModes.push(mode);
+      }
+    }
+    this.applyFilter();
+  }
+
+  private applyFilter(): void {
+    if (this.filterModes.includes('all')) {
+      this.notifications = this.allNotifications;
+    } else {
+      this.notifications = this.allNotifications.filter(n => {
+        let match = false;
+        if (this.filterModes.includes('resolved') && n.type === 'resolved') match = true;
+        if (this.filterModes.includes('saved') && n.isSaved) match = true;
+        return match;
+      });
+    }
+  }
+
+  toggleStar(e: Event, n: Notification): void {
+    e.stopPropagation();
+    this.notifService.toggleSave(n.id);
   }
 
   markAsRead(n: Notification): void {
@@ -50,9 +104,33 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.notifService.delete(id);
   }
 
+  archiving = false;
+  showConfirmModal = false;
+
+  openConfirmModal(): void {
+    this.showConfirmModal = true;
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+  }
+
+  executeArchiveAll(): void {
+    this.showConfirmModal = false;
+    this.archiving = true;
+    this.notifService.clearAll();
+    
+    setTimeout(() => {
+      this.archiving = false;
+      this.cdr.detectChanges();
+    }, 1500);
+  }
+
   clearAll(): void {
-    if (confirm('Are you sure you want to clear your scholarly dispatch inbox?')) {
-      this.notifService.clearAll();
-    }
+    this.openConfirmModal();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 }

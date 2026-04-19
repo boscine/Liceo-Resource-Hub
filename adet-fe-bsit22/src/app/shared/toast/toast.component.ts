@@ -28,43 +28,59 @@ import { ToastService } from '../../core/services/toast.service';
       position: fixed;
       top: 1.5rem;
       right: 1.5rem;
-      z-index: 9999;
+      z-index: 10001; /* Above modas and nav */
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
       max-width: 400px;
+      pointer-events: none; /* Allow clicking through container */
+
+      @media (max-width: 600px) {
+        bottom: 1.5rem;
+        left: 1rem;
+        right: 1rem;
+        top: auto;
+        max-width: none;
+      }
     }
 
     .toast {
+      pointer-events: auto; /* Re-enable clicks for actual toasts */
       display: flex;
       align-items: center;
       gap: 1rem;
-      padding: 1rem 1.25rem;
+      padding: 1.1rem 1.4rem;
       background: #ffffff;
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-      border-left: 4px solid var(--primary);
+      border-radius: 1rem;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--outline-variant);
+      border-left: 5px solid var(--primary);
       cursor: pointer;
-      animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
       transition: transform 0.2s, opacity 0.2s;
 
-      &:hover {
-        transform: translateY(-2px);
+      &:active {
+        transform: scale(0.98);
+      }
+
+      @media (max-width: 600px) {
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
       }
 
       &.error {
-        border-left-color: #ba1a1a;
-        .material-symbols-outlined:first-child { color: #ba1a1a; }
+        border-left-color: var(--error);
+        .material-symbols-outlined:first-child { color: var(--error); }
       }
 
       &.success {
-        border-left-color: #2e7d32;
-        .material-symbols-outlined:first-child { color: #2e7d32; }
+        border-left-color: var(--success);
+        .material-symbols-outlined:first-child { color: var(--success); }
       }
 
       &.info {
-        border-left-color: #c5a021;
-        .material-symbols-outlined:first-child { color: #c5a021; }
+        border-left-color: var(--secondary);
+        .material-symbols-outlined:first-child { color: var(--secondary); }
       }
 
       .material-symbols-outlined {
@@ -96,8 +112,22 @@ import { ToastService } from '../../core/services/toast.service';
     }
 
     @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (min-width: 601px) {
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    }
+    
+    @media (max-width: 600px) {
+      @keyframes slideIn {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
     }
   `]
 })

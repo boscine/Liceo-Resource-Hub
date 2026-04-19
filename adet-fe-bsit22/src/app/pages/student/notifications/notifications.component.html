@@ -1,71 +1,110 @@
 <div class="portal-wrapper">
-  <app-navbar [active]="''"></app-navbar>
+  <app-navbar [active]="''" [showMenuButton]="true" (menuClick)="toggleSidebar()"></app-navbar>
 
   <div class="portal-layout">
     
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+
     <!-- Portal Sidebar -->
-    <aside class="portal-sidebar">
+    <aside class="portal-sidebar" [class.open]="sidebarOpen">
+      <button class="sidebar-close-btn" (click)="toggleSidebar()" *ngIf="sidebarOpen">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
       <a routerLink="/feed" class="breadcrumb-back">
         <span class="material-symbols-outlined">arrow_back</span>
         Return to Feed
       </a>
 
-      <div class="sidebar-header">
-        <h2 class="serif-italic">Dispatch Inbox</h2>
-      </div>
+      <!-- Sidebar header removed per institutional request -->
 
       <nav class="portal-nav">
-        <a class="nav-item active">
+        <a class="nav-item" [class.active]="filterModes.includes('all')" (click)="setFilter('all')">
           <span class="material-symbols-outlined">inbox</span>
           All Notifications
+          <span class="count-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
         </a>
-        <a class="nav-item disabled">
+        <a class="nav-item" [class.active]="filterModes.includes('resolved')" (click)="setFilter('resolved')">
           <span class="material-symbols-outlined">check_circle</span>
           Resolved
-          <span class="soon-badge">Soon</span>
+          <span class="type-count-badge" *ngIf="filterModes.includes('resolved')">{{ notifications.length }}</span>
         </a>
-        <a class="nav-item disabled">
+        <a class="nav-item" [class.active]="filterModes.includes('saved')" (click)="setFilter('saved')">
           <span class="material-symbols-outlined">bookmark</span>
           Saved Alerts
-          <span class="soon-badge">Soon</span>
+          <span class="type-count-badge" *ngIf="filterModes.includes('saved')">{{ notifications.length }}</span>
         </a>
+
+        <!-- Mobile Only Account Actions -->
+        <div class="mobile-only-actions">
+          <div class="sidebar-divider"></div>
+          <p class="sidebar-label">Account Management</p>
+          <a routerLink="/profile" (click)="sidebarOpen = false;" class="nav-item">
+            <span class="material-symbols-outlined">account_circle</span>
+            Your Profile
+          </a>
+          <a (click)="logout()" class="nav-item logout-link">
+            <span class="material-symbols-outlined">logout</span>
+            Disconnect
+          </a>
+        </div>
       </nav>
 
       <div class="portal-info">
         <span class="material-symbols-outlined">info</span>
-        <p>You can manually archive dispatches to maintain institutional clarity and a clutter-free scholarly environment.</p>
+        <p *ngIf="filterModes.includes('all') && filterModes.length === 1">You can manually purge dispatches to maintain institutional clarity. (Pinned items excluded).</p>
+        <p *ngIf="filterModes.includes('resolved') && filterModes.length === 1">These are notifications regarding completed scholarly cooperation or fulfilled requests.</p>
+        <p *ngIf="filterModes.includes('saved') && filterModes.length === 1">Your personally bookmarked dispatches for ongoing institutional reference.</p>
+        <p *ngIf="filterModes.length > 1">Showing filtered scholarly dispatch records.</p>
       </div>
     </aside>
 
     <!-- Portal Main Area -->
     <main class="portal-main">
       <header class="portal-header">
-        <div>
-          <h1 class="serif-italic">Scholarly Dispatch</h1>
+        <div class="header-title-wrap">
+          <div class="mobile-top-bar">
+            <button class="mobile-menu-trigger" (click)="toggleSidebar()">
+              <span class="material-symbols-outlined">menu_open</span>
+            </button>
+            <h1 class="serif-italic">
+              <span>{{ filterModes.length > 1 ? 'Filtered Dispatch' : (filterModes.includes('all') ? 'Scholarly Dispatch' : (filterModes.includes('resolved') ? 'Resolved Log' : 'Saved Alerts')) }}</span>
+            </h1>
+          </div>
           <p>Monitor your academic requests, community interaction, and scholarly cooperation.</p>
         </div>
-        <div class="header-actions" *ngIf="notifications.length > 0 && !loading">
-          <button class="header-btn" (click)="markAllAsRead()">
+        <div class="header-actions" *ngIf="notifications.length > 0">
+          <button class="header-btn" (click)="markAllAsRead()" [disabled]="unreadCount === 0" [class.dimmed]="unreadCount === 0" *ngIf="filterModes.includes('all')">
             <span class="material-symbols-outlined">done_all</span>
             Mark all read
           </button>
-          <button class="header-btn clear-btn" (click)="clearAll()">
-            <span class="material-symbols-outlined">delete_sweep</span>
-            Clear All
+          <button class="header-btn clear-btn" (click)="clearAll()" [disabled]="archiving">
+            <span class="material-symbols-outlined">{{ archiving ? 'sync' : 'delete_sweep' }}</span>
+            {{ archiving ? 'Purging...' : (filterModes.includes('all') ? 'Purge All' : 'Clear View') }}
           </button>
         </div>
       </header>
 
       <div class="notifications-list" *ngIf="!loading">
-        <div class="notif-card" *ngFor="let n of notifications" [class.unread]="!n.read" (click)="markAsRead(n)">
+        <div class="notif-card" *ngFor="let n of notifications" 
+             [class.unread]="!n.read" 
+             [class.is-starred]="n.isSaved"
+             (click)="markAsRead(n)">
           <div class="notif-icon-wrap">
             <span class="notif-icon material-symbols-outlined">{{ n.icon }}</span>
           </div>
           <div class="notif-content">
             <p class="notif-text" [innerHTML]="n.text"></p>
-            <span class="notif-time">{{ n.time }}</span>
+            <div class="notif-meta">
+              <span class="notif-time">{{ n.time }}</span>
+
+            </div>
           </div>
           <div class="notif-actions">
+            <button class="star-btn" (click)="toggleStar($event, n)" [class.active]="n.isSaved" title="Star for institutional reference">
+              <span class="material-symbols-outlined">{{ n.isSaved ? 'bookmark' : 'bookmark_border' }}</span>
+            </button>
             <button class="delete-btn" (click)="deleteNotification($event, n.id)" title="Remove dispatched record">
               <span class="material-symbols-outlined">close</span>
             </button>
@@ -74,9 +113,11 @@
         </div>
 
         <div class="empty-state" *ngIf="notifications.length === 0">
-          <span class="material-symbols-outlined">drafts</span>
-          <p>Your inbox is empty</p>
-          <span class="empty-sub">No recent scholarly dispatches received.</span>
+          <span class="material-symbols-outlined">
+            {{ filterModes.includes('saved') ? 'bookmark_border' : (filterModes.includes('resolved') ? 'done_all' : 'drafts') }}
+          </span>
+          <p>No records found</p>
+          <span class="empty-sub">Your scholarly dispatch filter returned no matching records.</span>
         </div>
       </div>
       
@@ -84,4 +125,20 @@
     </main>
   </div>
   <app-footer></app-footer>
+
+  <!-- Institutional Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-icon">
+        <span class="material-symbols-outlined">auto_delete</span>
+      </div>
+      <h3 class="serif-italic">Confirm Multiple Deletes</h3>
+      <p>This will purge all unlocked records. (Pinned/Saved items excluded).</p>
+      
+      <div class="modal-actions">
+        <button class="modal-btn cancel" (click)="closeConfirmModal()">Keep it</button>
+        <button class="modal-btn confirm" (click)="executeArchiveAll()">Confirm Purge</button>
+      </div>
+    </div>
+  </div>
 </div>

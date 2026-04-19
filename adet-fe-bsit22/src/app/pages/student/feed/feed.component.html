@@ -10,56 +10,93 @@
     <!-- SIDEBAR -->
     <aside class="sidebar" [class.open]="sidebarOpen">
       <!-- Mobile Sidebar Branding -->
-      <div class="sidebar-mobile-brand serif-italic">Liceo Hub</div>
+      <div class="sidebar-mobile-brand serif-italic">Liceo Resource Hub</div>
 
       <!-- Close button for mobile sidebar -->
       <button class="sidebar-close-btn" (click)="toggleSidebar()">
         <span class="material-symbols-outlined">close</span>
       </button>
 
-      <div class="activity-card" *ngIf="isLoggedIn">
-        <h3>Your Activity</h3>
-        <div class="activity-row"><span>ACTIVE REQUESTS</span><strong>{{ activeCount }}</strong></div>
-        <div class="activity-row"><span>FULFILLED</span><strong>{{ fulfilledCount }}</strong></div>
-        <div class="activity-row"><span>CLOSED</span><strong>{{ closedCount }}</strong></div>
-      </div>
-
-      <div class="quick-nav" *ngIf="isLoggedIn">
-        <p class="quick-nav-label">Quick Navigation</p>
-        <a (click)="setViewMode('all'); sidebarOpen = false;" [class.active]="viewMode === 'all'">
-          <span class="material-symbols-outlined">{{ viewMode === 'all' ? 'home' : 'list_alt' }}</span>
-          All Feed
-        </a>
-        <a routerLink="/post/create" (click)="sidebarOpen = false;">
-          <span class="material-symbols-outlined">add_box</span> Create
-        </a>
-        <div class="quick-nav-divider"></div>
-        <a (click)="setViewMode('requests'); sidebarOpen = false;" [class.active]="viewMode === 'requests'">
-          <span class="material-symbols-outlined">person</span> Your Requests
-        </a>
-        <a (click)="setViewMode('saved'); sidebarOpen = false;" [class.active]="viewMode === 'saved'">
-          <span class="material-symbols-outlined">bookmark</span> Saved Items
-        </a>
-
-        <!-- Theme Toggle -->
-        <div class="quick-nav-divider"></div>
-        <a (click)="themeService.toggleTheme()" class="theme-toggle-link">
-          <span class="material-symbols-outlined">{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</span>
-          {{ themeService.isDarkMode() ? 'Switch to Light' : 'Switch to Dark' }}
-        </a>
+      <!-- UNIFIED SIDEBAR MODULE -->
+      <div class="sidebar-module" *ngIf="isLoggedIn">
         
-        <!-- Admin Only Section -->
-        <ng-container *ngIf="isAdmin">
-          <div class="quick-nav-divider"></div>
-          <p class="quick-nav-label">Institutional Control</p>
-          <a routerLink="/profile" (click)="sidebarOpen = false;">
-            <span class="material-symbols-outlined">account_circle</span> Profile
-          </a>
-          <a routerLink="/admin/dashboard" (click)="sidebarOpen = false;">
-            <span class="material-symbols-outlined">dashboard</span> Dashboard
-          </a>
-        </ng-container>
+        <!-- Activity Section -->
+        <div class="module-section activity-section">
+          <p class="module-label">Your Activity</p>
+          <div class="activity-stats-list">
+            <div class="stat-row" title="Requests currently active in the repository">
+              <div class="stat-main">
+                <span class="material-symbols-outlined stat-icon">campaign</span>
+                <span class="stat-label">Active Requests</span>
+              </div>
+              <span class="stat-value">{{ activeCount }}</span>
+            </div>
+            <div class="stat-row" title="Materials successfully exchanged">
+              <div class="stat-main">
+                <span class="material-symbols-outlined stat-icon">task_alt</span>
+                <span class="stat-label">Fulfilled</span>
+              </div>
+              <span class="stat-value">{{ fulfilledCount }}</span>
+            </div>
+            <div class="stat-row" title="Requests concluded or retired">
+              <div class="stat-main">
+                <span class="material-symbols-outlined stat-icon">inventory_2</span>
+                <span class="stat-label">Closed</span>
+              </div>
+              <span class="stat-value">{{ closedCount }}</span>
+            </div>
+          </div>
+        </div>
 
+        <div class="module-divider"></div>
+
+        <!-- Navigation Section -->
+        <div class="module-section nav-section">
+          <p class="module-label">Quick Navigation</p>
+          <nav class="nav-links">
+            <a (click)="setViewMode('all'); sidebarOpen = false;" [class.active]="viewMode === 'all'">
+              <span class="material-symbols-outlined">{{ viewMode === 'all' ? 'home' : 'list_alt' }}</span>
+              <span class="link-text">All Feed</span>
+            </a>
+            <a routerLink="/post/create" (click)="sidebarOpen = false;">
+              <span class="material-symbols-outlined">add_box</span>
+              <span class="link-text">Create</span>
+            </a>
+            <div class="mini-divider"></div>
+            <a (click)="setViewMode('requests'); sidebarOpen = false;" [class.active]="viewMode === 'requests'">
+              <span class="material-symbols-outlined">person</span>
+              <span class="link-text">Your Requests</span>
+            </a>
+            <a (click)="setViewMode('saved'); sidebarOpen = false;" [class.active]="viewMode === 'saved'">
+              <span class="material-symbols-outlined">bookmark</span>
+              <span class="link-text">Saved Items</span>
+            </a>
+
+            <!-- Admin Only Section -->
+            <ng-container *ngIf="isAdmin">
+              <div class="mini-divider"></div>
+              <p class="module-label secondary">Institutional Control</p>
+              <a routerLink="/admin/dashboard" (click)="sidebarOpen = false;">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="link-text">Dashboard</span>
+              </a>
+            </ng-container>
+
+            <!-- Mobile Only Account Actions -->
+            <div class="mobile-only-actions">
+              <div class="mini-divider"></div>
+              <p class="module-label">Account Management</p>
+              <a routerLink="/profile" (click)="sidebarOpen = false;">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span class="link-text">Your Profile</span>
+              </a>
+              <a (click)="logout(); sidebarOpen = false;" class="logout-link">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="link-text">Disconnect</span>
+              </a>
+            </div>
+          </nav>
+        </div>
       </div>
     </aside>
 
@@ -86,67 +123,91 @@
 
       <!-- Category Filters -->
       <div class="category-filters">
-        <div class="filter-label">
+        <div class="filter-label" (click)="resetFilters()" title="Reset all filters" role="button" tabindex="0">
           <span class="material-symbols-outlined">filter_list</span>
           <span>Index</span>
         </div>
         <button *ngFor="let cat of categories"
-          [class.active]="activeCategory === cat"
+          [class.active]="isActiveCategory(cat)"
           (click)="setCategory(cat)">
           {{ cat }}
         </button>
       </div>
 
+      <!-- Sort Bar -->
+      <div class="sort-bar">
+        <div class="sort-group">
+          <button [class.active]="sortBy === 'newest'" (click)="sortBy = 'newest'; currentPage = 1; fetchPosts(true)">Newest</button>
+          <button [class.active]="sortBy === 'oldest'" (click)="sortBy = 'oldest'; currentPage = 1; fetchPosts(true)">Oldest</button>
+          <button [class.active]="sortBy === 'trending'" (click)="sortBy = 'trending'; currentPage = 1; fetchPosts(true)">Trending</button>
+        </div>
+      </div>
+
       <!-- Bulk Actions (Only for 'Your Requests') -->
-      <div class="bulk-actions-bar" *ngIf="viewMode === 'requests' && paginatedPosts.length > 0">
+      <div class="bulk-actions-bar" *ngIf="viewMode === 'requests' && paginatedPosts.length > 0" role="toolbar" aria-label="Bulk actions">
         <div class="select-all-row">
           <label class="checkbox-container">
-            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()">
+            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()" aria-label="Select all displayed requests">
             <span class="checkmark"></span>
             Select All displayed
           </label>
         </div>
-        <button class="bulk-delete-btn" [disabled]="selectedPosts.size === 0" (click)="requestBulkDelete()">
-          <span class="material-symbols-outlined">delete</span>
-          Delete Selected ({{ selectedPosts.size }})
-        </button>
-      </div>
+        <button class="bulk-delete-btn"
+                [disabled]="selectedPosts.size === 0"
+                (click)="requestBulkDelete()"
+                [attr.aria-label]="'Purge ' + selectedPosts.size + ' selected records'"
+                aria-live="polite">
+          <span class="material-symbols-outlined">delete_sweep</span>
+          Purge Selection ({{ selectedPosts.size }})
+        </button>      </div>
 
       <!-- Posts Grid -->
       <div class="posts-grid" *ngIf="!loading && paginatedPosts.length > 0">
         <div class="post-card" *ngFor="let post of paginatedPosts">
           <div class="post-top">
             <span class="post-status" [ngClass]="getStatusClass(post.status)">{{ post.status }}</span>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; position: relative; z-index: 5;">
               <span class="post-time">{{ post.timeAgo }}</span>
               <!-- Save Button (Only if NOT my post) -->
-              <button class="icon-btn" style="padding: 0.25rem;" (click)="toggleSave(post)" [title]="isSaved(post) ? 'Remove from Saved' : 'Save Request'" *ngIf="!isMyPost(post)">
+              <button class="icon-btn" 
+                      style="padding: 0.25rem;" 
+                      (click)="toggleSave(post); $event.stopPropagation()" 
+                      [title]="isSaved(post) ? 'Remove from Saved' : 'Save Request'" 
+                      *ngIf="!isMyPost(post)">
                 <span class="material-symbols-outlined" 
                       [style.font-variation-settings]="isSaved(post) ? '\'FILL\' 1' : '\'FILL\' 0'"
-                      [style.color]="isSaved(post) ? '#570000' : 'var(--outline)'">bookmark</span>
+                      [style.color]="isSaved(post) ? 'var(--primary)' : 'var(--outline)'">bookmark</span>
               </button>
               
               <!-- Selection Checkbox (Integrated into top actions) -->
               <label class="checkbox-container" style="padding-left: 20px; font-size: 0;" *ngIf="viewMode === 'requests'">
-                <input type="checkbox" [checked]="selectedPosts.has(post.id)" (change)="toggleSelect(post.id)">
+                <input type="checkbox" 
+                       [checked]="selectedPosts.has(post.id)" 
+                       (change)="toggleSelect(post.id); $event.stopPropagation()"
+                       [attr.aria-label]="'Select request: ' + post.title">
                 <span class="checkmark" style="position: static; display: inline-block;"></span>
               </label>
             </div>
           </div>
           
-          <!-- Image Preview -->
-          <div class="post-preview-img" *ngIf="post.imageUrl" (click)="openDetail(post)">
-            <img [src]="post.imageUrl" alt="Preview" (error)="post.imageUrl = null">
-          </div>
-
-          <h3 class="post-title serif-italic" (click)="openDetail(post)" style="cursor: pointer;">{{ post.title }}</h3>
-          <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
-            <div class="author-avatar">{{ post.author[0] }}</div>
-            <div>
-              <p class="author-name">{{ post.author }}</p>
+          <!-- Clickable Body Area -->
+          <div class="post-clickable-area" (click)="openDetail(post)">
+            <!-- Image Preview -->
+            <div class="post-preview-img" *ngIf="post.imageUrl">
+              <img [src]="post.imageUrl" alt="Preview" (error)="post.imageUrl = null">
             </div>
+
+            <h3 class="post-title serif-italic">{{ post.title }}</h3>
+            
+            <div class="author-row">
+              <div class="author-avatar">{{ getInitials(post.author) }}</div>
+              <div>
+                <p class="author-name">{{ post.author }}</p>
+              </div>
+            </div>
+
+            <p class="post-desc">{{ post.description }}</p>
           </div>
-          <p class="post-desc">{{ post.description }}</p>
           
           <div class="post-footer">
             <span class="post-category">
@@ -154,29 +215,45 @@
               {{ post.category }}
             </span>
             
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; position: relative; z-index: 5;">
               
-              <!-- Regular Delete Button -->
-              <button class="view-details" style="background: rgba(186,26,26,0.06); padding: 0.4rem 0.6rem; border: none; cursor: pointer; color: var(--error);" *ngIf="viewMode === 'requests'" title="Delete Request" (click)="requestDelete(post)">
-                <span class="material-symbols-outlined" style="font-size:16px; margin: 0;">delete</span>
-              </button>
+              <!-- Direct Status Toggles -->
+              <ng-container *ngIf="isMyPost(post)">
+                <button class="view-details btn-status-fulfilled"
+                        title="Mark as Resolved"
+                        [disabled]="updatingStatus.has(post.id)"
+                        *ngIf="post.status !== 'FULFILLED'"
+                        (click)="updateStatus(post, 'fulfilled'); $event.stopPropagation()">
+                  <span class="material-symbols-outlined">check_circle</span>
+                </button>
+                <button class="view-details btn-status-closed"
+                        title="Mark as Closed"
+                        [disabled]="updatingStatus.has(post.id)"
+                        *ngIf="post.status !== 'CLOSED'"
+                        (click)="updateStatus(post, 'closed'); $event.stopPropagation()">
+                  <span class="material-symbols-outlined">block</span>
+                </button>
+                <button class="view-details"
+                        title="Re-open Request"
+                        [disabled]="updatingStatus.has(post.id)"
+                        *ngIf="post.status === 'FULFILLED' || post.status === 'CLOSED'"
+                        (click)="updateStatus(post, 'open'); $event.stopPropagation()">
+                  <span class="material-symbols-outlined">refresh</span>
+                </button>              </ng-container>
 
-
-
-              <!-- Standard View Details (Now Modal) -->
-              <button class="view-details" (click)="openDetail(post)" *ngIf="!post.resolved || viewMode === 'requests'">
-                View Details <span class="material-symbols-outlined">arrow_forward</span>
+              <!-- Regular Delete Button (Visible for Owner or Admin) -->
+              <button class="view-details academic-delete-trigger" 
+                      *ngIf="isMyPost(post) || isAdmin" 
+                      title="Purge Record" 
+                      (click)="requestDelete(post); $event.stopPropagation()">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">delete_forever</span>
               </button>
             </div>
-            
-            <span class="resolved-badge" *ngIf="post.resolved && viewMode !== 'requests'">
-              <span class="material-symbols-outlined">check_circle</span> Resolved
-            </span>
           </div>
 
           <!-- Standalone Detail Link -->
-          <a [routerLink]="['/post', post.id]" class="full-details-link">
-            Open in Scholarly Portal <span class="material-symbols-outlined">open_in_new</span>
+          <a [routerLink]="['/post', post.id]" class="full-details-link" style="position: relative; z-index: 5;">
+            View full post <span class="material-symbols-outlined">open_in_new</span>
           </a>
         </div>
       </div>
@@ -201,8 +278,8 @@
         <!-- ALL FEED / SEARCH -->
         <div class="empty-state" *ngIf="viewMode === 'all'">
           <span class="material-symbols-outlined">search_off</span>
-          <p>No requests found in <strong *ngIf="activeCategory !== 'All Resources'">{{ activeCategory }}</strong><strong *ngIf="activeCategory === 'All Resources'">any category</strong>.</p>
-          <button class="empty-reset-btn" *ngIf="searchQuery || activeCategory !== 'All Resources'" (click)="searchQuery = ''; setCategory('All Resources')">Clear Filters</button>
+          <p>No requests found in <strong *ngIf="!isActiveCategory('All Resources')">selected categories</strong><strong *ngIf="isActiveCategory('All Resources')">any category</strong>.</p>
+          <button class="empty-reset-btn" *ngIf="searchQuery || !isActiveCategory('All Resources')" (click)="resetFilters()">Clear Filters</button>
         </div>
 
       </ng-container>
@@ -238,46 +315,66 @@
   </div>
 
   <!-- DELETE CONFIRMATION MODAL -->
-  <div class="editor-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
-    <div class="editor-modal confirm-delete-modal" (click)="$event.stopPropagation()">
-      <div class="editor-header">
-        <div class="modal-handle"></div>
-        <button class="icon-btn close-btn" (click)="cancelDelete()" style="margin-left: auto;">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <div class="editor-body">
-        <div class="purge-warning">
-          <div class="warning-icon-wrapper">
-            <span class="material-symbols-outlined">warning</span>
-          </div>
-          <div class="warning-text">
+  <div class="editor-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()" role="presentation">
+    <div class="editor-modal confirm-delete-modal premium-purge-modal" 
+         (click)="$event.stopPropagation()"
+         role="dialog" 
+         aria-modal="true" 
+         aria-labelledby="delete-confirm-title"
+         aria-describedby="delete-confirm-desc">
+
+
+
+      <div class="editor-body text-center">
+        <header class="purge-header">
+          <h2 class="serif-italic warning-title" id="delete-confirm-title">Academic Deletion</h2>
+          <p class="subtitle-premium">Scholarly Record Removal Protocol</p>
+        </header>
+
+        <div class="purge-warning-premium" id="delete-confirm-desc">
+          <div class="warning-context">
             <h3 class="serif-italic" *ngIf="!isBulkDelete">Deleting Shared Resource</h3>
-            <h3 class="serif-italic" *ngIf="isBulkDelete">Bulk Deletion Selection</h3>
-            <p *ngIf="!isBulkDelete">You are about to permanently remove <strong>"{{ postToDelete?.title }}"</strong> from the academic repository. This action is irreversible.</p>
-            <p *ngIf="isBulkDelete">You are about to permanently remove <strong>{{ selectedPosts.size }} Scholarly Records</strong>. These items will be deleted immediately from the institutional feed.</p>
+            <h3 class="serif-italic" *ngIf="isBulkDelete">Bulk Selection Removal</h3>
+            <p *ngIf="!isBulkDelete" class="warning-desc">You are about to permanently remove <strong>"{{ postToDelete?.title }}"</strong> from the academic repository. This action is irreversible.</p>
+            <p *ngIf="isBulkDelete" class="warning-desc">You are about to permanently remove <strong>{{ selectedPosts.size }} Scholarly Records</strong>. These items will be deleted immediately from the institutional feed.</p>
           </div>
         </div>
 
-        <!-- Scrollable list of titles for bulk delete -->
-        <div class="purge-list" *ngIf="isBulkDelete">
-          <p class="list-label">Items marked for removal:</p>
-          <div class="list-container">
-            <div class="purge-item" *ngFor="let p of getSelectedPostPreviews()">
-              <span class="material-symbols-outlined purge-dot">remove_circle</span>
-              <span class="purge-title">{{ p.title }}</span>
+        <!-- Admin Deletion Reason -->
+        <div class="field" style="margin: 1.5rem 2rem; text-align: left;" *ngIf="isAdmin && ((!isBulkDelete && postToDelete?.authorId !== user.id) || (isBulkDelete && hasOthersPostsSelected()))">
+          <label class="field-label" for="deleteReason">Administrative Reason for Purge</label>
+          <textarea class="input-academic" [(ngModel)]="deleteReason" id="deleteReason" name="deleteReason"
+                    rows="2" placeholder="Explain why these records are being purged from the archive..."></textarea>
+          <p class="field-hint" style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--outline);">This reason will be included in the user's notification.</p>
+        </div>
+
+        <!-- Itemized List for Transparency -->
+        <div class="purge-itemized-preview" *ngIf="isBulkDelete" aria-label="Items to be deleted">
+          <p class="preview-label">Records marked for deletion</p>
+          <div class="preview-scroll-container" role="list">
+            <div class="preview-item" *ngFor="let p of getSelectedPostPreviews()" role="listitem">
+              <span class="material-symbols-outlined item-dot" aria-hidden="true">remove_circle</span>
+              <span class="item-title">{{ p.title }}</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="editor-footer">
-        <button class="btn-cancel" (click)="cancelDelete()">Keep Records</button>
-        <button class="btn-error btn-purge" (click)="confirmDelete()" [disabled]="deleting">
-          <span *ngIf="!deleting">Confirm Academic Deletion</span>
-          <span *ngIf="deleting" class="spinner"></span>
+
+      <div class="editor-footer actions-row-premium">
+        <button class="btn-ghost-premium" (click)="cancelDelete()">
+          <span class="material-symbols-outlined">close</span>
+          Wait, keep it
         </button>
-      </div>
-    </div>
+        <button class="btn-destructive-premium"
+                (click)="confirmDelete()"
+                [disabled]="deleting">
+          <span *ngIf="!deleting" class="btn-content">
+            <span class="material-symbols-outlined">delete_forever</span>
+            Yes, delete it
+          </span>
+          <span *ngIf="deleting" class="spinner-white"></span>
+        </button>
+      </div>    </div>
   </div>
 
 
@@ -286,15 +383,84 @@
   <!-- POST DETAIL MODAL -->
   <div class="editor-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
     <div class="editor-modal detail-modal" (click)="$event.stopPropagation()">
-      <div class="editor-header">
-        <div class="modal-handle"></div>
-        <h2 class="serif-italic">Request Metadata</h2>
-        <button class="icon-btn close-btn" (click)="closeDetailModal()">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
+      <div class="editor-header premium-header">
+        <div class="modal-handle accent-gold"></div>
+        <div class="institutional-tag">
+          <span class="material-symbols-outlined">info</span>
+          Request Info
+        </div>
+        <div class="header-actions-wrap">
+          <button class="report-trigger-icon" (click)="toggleReport()"
+                  *ngIf="isLoggedIn && selectedPost && user.id !== selectedPost.authorId && user.role !== 'admin'"
+                  [title]="showReportForm ? 'Return to Details' : 'Report this content'">
+            <span class="material-symbols-outlined">{{ showReportForm ? 'info' : 'flag' }}</span>
+          </button>
+          
+          <button class="close-btn" (click)="closeDetailModal()" type="button" aria-label="Close modal">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>      </div>
       <div class="editor-body">
-        
+
+        <!-- PREMIUM REPORTING INTERFACE -->
+        <div class="report-form-premium" *ngIf="showReportForm">
+
+          <!-- Success State -->
+          <div class="report-success-premium" *ngIf="reportSuccess">
+            <div class="success-icon-orbit">
+              <span class="material-symbols-outlined success-icon-glow">verified</span>
+            </div>
+            <h3 class="serif-italic">Protocol Executed</h3>
+            <p class="success-desc">Your inquiry has been submitted for institutional audit. Thank you for safeguarding HUB integrity.</p>
+            <button class="btn-ghost-premium" (click)="showReportForm = false; reportSuccess = false;">Return to Scholarly Record</button>
+          </div>
+
+          <!-- Report Form -->
+          <ng-container *ngIf="!reportSuccess">
+            <div class="report-header-box">
+              <div class="protocol-badge">
+                <span class="material-symbols-outlined">gavel</span>
+                Integrity Protocol
+              </div>
+              <h3 class="serif-italic">Scholarly Standard Review</h3>
+              <p class="protocol-desc">Flag this record if it violates the institutional code of conduct or scholarly standards.</p>
+            </div>
+
+            <div class="report-body-box">
+              <div class="field">
+                <label class="field-label-premium">Inquiry Reason</label>
+                <div class="reason-grid">
+                  <label class="reason-chip-premium" *ngFor="let r of reasons" [class.selected]="reportReason === r.value">
+                    <input type="radio" [(ngModel)]="reportReason" [value]="r.value" name="reportReason" style="display:none"/>
+                    {{ r.label }}
+                  </label>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:1.5rem" *ngIf="reportReason === 'other'">
+                <label class="field-label-premium" for="details">Additional Context <span class="label-optional">(Required for Institutional Audit)</span></label>
+                <textarea class="input-academic-premium" [(ngModel)]="reportDetails" id="details" name="details"
+                          rows="4" placeholder="Please provide specific details regarding this violation..."></textarea>
+              </div>
+            </div>
+
+            <div class="report-footer-box">
+              <button class="btn-ghost-premium" (click)="toggleReport()">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Cancel
+              </button>
+              <button class="btn-error-premium" (click)="submitReport()" 
+                      [disabled]="reporting || !reportReason || (reportReason === 'other' && !reportDetails.trim())">
+                <span *ngIf="!reporting" class="btn-content">
+                  <span class="material-symbols-outlined">send</span>
+                  Submit
+                </span>
+                <span *ngIf="reporting" class="spinner-white"></span>
+              </button>
+            </div>
+          </ng-container>
+        </div>
+
         <!-- Loading State -->
         <div class="loading-state" *ngIf="loadingDetail">
           <span class="spinner"></span>
@@ -302,127 +468,85 @@
         </div>
 
         <div class="detail-content" *ngIf="!loadingDetail && selectedPost">
-          <div class="detail-top">
-            <span class="post-status" [ngClass]="getStatusClass(selectedPost.status)">{{ selectedPost.status }}</span>
-            <span class="post-meta">
-              <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">{{ getCategoryIcon(selectedPost.category) }}</span>
-              {{ selectedPost.category }} · {{ selectedPost.timeAgo }}
-            </span>
-          </div>
-          
-          <div class="author-row clickable" [routerLink]="['/profile', selectedPost.authorId]" (click)="closeDetailModal()">
-            <div class="author-avatar">{{ selectedPost.author[0] }}</div>
-            <div>
-              <p class="author-name">{{ selectedPost.author }}</p>
+
+          <!-- Unified Column for all content (Mobile Optimized Order) -->
+          <div class="detail-main-col">
+
+            <!-- 1. Title -->
+            <div class="detail-top">
+              <span class="post-status" [ngClass]="getStatusClass(selectedPost.status)">{{ selectedPost.status }}</span>
+              <span class="post-meta">
+                {{ selectedPost.timeAgo }}
+              </span>
             </div>
-            <span class="author-badge">Author</span>
-            <span class="material-symbols-outlined ml-auto">chevron_right</span>
-          </div>
+            <h1 class="selected-title serif-italic">{{ selectedPost.title }}</h1>
 
-          <h1 class="selected-title serif-italic">{{ selectedPost.title }}</h1>
-          
-          <!-- Image Container -->
-          <div class="selected-image-container" *ngIf="selectedPost.imageUrl">
-            <img [src]="selectedPost.imageUrl" alt="Scholarly material image" class="selected-image" (error)="selectedPost.imageUrl = ''">
-          </div>
-          
-          <div class="divider"></div>
-          <p class="selected-description">
-            <span *ngIf="!isDescriptionExpanded && selectedPost.description.length > 280">
-              {{ selectedPost.description.slice(0, 280) }}...
-              <button class="see-more-link" (click)="toggleDescription()">See more</button>
-            </span>
-            <span *ngIf="isDescriptionExpanded || selectedPost.description.length <= 280">
-              {{ selectedPost.description }}
-              <button class="see-more-link" *ngIf="selectedPost.description.length > 280" (click)="toggleDescription()">See less</button>
-            </span>
-          </p>
-          <div class="divider"></div>
-          
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-            <button class="report-btn-modal" (click)="toggleReport()" *ngIf="isLoggedIn && user.id !== selectedPost.authorId && user.role !== 'admin'">
-              <span class="material-symbols-outlined">{{ showReportForm ? 'arrow_back' : 'flag' }}</span>
-              {{ showReportForm ? 'Return to Metadata' : 'Report this post' }}
-            </button>
-          </div>
-
-          <div class="report-form-modal" *ngIf="showReportForm">
-
-            <!-- Success State -->
-            <div class="report-success-state" *ngIf="reportSuccess">
-              <span class="material-symbols-outlined report-success-icon">verified</span>
-              <h3 class="serif-italic">Report Received</h3>
-              <p>Our institutional moderators will review this request shortly. Thank you for upholding HUB standards.</p>
-              <button class="btn-cancel" style="margin-top:1.25rem" (click)="showReportForm = false; reportSuccess = false;">Return to Post</button>
+            <!-- 2. Author -->
+            <div class="author-row clickable" [routerLink]="['/profile', selectedPost.authorId]" (click)="closeDetailModal()">
+              <div class="author-avatar">{{ getInitials(selectedPost.author) }}</div>
+              <div class="author-info">
+                <span class="author-name">{{ selectedPost.author }}</span>
+              </div>
+              <span class="material-symbols-outlined ml-auto">chevron_right</span>
             </div>
 
-            <!-- Report Form -->
-            <ng-container *ngIf="!reportSuccess">
-              <h3 class="serif-italic">Maintain Scholarly Integrity</h3>
-              <p style="font-size: 0.85rem; color: var(--outline); margin-bottom: 1.25rem; line-height:1.5;">Flag this request for administrative review if it violates institutional standards.</p>
+            <!-- 3. Image -->
+            <div class="selected-image-container" *ngIf="selectedPost.imageUrl">
+              <img [src]="selectedPost.imageUrl" alt="Scholarly material image" class="selected-image" (error)="selectedPost.imageUrl = ''">
+            </div>
 
-              <div class="field">
-                <label class="field-label">Reason for Flagging</label>
-                <div class="reason-chips">
-                  <label class="reason-chip" *ngFor="let r of reasons" [class.selected]="reportReason === r.value">
-                    <input type="radio" [(ngModel)]="reportReason" [value]="r.value" name="reportReason" style="display:none"/>
-                    {{ r.label }}
-                  </label>
-                </div>
+            <!-- 4. Description -->
+            <div class="description-wrap">
+              <div class="metadata-badge">
+                <span class="material-symbols-outlined">subject</span>
+                Description
               </div>
+              <p class="selected-description">
+                {{ selectedPost.description }}
+              </p>
+            </div>
 
-              <div class="field" style="margin-top:1rem">
-                <label class="field-label" for="details">Additional Context <span style="font-weight:400;text-transform:none;letter-spacing:0;">(Optional)</span></label>
-                <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details"
-                          rows="3" placeholder="Briefly describe the violation..."></textarea>
-              </div>
+            <div class="divider"></div>
 
-              <div class="report-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                <button class="btn-cancel" (click)="toggleReport()" style="flex: 1;">Cancel</button>
-                <button class="btn-error" (click)="submitReport()" [disabled]="reporting || !reportReason" style="flex: 2;">
-                  <span *ngIf="!reporting">Submit to Moderation</span>
-                  <span *ngIf="reporting">Submitting...</span>
-                  <span *ngIf="reporting" class="spinner" style="width:14px;height:14px;margin-left:0.5rem;"></span>
-                </button>
-              </div>
-            </ng-container>
-          </div>
+            <!-- Failsafe Close Button -->
+            <button class="btn-cancel" (click)="closeDetailModal()" style="width: 100%; margin-top: 1rem;">Close Details</button>
 
-          <!-- Contact Section in Modal (Hidden if Owner and if Reporting) -->
-          <div class="modal-contact-box" *ngIf="!isMyPost(selectedPost) && !showReportForm">
-             <h3>Contact Curator</h3>
-             <p *ngIf="!isLoggedIn" class="contact-locked">
-               <span class="material-symbols-outlined">lock</span>
-               Log in to reveal contact channels.
-             </p>
-             
-             <div *ngIf="isLoggedIn && !showContact" class="contact-hidden">
-                <div class="contact-blur">
-                  <span class="contact-type" *ngIf="selectedPost.contacts && selectedPost.contacts.length > 0">{{ selectedPost.contacts[0].type }}</span>
-                  <span class="contact-type" *ngIf="!selectedPost.contacts || selectedPost.contacts.length === 0">Messenger</span>
+            <!-- 5. Contact Info -->
+            <div class="modal-contact-box" *ngIf="!isMyPost(selectedPost) && !showReportForm">
+              <h3 class="serif-italic">Author Contact Details</h3>
+
+              <div class="contact-hidden" *ngIf="!showContact">
+                <p class="contact-locked">
+                  <span class="material-symbols-outlined">lock</span>
+                  Contact links are restricted.
+                </p>
+                <div class="contact-blur" *ngFor="let c of selectedPost.contacts">
+                  <span class="contact-type">{{ c.type }}</span>
                   <span class="contact-value-blur">••••••••••••••••</span>
                 </div>
                 <button class="btn-primary" (click)="revealContact(selectedPost)">
                   <span class="material-symbols-outlined">handshake</span>
-                  Offer Scholarly Cooperation
+                  Reveal Contact Info
                 </button>
-             </div>
+              </div>
 
-             <div *ngIf="isLoggedIn && showContact" class="contact-revealed-list">
+              <div class="contact-revealed-list" *ngIf="showContact">
                 <div class="contact-item" *ngFor="let c of selectedPost.contacts">
                   <span class="contact-type">{{ c.type }}</span>
-                  <a class="contact-value" [href]="c.value.startsWith('http') ? c.value : 'https://' + c.value" target="_blank">
+                  <a class="contact-value" 
+                     [href]="c.value.startsWith('http') ? c.value : (c.type === 'Phone' ? 'tel:' + c.value : 'https://' + c.value)" 
+                     target="_blank">
+                    <span class="material-symbols-outlined">{{ c.type === 'Phone' ? 'call' : 'open_in_new' }}</span>
                     {{ c.value }}
-                    <span class="material-symbols-outlined">open_in_new</span>
                   </a>
                 </div>
-             </div>
+              </div>
+            </div>
           </div>
         </div>
-
       </div>
-      <div class="editor-footer" *ngIf="isLoggedIn && user.id == selectedPost?.authorId">
-        <button class="btn-primary" (click)="goToEdit(selectedPost)">
+      <div class="editor-footer" *ngIf="isLoggedIn && (user.id == selectedPost?.authorId)">
+        <button class="btn-primary" (click)="goToEdit(selectedPost)" *ngIf="user.id == selectedPost?.authorId">
           <span class="material-symbols-outlined">edit</span>
           Edit Request
         </button>

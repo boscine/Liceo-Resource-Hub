@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { AuthVariables } from '../../middleware/auth.middleware';
+import { AuthVariables, publicAccess } from '../../middleware/auth.middleware';
 import prisma from '../../lib/prisma';
 import { zValidator } from '@hono/zod-validator';
 import { postSchema, updatePostSchema, reportSchema } from '../../lib/validation';
@@ -10,21 +10,80 @@ const router = new Hono<{ Variables: AuthVariables }>();
 
 // ── GET /api/v1/posts (Student Feed - Only show active) ────────────────────────
 router.get('/', async (c) => {
+  const page = parseInt(c.req.query('page') || '1', 10);
+  const limit = parseInt(c.req.query('limit') || '12', 10);
+  const category = c.req.query('category');
+  const viewMode = c.req.query('viewMode');
+  const sortBy = c.req.query('sortBy') || 'newest';
+  const savedIdsStr = c.req.query('savedIds');
+  const userId = c.get('userId');
+  const skip = (page - 1) * limit;
+
+  // console.log(`[GET /posts] userId: ${userId}, viewMode: ${viewMode}, category: ${category}`);
+
+  // ── Institutional Filter Protocol ──────────────────────────────────────────
+  const where: any = { AND: [] };
+
+  if (viewMode === 'requests') {
+    if (userId) {
+      // console.log(`[Filtering] Applying user-specific filter for userId: ${userId}`);
+      // OWNER VIEW: Show all of user's posts (except removed)
+      where.AND.push({ userId: userId });
+      where.AND.push({ NOT: { status: 'removed' } });
+    } else {
+      // If requests mode is asked but no userId found, return nothing or all?
+      // For security, return empty results as they aren't authorized for 'their' requests
+      where.AND.push({ id: -1 });
+    }
+  } else if (viewMode === 'saved' && savedIdsStr) {
+    // SAVED VIEW: Show only posts in the saved list
+    const ids = savedIdsStr.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    if (ids.length > 0) {
+      where.AND.push({ id: { in: ids } });
+      where.AND.push({ NOT: { status: 'removed' } });
+      where.AND.push({ isFlagged: false });
+    } else {
+      where.AND.push({ id: -1 }); // Force empty results
+    }
+  } else {
+    // PUBLIC FEED: Show only unflagged, non-removed posts, and hide the current user's own posts
+    where.AND.push({ NOT: { status: 'removed' } });
+    where.AND.push({ isFlagged: false });
+    if (userId) {
+      where.AND.push({ userId: { not: userId } });
+    }
+  }
+
+  if (category) {
+    const cats = category.split(',').map(c => c.trim()).filter(c => c !== 'All Resources');
+    if (cats.length > 0) {
+      where.AND.push({ category: { name: { in: cats } } });
+    }
+  }
+
+  // ── Sorting Logic ──────────────────────────────────────────────────────────
+  let orderBy: any = { createdAt: 'desc' };
+  if (sortBy === 'oldest') {
+    orderBy = { createdAt: 'asc' };
+  } else if (sortBy === 'trending') {
+    orderBy = { reports: { _count: 'desc' } };
+  }
+
   try {
-    const posts = await prisma.post.findMany({
-      where: { 
-        AND: [
-          { NOT: { status: 'removed' } },
-          { isFlagged: false }
-        ]
-      },
-      include: {
-        category: { select: { name: true } },
-        user: { select: { id: true, displayName: true } }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          category: { select: { name: true } },
+          user: { select: { id: true, displayName: true } },
+          _count: { select: { reports: true } }
+        },
+        orderBy,
+        skip,
+        take: limit
+      }),
+      prisma.post.count({ where })
+    ]);    
     const formattedPosts = posts.map(p => ({
       id: p.id,
       title: p.title,
@@ -39,7 +98,15 @@ router.get('/', async (c) => {
       createdAt: p.createdAt
     }));
 
-    return c.json(formattedPosts);
+    return c.json({
+      posts: formattedPosts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error('Failed to fetch posts:', error);
     return c.json({ message: 'Internal server error' }, 500);
@@ -160,7 +227,7 @@ router.post('/', zValidator('json', postSchema, (result, c) => {
       data: {
         userId,
         icon: 'check_circle',
-        text: `Your request "${title}" has been published successfully.`
+        text: `Your request "<b>${title}</b>" has been published successfully.`
       }
     });
 
@@ -237,6 +304,24 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
 
     // Status validation
     if (status !== undefined && statusChanged) {
+      // Loophole Fix: Prevent users from "un-moderating" their own posts
+      if (role !== 'admin' && (post.status === 'removed' || post.isFlagged)) {
+        return c.json({ message: 'Institutional Moderation: You cannot modify the status of a record currently under administrative review or removal.' }, 403);
+      }
+      
+      // Loophole Fix: Rate limit status changes to prevent spamming status toggles
+      if (role !== 'admin') {
+        const recentStatusChange = await prisma.post.findFirst({
+          where: { 
+            id, 
+            updatedAt: { gte: new Date(Date.now() - 5 * 60 * 1000) } 
+          }
+        });
+        if (recentStatusChange) {
+           return c.json({ message: 'Scholarly Rate Limit: Please wait 5 minutes between status updates.' }, 429);
+        }
+      }
+
       data.status = status.toLowerCase();
     }
 
@@ -263,22 +348,22 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
 
     // ── Create Dynamic Notification (Only on significant changes) ─────────────────
     if (statusChanged || flagChanged || (role === 'admin' && (title !== undefined || description !== undefined))) {
-      let notifText = `Changes to your request "${updatedPost.title}" have been saved.`;
+      let notifText = `Changes to your request "<b>${updatedPost.title}</b>" have been saved.`;
       let notifIcon = 'edit';
 
       if (statusChanged) {
         if (data.status === 'fulfilled') {
-          notifText = `Scholar! Your request "${updatedPost.title}" is now marked as FULFILLED.`;
+          notifText = `Scholar! Your request "<b>${updatedPost.title}</b>" is now marked as FULFILLED.`;
           notifIcon = 'auto_awesome';
         } else if (data.status === 'closed') {
-          notifText = `Your request "${updatedPost.title}" has been closed.`;
+          notifText = `Your request "<b>${updatedPost.title}</b>" has been closed.`;
           notifIcon = 'do_not_disturb_on';
         } else if (data.status === 'removed' && role === 'admin') {
-          notifText = `Your request "${updatedPost.title}" was removed by an administrator.`;
+          notifText = `Your request "<b>${updatedPost.title}</b>" was removed by an administrator.`;
           notifIcon = 'delete_forever';
         }
       } else if (flagChanged && updatedPost.isFlagged) {
-        notifText = `Your request "${updatedPost.title}" is currently under moderation review.`;
+        notifText = `Your request "<b>${updatedPost.title}</b>" is currently under moderation review.`;
         notifIcon = 'flag';
       }
 
@@ -287,11 +372,17 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
         notifText += ` Reason: ${moderationReason}`;
       }
 
+      let notifType = 'system';
+      if (statusChanged && (data.status === 'fulfilled' || data.status === 'closed')) {
+        notifType = 'resolved';
+      }
+
       await prisma.notification.create({
         data: {
           userId: updatedPost.userId,
           icon: notifIcon,
-          text: notifText
+          text: notifText,
+          type: notifType
         }
       });
     }
@@ -329,6 +420,18 @@ router.post('/:id/report', zValidator('json', reportSchema, (result, c) => {
       return c.json({ message: 'Self-reporting is not permitted.' }, 400);
     }
 
+    // Loophole Fix: Rate limiting reports to prevent mass suppression
+    const recentReportsCount = await prisma.postReport.count({
+      where: {
+        reporterId,
+        createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) } // Last 5 minutes
+      }
+    });
+
+    if (recentReportsCount >= 5) {
+       return c.json({ message: 'Institutional Moderation Limit: You have reached the maximum number of reports allowed within a 5-minute window.' }, 429);
+    }
+
     // 1. Create the report
     await prisma.postReport.upsert({
       where: { postId_reporterId: { postId, reporterId } },
@@ -355,7 +458,7 @@ router.post('/:id/report', zValidator('json', reportSchema, (result, c) => {
         data: {
           userId: post.userId,
           icon: 'flag',
-          text: `Scholarly Alarm: Your request "${post.title}" has been auto-flagged for moderation review after multiple reports.`
+          text: `Scholarly Alarm: Your request "<b>${post.title}</b>" has been auto-flagged for moderation review after multiple reports.`
         }
       });
     }
@@ -371,13 +474,18 @@ router.post('/:id/report', zValidator('json', reportSchema, (result, c) => {
 router.post('/bulk-delete', async (c) => {
   const userId = c.get('userId');
   const role = c.get('role');
-  
-  try {
+
+    try {
     const body = await c.req.json();
-    const { ids } = body;
+    const { ids, reason } = body;
 
     if (!ids || !Array.isArray(ids)) {
       return c.json({ message: 'Invalid scholarly archive IDs.' }, 400);
+    }
+
+    // Loophole Fix: Prevent ID exhaustion/DoS by limiting bulk size
+    if (ids.length > 50) {
+      return c.json({ message: 'Institutional Limit Exceeded: You can only purge 50 records at a time.' }, 400);
     }
 
     const numericIds = ids.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
@@ -406,7 +514,7 @@ router.post('/bulk-delete', async (c) => {
           data: othersPosts.map(p => ({
             userId: p.userId,
             icon: 'delete_sweep',
-            text: `Your request "${p.title}" has been permanently removed by an administrator.`
+            text: `Your request "<b>${p.title}</b>" has been permanently removed by an administrator.${reason ? ' Reason: ' + reason : ''}`
           }))
         });
       }
@@ -448,11 +556,12 @@ router.delete('/:id', async (c) => {
 
     // Notify user if someone else (admin) deletes the post
     if (post.userId !== userId && role === 'admin') {
+      const reason = c.req.query('reason');
       await prisma.notification.create({
         data: {
           userId: post.userId,
           icon: 'delete_sweep',
-          text: `Your request "${post.title}" has been permanently removed by a HUB administrator.`
+          text: `Your request "<b>${post.title}</b>" has been permanently removed by a HUB administrator.${reason ? ' Reason: ' + reason : ''}`
         }
       });
     }
@@ -480,12 +589,27 @@ router.post('/:id/cooperate', async (c) => {
     if (!post) return c.json({ message: 'Post not found' }, 404);
 
     if (post.userId !== userId) {
-      const notifText = `A fellow scholar is interested in cooperating on your request: "${post.title}".`;
+      // Loophole Fix: Rate limit cooperation notifications to prevent spam (Max 3 per hour per post/user combo)
+      const existingNotifCount = await prisma.notification.count({
+        where: {
+          userId: post.userId,
+          type: 'cooperation',
+          text: { contains: post.title },
+          createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) }
+        }
+      });
+
+      if (existingNotifCount >= 3) {
+        return c.json({ message: 'Institutional Limit: Too many cooperation requests sent for this archive record.' }, 429);
+      }
+
+      const notifText = `A fellow scholar is interested in cooperating on your request: "<b>${post.title}</b>".`;
       await prisma.notification.create({
         data: {
           userId: post.userId,
           icon: 'handshake',
-          text: notifText
+          text: notifText,
+          type: 'cooperation'
         }
       });
     }
@@ -513,24 +637,36 @@ router.post('/:id/save', async (c) => {
 
     // Only notify if someone ELSE saves it
     if (post.userId !== userId) {
-      // Institutional Spam Prevention: Check for duplicate recent notifications
-      const notifText = `A fellow scholar has saved your request: "${post.title}".`;
-      const recentNotif = await prisma.notification.findFirst({
+      // Loophole Fix: Stricter spam prevention for saves across the board
+      // Limit global save notifications for a single user to 10 per hour
+      const totalUserSaveNotifs = await prisma.notification.count({
         where: {
           userId: post.userId,
-          text: notifText,
-          createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } // Within last hour
+          type: 'save_alert', // Dedicated type for tracking
+          createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) }
         }
       });
 
-      if (!recentNotif) {
-        await prisma.notification.create({
-          data: {
+      if (totalUserSaveNotifs < 10) {
+        const notifText = `A fellow scholar has saved your request: "<b>${post.title}</b>".`;
+        const recentNotif = await prisma.notification.findFirst({
+          where: {
             userId: post.userId,
-            icon: 'bookmark_added',
-            text: notifText
+            text: notifText,
+            createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } // Within last hour for this specific post
           }
         });
+
+        if (!recentNotif) {
+          await prisma.notification.create({
+            data: {
+              userId: post.userId,
+              icon: 'bookmark_added',
+              text: notifText,
+              type: 'save_alert'
+            }
+          });
+        }
       }
     }
 
