@@ -49,8 +49,8 @@ export class ThemeService {
   }
 
   private applyTheme() {
-    // Only apply dark theme if the user is logged in
-    if (this.isDarkMode() && this.authState) {
+    // Apply dark theme based on the signal state, independent of authentication
+    if (this.isDarkMode()) {
       document.body.classList.add('dark-theme');
     } else {
       document.body.classList.remove('dark-theme');

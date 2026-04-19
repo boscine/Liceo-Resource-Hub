@@ -33,7 +33,14 @@ router.post('/', async (c) => {
     }
 
     // ── Persistence ───────────────────────────────────────────────────────────
-    const ext = extname(file.name) || '.jpg';
+    // Loophole Fix: Derive extension strictly from MIME type to prevent spoofing
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+      'image/gif': '.gif'
+    };
+    const ext = mimeToExt[file.type] || '.jpg';
     const uniqueName = `${randomBytes(16).toString('hex')}${ext}`;
     const uploadDir = join(process.cwd(), 'public', 'api', 'uploads');
     await mkdir(uploadDir, { recursive: true });

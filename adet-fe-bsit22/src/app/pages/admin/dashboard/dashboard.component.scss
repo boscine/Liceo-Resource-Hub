@@ -40,25 +40,38 @@
   margin: 0 auto;
   padding: 2.5rem 2rem;
   width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem;
+  }
 }
 
 /* HEADER */
 .admin-header {
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-  h1 {
-    font-family: var(--font-headline);
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--on-surface);
-    margin-bottom: 0.4rem;
-  }
+  .header-content {
+    h1 {
+      font-family: var(--font-headline);
+      font-size: clamp(1.75rem, 8vw, 2.5rem);
+      font-weight: 700;
+      color: var(--on-surface);
+      margin-bottom: 0.4rem;
+    }
 
-  p {
-    font-family: var(--font-headline);
-    font-style: italic;
-    font-size: 1rem;
-    color: var(--on-surface-variant);
+    p {
+      font-family: var(--font-headline);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--on-surface-variant);
+
+      @media (max-width: 640px) {
+        font-size: 0.9rem;
+      }
+    }
   }
 }
 
@@ -357,13 +370,19 @@
   transition: background 0.2s;
   flex-wrap: wrap;
 
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.25rem 1rem;
+  }
+
   &.flagged {
     background: rgba(245, 124, 0, 0.05);
-    border-left: 3px solid #f57c00;
+    border-left: 3px solid var(--warning);
   }
 
   &.removed {
-    background: rgba(186, 26, 26, 0.04);
+    background: rgba(var(--error-rgb), 0.04);
     border-left: 3px solid var(--error);
     opacity: 0.7;
   }
@@ -419,7 +438,7 @@
   color: var(--on-surface);
 
   &.flagged-text {
-    color: #f57c00;
+    color: var(--warning);
   }
 
   &.removed-text {
@@ -431,6 +450,14 @@
   display: flex;
   gap: 0.4rem;
   flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--surface-container-high);
+  }
 }
 
 .action-btn {
@@ -451,7 +478,7 @@
 
 .action-approve {
   background: rgba(46, 125, 50, 0.1);
-  color: #2e7d32;
+  color: var(--success);
 
   &:hover {
     background: rgba(46, 125, 50, 0.2);
@@ -460,7 +487,7 @@
 
 .action-flag {
   background: rgba(245, 124, 0, 0.1);
-  color: #f57c00;
+  color: var(--warning);
 
   &:hover {
     background: rgba(245, 124, 0, 0.2);
@@ -468,11 +495,11 @@
 }
 
 .action-remove {
-  background: rgba(186, 26, 26, 0.1);
+  background: rgba(var(--error-rgb), 0.1);
   color: var(--error);
 
   &:hover {
-    background: rgba(186, 26, 26, 0.2);
+    background: rgba(var(--error-rgb), 0.2);
   }
 }
 
@@ -553,7 +580,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(var(--surface-rgb), 0.8);
   backdrop-filter: blur(8px);
   z-index: 1100;
   display: flex;
@@ -614,18 +641,18 @@
   padding: 1rem;
   background: rgba(245, 124, 0, 0.08);
   border-radius: var(--radius-md);
-  border-left: 4px solid #f57c00;
+  border-left: 4px solid var(--warning);
   margin-bottom: 1.5rem;
 
   .material-symbols-outlined {
-    color: #f57c00;
+    color: var(--warning);
     font-size: 24px;
   }
 
   strong {
     display: block;
     font-size: 0.9rem;
-    color: #f57c00;
+    color: var(--warning);
     margin-bottom: 0.2rem;
   }
 
@@ -637,7 +664,7 @@
   }
 
   &.remove {
-    background: rgba(186, 26, 26, 0.06);
+    background: rgba(var(--error-rgb), 0.06);
     border-left-color: var(--error);
 
     .material-symbols-outlined,
@@ -719,7 +746,7 @@
     transition: transform 0.2s, background 0.2s;
 
     &:hover:not(:disabled) {
-      background: #800000;
+      background: var(--primary-container);
       transform: translateY(-2px);
     }
 
@@ -747,4 +774,71 @@
 
 .mt-4 {
   margin-top: 1rem;
+}
+.empty-state-admin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--surface-container-lowest);
+  border: 1px dashed var(--outline-variant);
+  border-radius: var(--radius-lg);
+  margin-top: 1rem;
+
+  .material-symbols-outlined {
+    font-size: 48px;
+    color: var(--outline-variant);
+    margin-bottom: 1rem;
+    font-variation-settings: 'wght' 200;
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--on-surface);
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-sub {
+    font-size: 0.85rem;
+    color: var(--on-surface-variant);
+    font-style: italic;
+  }
+}
+.report-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  
+  .action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 1px solid var(--outline-variant);
+    background: var(--surface);
+    transition: all 0.2s;
+
+    &:hover { background: var(--surface-container-high); }
+    
+    &.flag { color: var(--error); border-color: var(--error); }
+    &.resolve { color: var(--primary); border-color: var(--primary); }
+  }
+  
+  .view-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    background: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    cursor: pointer;
+  }
 }

@@ -160,6 +160,11 @@ export class FeedComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(p => p.authorId === this.user.id);
     }
     
+    // Extra safety: ensure 'all' view hides the user's own posts
+    if (this.viewMode === 'all' && this.user?.id) {
+      filtered = filtered.filter(p => p.authorId !== this.user.id);
+    }
+    
     // Extra safety: ensure 'saved' only shows saved posts
     if (this.viewMode === 'saved') {
       filtered = filtered.filter(p => this.isSaved(p));

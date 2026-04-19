@@ -46,26 +46,6 @@
         <form (ngSubmit)="onSubmit()" #regForm="ngForm" class="reg-form">
 
           <div class="field">
-            <label class="field-label" for="displayName">Full Name</label>
-            <div class="input-wrap">
-              <span class="material-symbols-outlined input-icon">person</span>
-              <input class="input-academic" id="displayName" type="text" [(ngModel)]="displayName" name="displayName"
-                 required />
-            </div>
-          </div>
-
-          <div class="field">
-            <label class="field-label" for="phone">
-              Contact Number
-            </label>
-            <div class="input-wrap">
-              <span class="material-symbols-outlined input-icon">call</span>
-              <input class="input-academic" id="phone" type="tel" [(ngModel)]="phone" name="phone"
-                 required />
-            </div>
-          </div>
-
-          <div class="field">
             <label class="field-label" for="email">
               University Email
               <span class="field-hint-inline">@liceo.edu.ph only</span>
@@ -83,6 +63,18 @@
               <span class="material-symbols-outlined" style="font-size:12px">info</span>
               Only official Liceo university emails are permitted for verification.
             </p>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="phone">
+              Contact Number
+            </label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined input-icon">call</span>
+              <input class="input-academic" id="phone" type="tel" [(ngModel)]="phone" name="phone"
+                 placeholder="0912 345 6789" pattern="^(09|\+639)\d{9}$" required />
+            </div>
+            <p class="field-hint">Mobile number (e.g., 09XXXXXXXXX)</p>
           </div>
 
           <div class="field">
@@ -143,7 +135,7 @@
   <!-- TERMS OF SERVICE MODAL -->
   <div class="modal-overlay" *ngIf="showToS" (click)="toggleToS()">
     <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), #800000); color: white; padding: 1.5rem;">
+      <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); color: white; padding: 1.5rem;">
         <span class="material-symbols-outlined">gavel</span>
         <h3>Terms of Scholarly Exchange</h3>
         <button class="close-btn" (click)="toggleToS()" style="color: white; opacity: 0.8;">
@@ -201,10 +193,5 @@
   </div>
 
   <app-footer></app-footer>
-
-  <!-- BG DECORATION -->
-  <div class="bg-decoration">
-    <span class="material-symbols-outlined">account_balance</span>
-  </div>
 
 </div>

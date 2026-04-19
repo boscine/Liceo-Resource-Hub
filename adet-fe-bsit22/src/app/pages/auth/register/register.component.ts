@@ -16,7 +16,6 @@ import { FooterComponent }              from '../../../shared/footer/footer.comp
   styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent {
-  displayName = '';
   email = '';
   phone = '';
   password = '';
@@ -59,10 +58,6 @@ export class RegisterComponent {
     const normalizedEmail = this.email.trim().toLowerCase();
 
     // Collect all local validation errors
-    if (!this.displayName || this.displayName.length < 2) {
-      this.errors.push('Full name must be at least 2 characters.');
-    }
-
     if (!this.isLiceoEmail(normalizedEmail)) {
       this.errors.push('Registration requires a valid @liceo.edu.ph university email.');
     }
@@ -90,7 +85,7 @@ export class RegisterComponent {
 
     this.loading = true;
 
-    this.auth.register(normalizedEmail, this.password, this.displayName, this.phone).subscribe({
+    this.auth.register(normalizedEmail, this.password, '', this.phone).subscribe({
       next: (res) => {
         this.loading = false;
         this.toast.success('Registration successful! Please verify your student email to activate your account.');

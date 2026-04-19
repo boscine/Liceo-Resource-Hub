@@ -53,10 +53,10 @@
 
       <div class="portal-info">
         <span class="material-symbols-outlined">info</span>
-        <p *ngIf="filterModes.includes('all') && filterModes.length === 1">You can manually purge dispatches to maintain institutional clarity. (Pinned items excluded).</p>
-        <p *ngIf="filterModes.includes('resolved') && filterModes.length === 1">These are notifications regarding completed scholarly cooperation or fulfilled requests.</p>
-        <p *ngIf="filterModes.includes('saved') && filterModes.length === 1">Your personally bookmarked dispatches for ongoing institutional reference.</p>
-        <p *ngIf="filterModes.length > 1">Showing filtered scholarly dispatch records.</p>
+        <p *ngIf="filterModes.includes('all') && filterModes.length === 1">Keep your feed clean by clearing out old notifications. Pinned items won't be deleted.</p>
+        <p *ngIf="filterModes.includes('resolved') && filterModes.length === 1">Notifications about completed requests and scholarly cooperation.</p>
+        <p *ngIf="filterModes.includes('saved') && filterModes.length === 1">Your personally bookmarked notifications for easy access.</p>
+        <p *ngIf="filterModes.length > 1">Showing filtered activity records.</p>
       </div>
     </aside>
 
@@ -69,7 +69,7 @@
               <span class="material-symbols-outlined">menu_open</span>
             </button>
             <h1 class="serif-italic">
-              <span>{{ filterModes.length > 1 ? 'Filtered Dispatch' : (filterModes.includes('all') ? 'Scholarly Dispatch' : (filterModes.includes('resolved') ? 'Resolved Log' : 'Saved Alerts')) }}</span>
+              <span>{{ filterModes.length > 1 ? 'Filtered Activity' : (filterModes.includes('all') ? 'Activity Log' : (filterModes.includes('resolved') ? 'Resolved Log' : 'Saved Alerts')) }}</span>
             </h1>
           </div>
           <p>Monitor your academic requests, community interaction, and scholarly cooperation.</p>
@@ -81,7 +81,7 @@
           </button>
           <button class="header-btn clear-btn" (click)="clearAll()" [disabled]="archiving">
             <span class="material-symbols-outlined">{{ archiving ? 'sync' : 'delete_sweep' }}</span>
-            {{ archiving ? 'Purging...' : (filterModes.includes('all') ? 'Purge All' : 'Clear View') }}
+            {{ archiving ? 'Purging...' : (filterModes.includes('all') ? 'Clear All' : 'Clear View') }}
           </button>
         </div>
       </header>
@@ -105,7 +105,7 @@
             <button class="star-btn" (click)="toggleStar($event, n)" [class.active]="n.isSaved" title="Star for institutional reference">
               <span class="material-symbols-outlined">{{ n.isSaved ? 'bookmark' : 'bookmark_border' }}</span>
             </button>
-            <button class="delete-btn" (click)="deleteNotification($event, n.id)" title="Remove dispatched record">
+            <button class="delete-btn" (click)="deleteNotification($event, n.id)" title="Remove record">
               <span class="material-symbols-outlined">close</span>
             </button>
             <span class="notif-dot" *ngIf="!n.read"></span>
@@ -117,7 +117,7 @@
             {{ filterModes.includes('saved') ? 'bookmark_border' : (filterModes.includes('resolved') ? 'done_all' : 'drafts') }}
           </span>
           <p>No records found</p>
-          <span class="empty-sub">Your scholarly dispatch filter returned no matching records.</span>
+          <span class="empty-sub">Your activity filter returned no matching records.</span>
         </div>
       </div>
       

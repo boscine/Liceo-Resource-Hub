@@ -5,7 +5,7 @@
 
     <!-- PAGE HEADER -->
     <div class="admin-header">
-      <div>
+      <div class="header-content">
         <h1 class="serif">Curatorial Control</h1>
         <p class="serif-italic">Managing the academic commons with precision and integrity.</p>
       </div>
@@ -39,11 +39,21 @@
           </div>
           <p class="report-by">Reported by {{ report.reportedBy }}</p>
           <p class="report-excerpt" *ngIf="report.details">{{ report.details }}</p>
-          <button class="view-btn" [routerLink]="['/admin/reports']">View Details</button>
+          
+          <div class="report-actions">
+            <button class="action-btn flag" (click)="flagPost(report.postId)">
+              <span class="material-symbols-outlined">flag</span> Flag
+            </button>
+            <button class="action-btn resolve" (click)="resolveReport(report.id)">
+              <span class="material-symbols-outlined">check</span> Resolve
+            </button>
+            <button class="view-btn" [routerLink]="['/admin/reports', report.id]">Details</button>
+          </div>
         </div>
 
         <div *ngIf="urgentReports.length === 0" class="no-results-lite">
-          No pending reports at this time.
+          <span class="material-symbols-outlined">check_circle</span>
+          <p>All reports are cleared. Curatorial status: Optimal.</p>
         </div>
 
         <button class="view-all-btn" routerLink="/admin/reports">View All Reports</button>
@@ -87,7 +97,7 @@
               </span>
             </div>
             <div class="post-actions">
-              <button class="action-btn action-approve" *ngIf="post.status !== 'REMOVED'" (click)="approvePost(post.id)" title="Approve">
+              <button class="action-btn action-approve" *ngIf="post.status !== 'REMOVED' && post.isFlagged" (click)="approvePost(post.id)" title="Approve">
                 <span class="material-symbols-outlined">check_circle</span>
               </button>
               <button class="action-btn action-flag" *ngIf="!post.isFlagged && post.status !== 'REMOVED'" (click)="flagPost(post.id)" title="Flag">
@@ -101,8 +111,10 @@
               </button>
             </div>
           </div>
-          <div *ngIf="getFilteredPosts().length === 0" class="no-results">
-            No posts found in this category.
+          <div *ngIf="getFilteredPosts().length === 0" class="empty-state-admin">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <p>No requests found in this category.</p>
+            <span class="empty-sub">The curatorial database is clear for this view.</span>
           </div>
         </div>
 
@@ -133,7 +145,7 @@
     <div class="editor-modal reason-modal animate-modal" (click)="$event.stopPropagation()">
       <div class="editor-header">
         <div class="modal-handle"></div>
-        <h2 class="serif-italic">Action Justification</h2>
+        <h2 class="serif-italic">Sharing your feedback</h2>
         <button class="icon-btn close-btn" (click)="cancelModeration()">
           <span class="material-symbols-outlined">close</span>
         </button>
@@ -144,22 +156,23 @@
           <span class="material-symbols-outlined">{{ moderationAction === 'flag' ? 'flag' : 'delete_forever' }}</span>
           <div>
             <strong>{{ moderationAction === 'flag' ? 'Flagging' : 'Removing' }} Request</strong>
-            <p>Provide a scholarly reason for this moderation action. This will be sent to the author.</p>
+            <p>Tell the student why you're taking this action.</p>
           </div>
         </div>
 
         <div class="field mt-4">
           <label class="field-label">Institutional Reason</label>
           <textarea class="input-academic" [(ngModel)]="moderationReason" 
+            placeholder="e.g., This post doesn't quite fit our sharing guidelines."
             rows="4"></textarea>
-          <div class="field-hint">Maximum 255 characters.</div>
+          <div class="field-hint">Let the student know why you're making this call.</div>
         </div>
       </div>
 
       <div class="editor-footer">
-        <button class="btn-cancel" (click)="cancelModeration()">Abstain</button>
+        <button class="btn-cancel" (click)="cancelModeration()">Never mind</button>
         <button class="btn-primary" [disabled]="!moderationReason.trim()" (click)="submitModeration()">
-          <span>Commence {{ moderationAction === 'flag' ? 'Flagging' : 'Removal' }}</span>
+          <span>Confirm {{ moderationAction === 'flag' ? 'Flag' : 'Removal' }}</span>
           <span class="material-symbols-outlined">gavel</span>
         </button>
       </div>

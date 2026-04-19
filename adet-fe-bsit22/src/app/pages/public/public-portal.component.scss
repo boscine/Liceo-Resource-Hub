@@ -129,7 +129,7 @@
     border: 1px dashed var(--outline);
 
     &:hover {
-      background: rgba(197, 160, 33, 0.05); // Gold tint
+      background: rgba(var(--secondary-rgb), 0.05); // Gold tint
       border-color: var(--secondary-container);
     }
   }
@@ -187,7 +187,7 @@
   border-radius: 100px;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  box-shadow: 0 4px 20px rgba(87, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.2);
 
   .material-symbols-outlined {
     font-size: 18px;
@@ -315,7 +315,7 @@
 }
 
 .faq-item {
-  background: white;
+  background: var(--surface-container-lowest);
   margin-bottom: 1rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--outline-variant);
@@ -324,7 +324,7 @@
 
   &[open] {
     border-color: var(--secondary);
-    box-shadow: 0 4px 20px rgba(197, 160, 33, 0.1);
+    box-shadow: 0 4px 20px rgba(var(--secondary-rgb), 0.1);
 
     summary::after {
       content: 'expand_less';

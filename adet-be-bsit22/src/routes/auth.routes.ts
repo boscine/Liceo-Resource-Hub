@@ -16,15 +16,19 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
 
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 
-    // 1. Check if user exists
+    // 1. Check if user exists (Loophole Fix: Use generic message to prevent enumeration)
+    const genericError = 'Invalid email or password';
+    
     if (!user) {
-      return c.json({ message: 'No account found with this email' }, 401);
+      // Still perform a dummy hash comparison to prevent timing attacks
+      bcrypt.compareSync(password, '$2a$10$75cbdc1eb7150937890ad5465d861175c6624711'); 
+      return c.json({ message: genericError }, 401);
     }
 
-    // 2. Check password FIRST before revealing account status
+    // 2. Check password
     const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
     if (!isPasswordValid) {
-      return c.json({ message: 'Incorrect password' }, 401);
+      return c.json({ message: genericError }, 401);
     }
 
     // 3. Inform of pending verification ONLY if credentials are correct
@@ -65,10 +69,17 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
     
     const emailLower = email.toLowerCase();
     const existing = await prisma.user.findUnique({ where: { email: emailLower } });
-    if (existing) return c.json({ message: 'Email already registered' }, 409);
+    
+    // Loophole Fix: If user exists, act like we sent a code to prevent enumeration
+    if (existing) {
+      return c.json({ 
+        message: 'Registration successful. Verification code sent.',
+        email: emailLower
+      }, 201);
+    }
 
     const passwordHash = bcrypt.hashSync(password, 10);
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationToken = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 2); // 2 hours expiry
 
@@ -81,6 +92,7 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
         status: 'pending',
         verificationToken,
         verificationExpiresAt: expiresAt,
+        verificationLastSent: new Date(),
         contacts: phone ? {
           create: {
             type: 'phone',
@@ -99,8 +111,7 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
     }, 201);
   } catch (error) {
     console.error('Registration Error:', error);
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({ message: 'Internal server error during registration', detail: msg }, 500);
+    return c.json({ message: 'Internal server error during registration' }, 500);
   }
 });
 
@@ -117,7 +128,16 @@ auth.post('/verify', zValidator('json', verifySchema), async (c) => {
       return c.json({ message: 'Invalid verification request' }, 400);
     }
 
+    // Loophole Fix: Brute force protection (Max 5 attempts)
+    if (user.verificationAttempts >= 5) {
+      return c.json({ message: 'Too many failed attempts. Please request a new code.' }, 403);
+    }
+
     if (user.verificationToken !== code) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { verificationAttempts: { increment: 1 } }
+      });
       return c.json({ message: 'Incorrect verification code' }, 400);
     }
 
@@ -131,7 +151,8 @@ auth.post('/verify', zValidator('json', verifySchema), async (c) => {
       data: { 
         status: 'active',
         verificationToken: null,
-        verificationExpiresAt: null
+        verificationExpiresAt: null,
+        verificationAttempts: 0
       }
     });
 
@@ -165,7 +186,13 @@ auth.post('/resend-verify', async (c) => {
       return c.json({ message: 'Resend not applicable' }, 400);
     }
 
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    // Loophole Fix: Rate limiting (Wait 2 minutes between resends)
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    if (user.verificationLastSent && user.verificationLastSent > twoMinutesAgo) {
+      return c.json({ message: 'Please wait before requesting a new code.' }, 429);
+    }
+
+    const verificationToken = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 2);
 
@@ -173,7 +200,9 @@ auth.post('/resend-verify', async (c) => {
       where: { id: user.id },
       data: { 
         verificationToken, 
-        verificationExpiresAt: expiresAt 
+        verificationExpiresAt: expiresAt,
+        verificationAttempts: 0, // Reset attempts on resend
+        verificationLastSent: new Date()
       }
     });
 

@@ -173,7 +173,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: rgba(186, 26, 26, 0.08);
+  background: rgba(var(--error-rgb), 0.08);
   color: var(--error);
   padding: 0.25rem 0.6rem;
   border-radius: var(--radius-full);
@@ -287,7 +287,7 @@
   font-family: var(--font-body);
   font-size: 0.78rem;
   font-weight: 600;
-  color: #2e7d32;
+  color: var(--success);
   cursor: pointer;
   transition: all 0.2s;
 

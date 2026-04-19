@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function main() {
-  const studentEmail = 'jlmandahinog65115@liceo.edu.ph';
+  const studentEmail = 'student@liceo.edu.ph';
   const studentPassword = 'qasxq2ew';
   const adminEmail = 'admin@liceo.edu.ph';
   const adminPassword = 'adminpassword123';
@@ -20,10 +20,9 @@ async function main() {
       data: {
         email: studentEmail,
         passwordHash: hashedPassword,
-        displayName: 'John Mandahinog',
+        displayName: 'Sample Student',
         role: Role.student,
-        status: user_status.active,
-        college: 'College of Information Technology'
+        status: user_status.active
       }
     });
     console.log(`Created student user: ${studentEmail}`);
@@ -46,8 +45,7 @@ async function main() {
         passwordHash: hashedPassword,
         displayName: 'System Admin',
         role: Role.admin,
-        status: user_status.active,
-        college: 'Institutional Office'
+        status: user_status.active
       }
     });
     console.log(`Created admin user: ${adminEmail}`);
@@ -69,18 +67,18 @@ async function main() {
   console.log('--- Creating Posts ---');
 
   const postTemplates = [
-    { title: 'Looking for Advanced Calculus Textbook', desc: 'Need a copy of Larson Calculus 11th Edition for MTH101.', cat: 'Academic Textbooks', img: '/api/uploads/cat1.png' },
-    { title: 'Seeking CS202 Lecture Notes', desc: 'Missed some lectures in Data Structures. Looking for comprehensive notes.', cat: 'Lecture Chronicles', img: '/api/uploads/cat2.png' },
-    { title: 'Chemistry Lab Equipment Needed', desc: 'Require a set of test tubes and a Bunsen burner for a home experiment.', cat: 'Scientific Apparatus', img: '/api/uploads/cat3.png' },
-    { title: 'Adobe Creative Cloud License', desc: 'Looking for a spare institutional license for graphic design work.', cat: 'Computing & Digital Assets', img: '/api/uploads/cat4.png' },
-    { title: 'Graphic Calculator for Engineering', desc: 'Need a TI-84 or equivalent for my Engineering Mathematics class.', cat: 'Mathematical Instruments', img: '/api/uploads/cat5.png' },
-    { title: 'Precision Screwdriver Set', desc: 'Looking for technical tools for my Electronics workshop.', cat: 'Technical & Vocational Tools', img: '/api/uploads/cat6.png' },
-    { title: 'Oil Paint Palette and Brushes', desc: 'Seeking high-quality brushes for the upcoming Fine Arts exhibition.', cat: 'Artistic Tools & Mediums', img: '/api/uploads/cat7.png' },
-    { title: 'Stethoscope for Nursing Duty', desc: 'Need a reliable stethoscope for my clinical rotation at the hospital.', cat: 'Clinical & Medical Supplies', img: '/api/uploads/cat8.png' },
-    { title: 'Official PE Uniform (Large)', desc: 'Looking for a clean, used PE uniform for the midterms.', cat: 'Physical Education Kits', img: '/api/uploads/cat9.png' },
-    { title: 'Portable Projector for Presentation', desc: 'Need a projector for a group reporting session in the auditorium.', cat: 'Institutional Equipment', img: '/api/uploads/cat10.png' },
-    { title: 'Historical Research Manuscripts', desc: 'Searching for local history archives for my senior thesis.', cat: 'Scholarly Manuscripts', img: '/api/uploads/cat11.png' },
-    { title: 'Magnifying Glass and Study Lamp', desc: 'General study aids needed for late-night research sessions.', cat: 'Miscellaneous Resources', img: '/api/uploads/cat12.png' }
+    { title: 'Looking for Advanced Calculus Textbook', desc: 'Need a copy of Larson Calculus 11th Edition for MTH101.', cat: 'Textbooks & Modules', img: '/api/uploads/cat1.png' },
+    { title: 'Seeking CS202 Lecture Notes', desc: 'Missed some lectures in Data Structures. Looking for comprehensive notes.', cat: 'Study Notes & Reviewers', img: '/api/uploads/cat2.png' },
+    { title: 'Chemistry Lab Equipment Needed', desc: 'Require a set of test tubes and a Bunsen burner for a home experiment.', cat: 'Laboratory & Science Tools', img: '/api/uploads/cat3.png' },
+    { title: 'Adobe Creative Cloud License', desc: 'Looking for a spare institutional license for graphic design work.', cat: 'Laptops & Gadgets', img: '/api/uploads/cat4.png' },
+    { title: 'Graphic Calculator for Engineering', desc: 'Need a TI-84 or equivalent for my Engineering Mathematics class.', cat: 'Calculators & Math Tools', img: '/api/uploads/cat5.png' },
+    { title: 'Precision Screwdriver Set', desc: 'Looking for technical tools for my Electronics workshop.', cat: 'Engineering & Tech Tools', img: '/api/uploads/cat6.png' },
+    { title: 'Oil Paint Palette and Brushes', desc: 'Seeking high-quality brushes for the upcoming Fine Arts exhibition.', cat: 'Art & Creative Supplies', img: '/api/uploads/cat7.png' },
+    { title: 'Stethoscope for Nursing Duty', desc: 'Need a reliable stethoscope for my clinical rotation at the hospital.', cat: 'Medical & Nursing Kits', img: '/api/uploads/cat8.png' },
+    { title: 'Official PE Uniform (Large)', desc: 'Looking for a clean, used PE uniform for the midterms.', cat: 'PE & Sports Equipment', img: '/api/uploads/cat9.png' },
+    { title: 'Portable Projector for Presentation', desc: 'Need a projector for a group reporting session in the auditorium.', cat: 'Campus & General Equipment', img: '/api/uploads/cat10.png' },
+    { title: 'Historical Research Manuscripts', desc: 'Searching for local history archives for my senior thesis.', cat: 'Research & Manuscripts', img: '/api/uploads/cat11.png' },
+    { title: 'Magnifying Glass and Study Lamp', desc: 'General study aids needed for late-night research sessions.', cat: 'Other Resources', img: '/api/uploads/cat12.png' }
   ];
 
   // Helper function to find category ID by name

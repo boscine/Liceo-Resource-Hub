@@ -20,11 +20,11 @@ import { FooterComponent }   from '../../../shared/footer/footer.component';
       <h2>Archival Restoration</h2>
       
       <div *ngIf="!tokenPresent" style="text-align: center; margin: 30px 0;">
-        <span class="material-symbols-outlined" style="font-size: 48px; color: #570000; margin-bottom: 15px; display: block;">link_off</span>
-        <p style="color: #570000; font-weight: bold;">Invalid Cryptographic Link</p>
+        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary); margin-bottom: 15px; display: block;">link_off</span>
+        <p style="color: var(--primary); font-weight: bold;">Invalid Cryptographic Link</p>
         <p style="color: #666; font-size: 14px; margin-top: 10px;">This credential restoration link is broken or missing secure parameters. It cannot be used.</p>
         <div style="margin-top: 25px;">
-           <a routerLink="/forgot-password" style="text-decoration: underline; color: #800000; font-weight: bold; font-size: 14px;">Request a New Link</a>
+           <a routerLink="/forgot-password" style="text-decoration: underline; color: var(--primary-container); font-weight: bold; font-size: 14px;">Request a New Link</a>
         </div>
       </div>
 

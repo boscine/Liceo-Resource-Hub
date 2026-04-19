@@ -12,12 +12,24 @@ import { AuthService }   from './core/services/auth.service';
   // We use backticks (`) for the template to allow multiple lines
   template: `
     <app-toast></app-toast>
+    
+    <!-- Institutional Utility Tab (Right Edge) -->
+    @if (isLoggedIn()) {
+      <div class="utility-tab-right">
+        <button class="theme-utility-btn" (click)="themeService.toggleTheme()" [title]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+          <span class="material-symbols-outlined">{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</span>
+          <span class="utility-label">THEME</span>
+        </button>
+      </div>
+    }
+
     <router-outlet></router-outlet>
   `,
+  styleUrls: ['./app.scss']
 })
 export class AppComponent {
   constructor(
-    private themeService: ThemeService,
+    public themeService: ThemeService,
     private authService: AuthService,
     private router: Router
   ) {
@@ -46,5 +58,9 @@ export class AppComponent {
         }
       }
     });
+  }
+
+  isLoggedIn() {
+    return this.authService.isLoggedIn();
   }
 }

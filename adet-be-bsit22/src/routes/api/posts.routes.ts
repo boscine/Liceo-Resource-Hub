@@ -286,11 +286,11 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
     const statusChanged = status && status.toLowerCase() !== post.status;
     const flagChanged = isFlagged !== undefined && !!isFlagged !== post.isFlagged;
     
-    // Moderation: Allow Admins to edit content for institutional cleanup
-    if (title !== undefined) data.title = title;
-    if (description !== undefined) data.description = description;
-    if (imageUrl !== undefined) data.imageUrl = imageUrl?.trim() ? imageUrl.trim() : null;
-    if (categoryId !== undefined) {
+    // Moderation: Status and Flag updates only
+    if (title !== undefined && userId === post.userId) data.title = title;
+    if (description !== undefined && userId === post.userId) data.description = description;
+    if (imageUrl !== undefined && userId === post.userId) data.imageUrl = imageUrl?.trim() ? imageUrl.trim() : null;
+    if (categoryId !== undefined && userId === post.userId) {
       const catId = Number(categoryId);
       if (isNaN(catId)) {
         return c.json({ message: 'Invalid category ID.' }, 400);
@@ -331,6 +331,9 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
          return c.json({ message: 'Only admins can flag or unflag posts' }, 403);
       }
       data.isFlagged = !!isFlagged;
+      if (data.isFlagged) {
+        data.status = 'closed';
+      }
     }
 
     if (Object.keys(data).length === 0) {

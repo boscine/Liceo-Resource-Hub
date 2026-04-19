@@ -11,13 +11,13 @@ router.get('/', async (c) => {
   if (!userId) return c.json({ message: 'Unauthorized' }, 401);
 
   const limitParam = c.req.query('limit');
-  const limit = limitParam ? parseInt(limitParam, 10) : 20;
+  const limit = limitParam ? parseInt(limitParam, 10) : 100;
 
   try {
     const notifications = await prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: isNaN(limit) ? 20 : limit
+      take: isNaN(limit) ? 100 : limit
     });
     
     const formatted = notifications.map(n => ({
@@ -25,13 +25,39 @@ router.get('/', async (c) => {
       icon: n.icon,
       text: n.text,
       time: getTimeAgo(n.createdAt),
-      read: n.read
+      read: n.read,
+      isSaved: n.isSaved,
+      type: n.type
     }));
 
     return c.json(formatted);
   } catch (error) {
     console.error('Failed to fetch notifications:', error);
     return c.json({ message: 'Internal server error' }, 500);
+  }
+});
+
+// ── PATCH /api/v1/notifications/:id/save (Toggle Scholarly Bookmark) ───────
+router.patch('/:id/save', async (c) => {
+  const userId = c.get('userId');
+  const id = parseInt(c.req.param('id'), 10);
+  if (isNaN(id) || !userId) return c.json({ message: 'Invalid request' }, 400);
+
+  try {
+    const notif = await prisma.notification.findFirst({
+      where: { id, userId }
+    });
+
+    if (!notif) return c.json({ message: 'Dispatch not found' }, 404);
+
+    const updated = await prisma.notification.update({
+      where: { id },
+      data: { isSaved: !notif.isSaved }
+    });
+
+    return c.json({ success: true, isSaved: updated.isSaved });
+  } catch (error) {
+    return c.json({ message: 'Failed to star dispatch record' }, 500);
   }
 });
 
@@ -65,6 +91,30 @@ router.put('/:id/read', async (c) => {
     return c.json({ success: true });
   } catch (error) {
     return c.json({ message: 'Failed to update notification' }, 500);
+  }
+});
+// ── DELETE /api/v1/notifications/purge-old ──────────────────────────────────
+router.delete('/purge-old', async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ message: 'Unauthorized' }, 401);
+
+  try {
+    // Scholarly Cleanup: Delete read notifications older than 7 days that aren't starred
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const result = await prisma.notification.deleteMany({
+      where: { 
+        userId,
+        read: true,
+        isSaved: false,
+        createdAt: { lt: sevenDaysAgo }
+      }
+    });
+    return c.json({ success: true, count: result.count });
+  } catch (error) {
+    console.error('Failed to purge old notifications:', error);
+    return c.json({ message: 'Failed to purge institutional records' }, 500);
   }
 });
 

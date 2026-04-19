@@ -1,8 +1,10 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { getInitials } from '../../core/utils';
 
 @Component({
   selector: 'app-navbar',
@@ -29,10 +31,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   get unreadCount() { return this.notifications.filter(n => !n.read).length; }
 
+  getInitials(): string {
+    const name = this.user?.display_name || this.user?.displayName || '';
+    return getInitials(name);
+  }
+
   constructor(
     private auth: AuthService, 
     private router: Router, 
-    private notifService: NotificationService
+    private notifService: NotificationService,
+    public themeService: ThemeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   toggleMenu() { this.menuClick.emit(); }
@@ -44,6 +53,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.user = this.auth.getUser() || {};
       this.notificationsSub = this.notifService.notifications$.subscribe((data: any[]) => {
         this.notifications = Array.isArray(data) ? data : [];
+        this.cdr.detectChanges();
       });
       this.notifService.refresh();
     }

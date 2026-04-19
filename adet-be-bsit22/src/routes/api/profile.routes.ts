@@ -17,8 +17,14 @@ router.put('/', zValidator('json', profileSchema, (result, c) => {
   }
 }), updateProfile);
 
-// ── GET /api/v1/profile/:id (Public Profile View) ───────────────────────────
+router.post('/request-password-change', (c) => import('../../controllers/profile.controller').then(m => m.requestPasswordChange(c)));
+router.post('/verify-password-change', (c) => import('../../controllers/profile.controller').then(m => m.verifyPasswordChange(c)));
+
+// ── GET /api/v1/profile/:id (Scoped Profile View) ───────────────────────────
 router.get('/:id', async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ message: 'Authorization required to view scholar profiles.' }, 401);
+
   const id = parseInt(c.req.param('id'), 10);
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
 

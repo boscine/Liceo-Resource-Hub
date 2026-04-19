@@ -36,6 +36,14 @@ export class PostCreateComponent implements OnInit, OnDestroy {
   categories: any[] = [];
   private catSub?: Subscription;
 
+  sidebarOpen = false;
+  toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; }
+
+  logout() {
+    this.auth.logout();
+    this.router.navigate(['/login']);
+  }
+
   constructor(
     private auth: AuthService,
     private api: ApiService,
@@ -58,11 +66,7 @@ export class PostCreateComponent implements OnInit, OnDestroy {
     }
 
     this.catSub = this.postService.categories$.subscribe((cats: any[]) => {
-      this.categories = [...cats].sort((a, b) => {
-        if (a.name === 'Miscellaneous Resources') return 1;
-        if (b.name === 'Miscellaneous Resources') return -1;
-        return a.name.localeCompare(b.name);
-      });
+      this.categories = cats;
       this.cdr.detectChanges();
     });
 
@@ -97,20 +101,37 @@ export class PostCreateComponent implements OnInit, OnDestroy {
 
   getCategoryIcon(name: string): string {
     const icons: { [key: string]: string } = {
+      // Premium Scholarly Names
       'Academic Textbooks': 'auto_stories',
       'Lecture Chronicles': 'history_edu',
+      'Laboratory & Scientific Tools': 'biotech',
       'Scientific Apparatus': 'biotech',
       'Computing & Digital Assets': 'terminal',
-      'Mathematical Instruments': 'calculate',
+      'Technical & Artistic Equipment': 'palette',
       'Technical & Vocational Tools': 'construction',
+      'Scholarly Manuscripts': 'menu_book',
+      'Physical Education Kits': 'fitness_center',
+      'Miscellaneous Resources': 'extension',
+      'Mathematical Instruments': 'calculate',
       'Artistic Tools & Mediums': 'palette',
       'Clinical & Medical Supplies': 'medical_services',
-      'Physical Education Kits': 'fitness_center',
       'Institutional Equipment': 'account_balance',
-      'Scholarly Manuscripts': 'menu_book',
-      'Miscellaneous Resources': 'extension'
+
+      // Legacy/Seed Names
+      'Textbooks & Modules': 'auto_stories',
+      'Study Notes & Reviewers': 'history_edu',
+      'Laboratory & Science Tools': 'biotech',
+      'Laptops & Gadgets': 'terminal',
+      'Calculators & Math Tools': 'calculate',
+      'Engineering & Tech Tools': 'construction',
+      'Art & Creative Supplies': 'palette',
+      'Medical & Nursing Kits': 'medical_services',
+      'PE & Sports Equipment': 'fitness_center',
+      'Campus & General Equipment': 'account_balance',
+      'Research & Manuscripts': 'menu_book',
+      'Other Academic Items': 'extension'
     };
-    return icons[name] || 'label';
+    return icons[name] || 'bookmark';
   }
 
   // ── File Handling ─────────────────────────────────────────────────────────

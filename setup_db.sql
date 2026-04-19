@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `verification_token` VARCHAR(191) NULL,
   `verification_expires_at` DATETIME NULL,
   `last_login` DATETIME NULL,
-  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `college` VARCHAR(191) DEFAULT 'Liceo Student'
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Category Table
@@ -30,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `category` (
 CREATE TABLE IF NOT EXISTS `contact` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
-  `type` ENUM('messenger', 'phone', 'other') NOT NULL,
+  `type` ENUM('messenger', 'phone', 'telegram', 'whatsapp', 'instagram', 'viber', 'other') NOT NULL,
   `value` VARCHAR(191) NOT NULL,
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -40,8 +39,9 @@ CREATE TABLE IF NOT EXISTS `post` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
   `category_id` INT NOT NULL,
-  `title` VARCHAR(191) NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
   `description` TEXT NOT NULL,
+  `image_url` TEXT NULL,
   `status` ENUM('open', 'fulfilled', 'closed', 'removed') DEFAULT 'open',
   `is_flagged` BOOLEAN DEFAULT FALSE,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -50,7 +50,18 @@ CREATE TABLE IF NOT EXISTS `post` (
   FOREIGN KEY (`category_id`) REFERENCES `category`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. Post Report Table
+-- 5. Notification Table
+CREATE TABLE IF NOT EXISTS `notification` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `icon` VARCHAR(50) NOT NULL,
+  `text` TEXT NOT NULL,
+  `read` BOOLEAN DEFAULT FALSE,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Post Report Table
 CREATE TABLE IF NOT EXISTS `post_report` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `post_id` INT NOT NULL,
@@ -64,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `post_report` (
   FOREIGN KEY (`reporter_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 6. Password Reset Table
+-- 7. Password Reset Table
 CREATE TABLE IF NOT EXISTS `password_reset` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
@@ -77,18 +88,18 @@ CREATE TABLE IF NOT EXISTS `password_reset` (
 
 -- SEED DATA for Categories
 INSERT IGNORE INTO `category` (`id`, `name`) VALUES
-(1, 'Academic Textbooks'),
-(2, 'Lecture Chronicles'),
-(3, 'Scientific Apparatus'),
-(4, 'Computing & Digital Assets'),
-(5, 'Mathematical Instruments'),
-(6, 'Technical & Vocational Tools'),
-(7, 'Artistic Tools & Mediums'),
-(8, 'Clinical & Medical Supplies'),
-(9, 'Physical Education Kits'),
-(10, 'Institutional Equipment'),
-(11, 'Scholarly Manuscripts'),
-(12, 'Miscellaneous Resources');
+(1, 'Textbooks & Modules'),
+(2, 'Study Notes & Reviewers'),
+(3, 'Laboratory & Science Tools'),
+(4, 'Laptops & Gadgets'),
+(5, 'Calculators & Math Tools'),
+(6, 'Engineering & Tech Tools'),
+(7, 'Art & Creative Supplies'),
+(8, 'Medical & Nursing Kits'),
+(9, 'PE & Sports Equipment'),
+(10, 'Campus & General Equipment'),
+(11, 'Research & Manuscripts'),
+(12, 'Other Resources');
 
 -- ⚠️  PRODUCTION SETUP: Do NOT use a hardcoded admin insert in production.
 -- To create the first admin account safely:

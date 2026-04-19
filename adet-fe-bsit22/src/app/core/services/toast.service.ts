@@ -13,7 +13,18 @@ export class ToastService {
   toasts = signal<Toast[]>([]);
   private counter = 0;
 
+  private lastToast: string = '';
+  private lastToastTime: number = 0;
+
   show(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    const now = Date.now();
+    // Throttle duplicate messages within 2 seconds
+    if (message === this.lastToast && (now - this.lastToastTime) < 2000) {
+      return;
+    }
+    this.lastToast = message;
+    this.lastToastTime = now;
+
     const id = this.counter++;
     const toast: Toast = { message, type, id };
     this.toasts.update((t) => [...t, toast]);

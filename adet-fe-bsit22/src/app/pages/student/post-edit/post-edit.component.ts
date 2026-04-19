@@ -53,7 +53,7 @@ import { FooterComponent }   from '../../../shared/footer/footer.component';
 
       &:hover {
         border-color: var(--secondary);
-        background: rgba(197, 160, 33, 0.04);
+        background: rgba(var(--secondary-rgb), 0.04);
         transform: translateY(-2px);
       }
 
@@ -62,15 +62,15 @@ import { FooterComponent }   from '../../../shared/footer/footer.component';
         .material-symbols-outlined { transform: scale(1.1); font-variation-settings: 'FILL' 1; }
 
         &.chip-open {
-          background: rgba(197, 160, 33, 0.1); border-color: var(--secondary);
+          background: rgba(var(--secondary-rgb), 0.1); border-color: var(--secondary);
           .material-symbols-outlined, .chip-label { color: var(--secondary); }
         }
         &.chip-fulfilled {
-          background: rgba(46, 125, 50, 0.08); border-color: #2e7d32;
-          .material-symbols-outlined, .chip-label { color: #2e7d32; }
+          background: rgba(46, 125, 50, 0.08); border-color: var(--success);
+          .material-symbols-outlined, .chip-label { color: var(--success); }
         }
         &.chip-closed {
-          background: rgba(87, 0, 0, 0.06); border-color: var(--primary);
+          background: rgba(var(--primary-rgb), 0.06); border-color: var(--primary);
           .material-symbols-outlined, .chip-label { color: var(--primary); }
         }
       }
@@ -154,30 +154,43 @@ export class PostEditComponent implements OnInit {
 
   getCategoryIcon(name: string): string {
     const icons: { [key: string]: string } = {
+      // Premium Scholarly Names
       'Academic Textbooks': 'auto_stories',
       'Lecture Chronicles': 'history_edu',
+      'Laboratory & Scientific Tools': 'biotech',
       'Scientific Apparatus': 'biotech',
       'Computing & Digital Assets': 'terminal',
-      'Mathematical Instruments': 'calculate',
+      'Technical & Artistic Equipment': 'palette',
       'Technical & Vocational Tools': 'construction',
+      'Scholarly Manuscripts': 'menu_book',
+      'Physical Education Kits': 'fitness_center',
+      'Miscellaneous Resources': 'extension',
+      'Mathematical Instruments': 'calculate',
       'Artistic Tools & Mediums': 'palette',
       'Clinical & Medical Supplies': 'medical_services',
-      'Physical Education Kits': 'fitness_center',
       'Institutional Equipment': 'account_balance',
-      'Scholarly Manuscripts': 'menu_book',
-      'Miscellaneous Resources': 'extension'
+
+      // Legacy/Seed Names
+      'Textbooks & Modules': 'auto_stories',
+      'Study Notes & Reviewers': 'history_edu',
+      'Laboratory & Science Tools': 'biotech',
+      'Laptops & Gadgets': 'terminal',
+      'Calculators & Math Tools': 'calculate',
+      'Engineering & Tech Tools': 'construction',
+      'Art & Creative Supplies': 'palette',
+      'Medical & Nursing Kits': 'medical_services',
+      'PE & Sports Equipment': 'fitness_center',
+      'Campus & General Equipment': 'account_balance',
+      'Research & Manuscripts': 'menu_book',
+      'Other Academic Items': 'extension'
     };
-    return icons[name] || 'label';
+    return icons[name] || 'bookmark';
   }
 
   loadMeta() {
     this.api.get<any[]>('/categories').subscribe({
       next: (cats) => {
-        this.categories = [...cats].sort((a, b) => {
-          if (a.name === 'Miscellaneous Resources') return 1;
-          if (b.name === 'Miscellaneous Resources') return -1;
-          return a.name.localeCompare(b.name);
-        });
+        this.categories = cats;
         this.loadPost();
       },
       error: (e) => console.error(e)

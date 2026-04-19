@@ -1,5 +1,5 @@
 <div class="profile-page">
-  <app-navbar [hideLinks]="true"></app-navbar>
+  <app-navbar [active]="'profile'" [showMenuButton]="true"></app-navbar>
 
   <main class="profile-main">
     <div class="profile-inner">
@@ -15,7 +15,7 @@
           <div class="user-card animate-in-left">
             <div class="avatar-holder">
               <div class="avatar-large">
-                {{ displayName.charAt(0).toUpperCase() || 'U' }}
+                {{ getInitials(displayName) }}
               </div>
               <div class="status-indicator active" title="Verified Scholarly Member">
                 <span class="material-symbols-outlined" *ngIf="isAdmin">verified</span>
@@ -23,7 +23,10 @@
             </div>
 
             <h1 class="user-name username">{{ initialDisplayName || 'Academic Curator' }}</h1>
-            <span class="user-role">{{ isAdmin ? 'Administrator' : 'Student Researcher' }}</span>
+            <div class="scholarly-status-tag" [class.admin-tag]="isAdmin">
+              <span class="material-symbols-outlined">{{ isAdmin ? 'account_balance' : 'school' }}</span>
+              {{ isAdmin ? 'Institutional Curator' : 'Student Researcher' }}
+            </div>
             
             <div class="user-meta">
               <span class="material-symbols-outlined">mail</span>
@@ -45,10 +48,7 @@
 
             <div class="divider"></div>
 
-            <button class="btn-logout" (click)="logout()">
-              <span class="material-symbols-outlined">logout</span>
-              Disconnect Session
-            </button>
+
           </div>
 
           <div class="privacy-notice">
@@ -73,7 +73,7 @@
                 </div>
 
                 <div class="field">
-                  <label class="field-label" for="displayName">Scholarly Display Name</label>
+                  <label class="field-label" for="displayName">Display Name</label>
                   <div class="input-wrap">
                     <span class="material-symbols-outlined input-icon">person_edit</span>
                     <input class="input-academic" id="displayName" type="text"
@@ -100,6 +100,74 @@
                   </button>
                 </div>
               </section>
+
+              <!-- SECTION 1.5: Security flow -->
+              <section class="form-section mt-5">
+                <header class="section-header-compact">
+                  <div class="section-title">
+                    <span class="material-symbols-outlined">security</span>
+                    Scholarly Security
+                  </div>
+                  <p class="section-subtitle">Manage your restoration credentials via institutional validation.</p>
+                </header>
+
+                <div class="security-card-flow">
+                  <!-- Step 1: Initial Button -->
+                  <div *ngIf="passwordStep === 'initial'" class="protection-prompt animate-in-up">
+                    <div class="prompt-content">
+                      <span class="material-symbols-outlined prompt-icon">shield_lock</span>
+                      <div class="prompt-text">
+                        <h4>Credential Protection</h4>
+                        <p>To update your scholarly restoration code, we must first verify your institutional access.</p>
+                      </div>
+                    </div>
+                    <button type="button" class="btn-primary-outline w-100" (click)="requestPasswordChange()" [disabled]="otpLoading">
+                      <span *ngIf="!otpLoading">Request Restoration Access</span>
+                      <span *ngIf="otpLoading" class="spinner-small maroon"></span>
+                    </button>
+                  </div>
+
+                  <!-- Step 2: Verification + New Password -->
+                  <div *ngIf="passwordStep === 'requested'" class="verification-grid animate-in-up">
+                    <div class="field">
+                      <label class="field-label">Institutional Access Code</label>
+                      <div class="input-wrap">
+                        <span class="material-symbols-outlined input-icon">key</span>
+                        <input class="input-academic otp-input" type="text" maxlength="6"
+                          [(ngModel)]="otp" name="otp" placeholder="6-digit code..."/>
+                      </div>
+                      <p class="field-hint">Sent to {{ email }}</p>
+                    </div>
+
+                    <div class="field-grid mt-4">
+                      <div class="field">
+                        <label class="field-label">New Restoration Code</label>
+                        <div class="input-wrap">
+                          <span class="material-symbols-outlined input-icon">lock_reset</span>
+                          <input class="input-academic" type="password" [(ngModel)]="password" name="newPass" placeholder="Min. 8 characters..."/>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label class="field-label">Confirm New Code</label>
+                        <div class="input-wrap">
+                          <span class="material-symbols-outlined input-icon">verified_user</span>
+                          <input class="input-academic" type="password" [(ngModel)]="confirmPassword" name="confPass" placeholder="Match code..."/>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flow-actions mt-4">
+                      <button type="button" class="btn-cancel" (click)="passwordStep = 'initial'">Cancel</button>
+                      <button type="button" class="btn-primary" (click)="verifyPasswordAndChange()" [disabled]="otpLoading || !otp || !password">
+                        <span *ngIf="!otpLoading">Update Credentials</span>
+                        <span *ngIf="otpLoading" class="spinner-small"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+
             </form>
 
             <!-- SECTION 2: Reachability (Separated & Auto-saving) -->
@@ -152,15 +220,20 @@
 
               <!-- Contact Composer -->
               <div class="composer-refined">
-                <div class="composer-header">
-                  <span class="material-symbols-outlined">add_circle</span>
-                  Add New Method
+                <div class="composer-header" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Add New Method
+                  </div>
+                  <span style="font-size: 0.8rem; font-weight: 500;" [style.color]="contacts.length >= 5 ? 'var(--error)' : 'var(--outline)'">
+                    {{ contacts.length }} / 5 Methods
+                  </span>
                 </div>
-                <div class="composer-grid">
+                <div class="composer-grid" [style.opacity]="contacts.length >= 5 ? '0.6' : '1'">
                   <div class="field">
                     <label class="compact-label">Platform</label>
                     <div class="input-wrap">
-                      <select class="input-academic select-premium" [(ngModel)]="newContact.type" name="newType">
+                      <select class="input-academic select-premium" [(ngModel)]="newContact.type" name="newType" [disabled]="contactSaving || contacts.length >= 5">
                         <option *ngFor="let t of contactTypes" [value]="t">{{ t | titlecase }}</option>
                       </select>
                       <span class="material-symbols-outlined select-arrow">expand_more</span>
@@ -177,13 +250,14 @@
                           newContact.type === 'telegram' ? '@username' : 
                           newContact.type === 'instagram' ? '@username' : 
                           'Enter handle...'
-                        " (keyup.enter)="addContact()" [disabled]="contactSaving"/>
+                        " (keyup.enter)="addContact()" [disabled]="contactSaving || contacts.length >= 5"/>
                     </div>
                   </div>
-                  <button type="button" class="btn-add-method" (click)="addContact()" [disabled]="!newContact.value || contactSaving">
-                    <span *ngIf="!contactSaving" class="material-symbols-outlined">add</span>
+                  <button type="button" class="btn-add-method" (click)="addContact()" [disabled]="!newContact.value || contactSaving || contacts.length >= 5">
+                    <span *ngIf="!contactSaving && contacts.length < 5" class="material-symbols-outlined">add</span>
+                    <span *ngIf="!contactSaving && contacts.length >= 5" class="material-symbols-outlined">block</span>
                     <span *ngIf="contactSaving" class="spinner-small"></span>
-                    {{ contactSaving ? 'Syncing...' : 'Connect' }}
+                    {{ contacts.length >= 5 ? 'Max Reached' : (contactSaving ? 'Syncing...' : 'Connect') }}
                   </button>
                 </div>
                 <p class="error-text-mini" *ngIf="contactError">

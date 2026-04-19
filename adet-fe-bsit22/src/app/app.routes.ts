@@ -86,6 +86,7 @@ export const routes: Routes = [
   },
   {
     path: 'profile/:id',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./pages/student/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
   },
   { path: '**', redirectTo: '/login' }

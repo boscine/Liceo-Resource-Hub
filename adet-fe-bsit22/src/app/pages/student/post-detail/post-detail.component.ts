@@ -24,6 +24,7 @@ export class PostDetailComponent implements OnInit {
   loading = true;
   reporting = false;
   isDescriptionExpanded = false;
+  isImageViewerOpen = false;
 
   reasons = [
     { label: 'Inappropriate Content', value: 'inappropriate' },
@@ -88,18 +89,18 @@ export class PostDetailComponent implements OnInit {
   }
   getCategoryIcon(name: string): string {
     const icons: { [key: string]: string } = {
-      'Academic Textbooks': 'auto_stories',
-      'Lecture Chronicles': 'history_edu',
-      'Scientific Apparatus': 'biotech',
-      'Computing & Digital Assets': 'terminal',
-      'Mathematical Instruments': 'calculate',
-      'Technical & Vocational Tools': 'construction',
-      'Artistic Tools & Mediums': 'palette',
-      'Clinical & Medical Supplies': 'medical_services',
-      'Physical Education Kits': 'fitness_center',
-      'Institutional Equipment': 'account_balance',
-      'Scholarly Manuscripts': 'menu_book',
-      'Miscellaneous Resources': 'extension'
+      'Textbooks & Modules': 'auto_stories',
+      'Study Notes & Reviewers': 'history_edu',
+      'Laboratory & Science Tools': 'biotech',
+      'Laptops & Gadgets': 'terminal',
+      'Calculators & Math Tools': 'calculate',
+      'Engineering & Tech Tools': 'construction',
+      'Art & Creative Supplies': 'palette',
+      'Medical & Nursing Kits': 'medical_services',
+      'PE & Sports Equipment': 'fitness_center',
+      'Campus & General Equipment': 'account_balance',
+      'Research & Manuscripts': 'menu_book',
+      'Other Resources': 'extension'
     };
     return icons[name] || 'bookmark';
   }
@@ -128,4 +129,5 @@ export class PostDetailComponent implements OnInit {
     });
   }
   toggleDescription() { this.isDescriptionExpanded = !this.isDescriptionExpanded; }
+  toggleImageViewer() { this.isImageViewerOpen = !this.isImageViewerOpen; }
 }

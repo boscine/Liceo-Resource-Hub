@@ -192,7 +192,7 @@
   }
 
   &.row-flagged {
-    border-left: 3px solid #f57c00;
+    border-left: 3px solid var(--warning);
   }
 
   &.row-removed {
@@ -242,11 +242,6 @@
   color: var(--on-surface);
 }
 
-.author-college {
-  font-size: 0.75rem;
-  color: var(--on-surface-variant);
-}
-
 .col-reports {
   display: flex;
   align-items: center;
@@ -277,14 +272,14 @@
 
   &.chip-active {
     background: rgba(46, 125, 50, 0.1);
-    color: #2e7d32;
+    color: var(--success);
   }
   &.chip-flagged {
     background: rgba(245, 124, 0, 0.1);
-    color: #f57c00;
+    color: var(--warning);
   }
   &.chip-removed {
-    background: rgba(186, 26, 26, 0.1);
+    background: rgba(var(--error-rgb), 0.1);
     color: var(--error);
   }
 }
@@ -314,7 +309,7 @@
 
 .approve {
   background: rgba(46, 125, 50, 0.1);
-  color: #2e7d32;
+  color: var(--success);
   &:hover {
     background: rgba(46, 125, 50, 0.2);
   }
@@ -322,17 +317,17 @@
 
 .flag {
   background: rgba(245, 124, 0, 0.1);
-  color: #f57c00;
+  color: var(--warning);
   &:hover {
     background: rgba(245, 124, 0, 0.2);
   }
 }
 
 .remove {
-  background: rgba(186, 26, 26, 0.1);
+  background: rgba(var(--error-rgb), 0.1);
   color: var(--error);
   &:hover {
-    background: rgba(186, 26, 26, 0.2);
+    background: rgba(var(--error-rgb), 0.2);
   }
 }
 

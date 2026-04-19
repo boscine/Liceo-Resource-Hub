@@ -1,5 +1,30 @@
 <div class="create-page">
-  <app-navbar [active]="'feed'" [showMenuButton]="true"></app-navbar>
+  <app-navbar [active]="'feed'" [showMenuButton]="true" (menuClick)="toggleSidebar()"></app-navbar>
+
+  <!-- Mobile Sidebar -->
+  <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="sidebar-mobile-brand serif-italic">Liceo Resource Hub</div>
+    <button class="sidebar-close-btn" (click)="toggleSidebar()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <nav class="sidebar-nav">
+      <a routerLink="/feed" (click)="sidebarOpen = false;">
+        <span class="material-symbols-outlined">home</span>
+        Return to Feed
+      </a>
+      <div class="mini-divider"></div>
+      <p class="sidebar-label">Account Management</p>
+      <a routerLink="/profile" (click)="sidebarOpen = false;">
+        <span class="material-symbols-outlined">account_circle</span>
+        Your Profile
+      </a>
+      <a (click)="logout(); sidebarOpen = false;" class="logout-link">
+        <span class="material-symbols-outlined">logout</span>
+        Disconnect
+      </a>
+    </nav>
+  </aside>
 
   <main class="create-main">
     <div class="create-inner">

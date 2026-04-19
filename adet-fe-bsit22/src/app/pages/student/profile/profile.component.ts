@@ -7,6 +7,7 @@ import { ApiService }        from '../../../core/services/api.service';
 import { ToastService }      from '../../../core/services/toast.service';
 import { NavbarComponent }   from '../../../shared/navbar/navbar.component';
 import { FooterComponent }   from '../../../shared/footer/footer.component';
+import { getInitials }       from '../../../core/utils';
 
 @Component({
   selector: 'app-profile',
@@ -16,10 +17,19 @@ import { FooterComponent }   from '../../../shared/footer/footer.component';
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {
-  displayName = '';
+  getInitials = getInitials;
+  displayName = 'Scholar';
   email       = '';
   contacts: Array<{type: string, value: string}> = [];
   newContact: {type: string, value: string} = { type: 'messenger', value: '' };
+  
+  // Security
+  password = '';
+  confirmPassword = '';
+  otp = '';
+  passwordStep: 'initial' | 'requested' | 'verified' = 'initial';
+  otpLoading = false;
+  otpVerified = false;
   
   saving      = false;
   saved       = false;
@@ -155,13 +165,25 @@ export class ProfileComponent implements OnInit {
 
   onSave() {
     if (this.saving) return;
-    this.validationErrors = {};
-    
     const hasDisplayNameChanged = this.displayName.trim() !== this.initialDisplayName.trim();
 
     if (!hasDisplayNameChanged) {
       this.toast.info('No changes were made to your identity.');
       return;
+    }
+
+    // ── ANTI-SPAM LOGIC (7-Day Cooldown) ────────────────────────────────────
+    const lastChangeStr = localStorage.getItem('ac_name_last_change');
+    if (lastChangeStr) {
+      const lastChange = new Date(lastChangeStr);
+      const now = new Date();
+      const diffDays = (now.getTime() - lastChange.getTime()) / (1000 * 3600 * 24);
+      
+      if (diffDays < 7) {
+        const remaining = Math.ceil(7 - diffDays);
+        this.toast.error(`Institutional Protocol: Your scholarly name was recently updated. Please wait ${remaining} more day(s) before another modification.`);
+        return;
+      }
     }
 
     this.saving = true;
@@ -177,6 +199,8 @@ export class ProfileComponent implements OnInit {
         if (res?.user) {
           this.displayName = res.user.displayName;
           this.initialDisplayName = this.displayName;
+          // Record change time for spam prevention
+          localStorage.setItem('ac_name_last_change', new Date().toISOString());
         }
 
         setTimeout(() => {
@@ -194,6 +218,59 @@ export class ProfileComponent implements OnInit {
           const msg = err?.error?.message || 'Failed to sync identity changes.';
           this.toast.error(msg);
         }
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  requestPasswordChange() {
+    this.otpLoading = true;
+    this.api.post('/profile/request-password-change', {}).subscribe({
+      next: (res: any) => {
+        this.otpLoading = false;
+        this.passwordStep = 'requested';
+        this.toast.success(res.message || 'Scholarly validation code dispatched.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.otpLoading = false;
+        this.toast.error(err?.error?.message || 'Failed to initiate security protocol.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  verifyPasswordAndChange() {
+    if (!this.otp || this.otp.length !== 6) {
+      this.toast.error('Please enter the 6-digit validation code.');
+      return;
+    }
+    if (!this.password || this.password.length < 8) {
+      this.toast.error('New restoration code must be at least 8 characters.');
+      return;
+    }
+    if (this.password !== this.confirmPassword) {
+      this.toast.error('Credential mismatch: New passwords do not match.');
+      return;
+    }
+
+    this.otpLoading = true;
+    this.api.post('/profile/verify-password-change', {
+      otp: this.otp,
+      newPassword: this.password
+    }).subscribe({
+      next: (res: any) => {
+        this.otpLoading = false;
+        this.passwordStep = 'initial'; // Reset back or to a success state
+        this.password = '';
+        this.confirmPassword = '';
+        this.otp = '';
+        this.toast.success(res.message || 'Credentials updated successfully.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.otpLoading = false;
+        this.toast.error(err?.error?.message || 'Verification failed.');
         this.cdr.detectChanges();
       }
     });

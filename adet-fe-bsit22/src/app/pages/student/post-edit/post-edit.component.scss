@@ -1,0 +1,31 @@
+.admin-oversight-banner {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--primary);
+  border-left: 8px solid var(--primary);
+  border-radius: var(--radius-lg);
+  display: flex;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: var(--on-surface);
+    margin: 0;
+  }
+}

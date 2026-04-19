@@ -24,7 +24,11 @@
   display: none;
   @media (min-width: 768px) {
     display: flex; flex-direction: column; justify-content: space-between;
-    width: 42%; background: var(--primary-container); padding: 3rem;
+    width: 42%; 
+    background: linear-gradient(rgba(var(--primary-rgb), 0.8), rgba(var(--primary-rgb), 0.8)), url('/login-bg.jpeg');
+    background-size: cover;
+    background-position: center;
+    padding: 3rem;
     position: relative; overflow: hidden;
   }
 }
@@ -87,8 +91,8 @@
 }
 
 .error-summary-box {
-  background: rgba(186, 26, 26, 0.04);
-  border: 1px solid rgba(186, 26, 26, 0.1);
+  background: rgba(var(--error-rgb), 0.04);
+  border: 1px solid rgba(var(--error-rgb), 0.1);
   border-radius: var(--radius-md);
   padding: 1rem;
   margin-bottom: 2rem;
@@ -154,12 +158,12 @@
 
   &:focus {
     border-color: var(--primary);
-    background: white;
-    box-shadow: 0 0 0 4px rgba(87, 0, 0, 0.08);
+    background: var(--surface-container-lowest);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.08);
     outline: none;
   }
 
-  &.field-error { border-color: var(--error); background: rgba(186, 26, 26, 0.02); }
+  &.field-error { border-color: var(--error); background: rgba(var(--error-rgb), 0.02); }
 }
 
 .field-hint { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--on-surface-variant); opacity: 0.7; margin-top: 0.25rem; .material-symbols-outlined { font-size: 14px; } }
@@ -175,17 +179,17 @@
 
 .btn-primary {
   margin-top: 1rem;
-  background: linear-gradient(135deg, var(--primary) 0%, #800000 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
   color: white; border: none; border-radius: 1rem;
   padding: 1.25rem; font-family: var(--font-body); font-weight: 800; font-size: 1rem;
   text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 0.75rem;
-  box-shadow: 0 10px 25px rgba(87, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(var(--primary-rgb), 0.2);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   .material-symbols-outlined { font-size: 20px; }
 
-  &:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(87, 0, 0, 0.3); background: linear-gradient(135deg, #700000 0%, var(--primary) 100%); }
+  &:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(var(--primary-rgb), 0.3); background: linear-gradient(135deg, #700000 0%, var(--primary) 100%); }
   &:active:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; transform: none; box-shadow: none; }
 }

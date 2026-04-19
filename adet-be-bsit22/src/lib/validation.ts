@@ -35,7 +35,7 @@ export const resetPasswordSchema = z.object({
 
 export const postSchema = z.object({
   title: z.string().min(3, 'Title is too short.').max(255, 'Title exceeds institutional archive limits (255 chars).'),
-  categoryId: z.union([z.number(), z.string()]).transform(val => Number(val)),
+  categoryId: z.union([z.number(), z.string()]).transform(val => Number(val)).pipe(z.number().int().positive('Invalid category selected.')),
   description: z.string().min(10, 'Please provide a more detailed scholarly description.').max(500),
   imageUrl: z.string().optional().refine(val => !val || val.trim() === '' || /^https?:\/\//.test(val) || /^\/api\/uploads\//.test(val), { message: 'Invalid image URL format.' })
 });
@@ -48,8 +48,9 @@ export const updatePostSchema = postSchema.partial().extend({
 
 export const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
+  password: z.string().min(8, 'Scholarly security requires at least 8 characters.').optional().or(z.literal('')),
   contacts: z.array(z.object({
-    type: z.enum(['messenger', 'phone', 'other']),
+    type: z.enum(['messenger', 'phone', 'telegram', 'whatsapp', 'instagram', 'viber', 'other']),
     value: z.string().min(1, 'Contact value cannot be empty.').max(255)
   })).max(5, 'Maximum of 5 contact methods allowed.')
 });

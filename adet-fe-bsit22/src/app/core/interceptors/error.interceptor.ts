@@ -31,14 +31,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
               // If we are on a public page, do NOT redirect to login even if the API 
               // returns 401. This allows components like Navbar (notifications) to 
               // fail silently without kidnapping the user from the Portal/Feed.
-              const publicRoutes = ['/public', '/feed', '/curator-guide', '/post/', '/login', '/register', '/forgot-password', '/reset-password'];
-              const currentPath = router.url.toLowerCase(); // Use router.url instead of window.location to properly handle mid-navigation paths
+              const publicRoutes = ['/public', '/curator-guide', '/login', '/register', '/forgot-password', '/reset-password'];
+              const currentPath = router.url.toLowerCase(); 
               const isPublicPage = publicRoutes.some(r => currentPath === r || currentPath.startsWith(r + '/') || currentPath.startsWith(r + '?'));
 
+              authService.logout(); // Always clear the dead token
               if (!isPublicPage) {
                 errorMessage = 'Your session has expired. Please log in again.';
-                authService.logout();
                 router.navigate(['/login']);
+              } else {
+                // On public pages, fail silently without kidnapping the user
+                return throwError(() => error); 
               }
             }
             break;

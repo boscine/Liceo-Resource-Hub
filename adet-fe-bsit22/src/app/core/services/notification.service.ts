@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, catchError, of, finalize } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { ToastService } from './toast.service';
-import { catchError, of } from 'rxjs';
 
 export interface Notification {
   id: number;
@@ -11,6 +10,8 @@ export interface Notification {
   text: string;
   time: string;
   read: boolean;
+  isSaved?: boolean;
+  type?: string;
 }
 
 @Injectable({
@@ -23,6 +24,8 @@ export class NotificationService {
   private _loading$ = new BehaviorSubject<boolean>(false);
   public loading$ = this._loading$.asObservable();
 
+  private _activeRequests = 0;
+
   constructor(
     private api: ApiService, 
     private auth: AuthService,
@@ -33,16 +36,36 @@ export class NotificationService {
     }
   }
 
-  public refresh(limit: number = 20): void {
-    if (!this.auth.isLoggedIn()) return;
+  private startLoading() {
+    this._activeRequests++;
     this._loading$.next(true);
-    this.api.get<Notification[]>(`/notifications?limit=${limit}`).subscribe({
+  }
+
+  private stopLoading() {
+    this._activeRequests = Math.max(0, this._activeRequests - 1);
+    if (this._activeRequests === 0) {
+      this._loading$.next(false);
+    }
+  }
+
+  public refresh(limit: number = 20): void {
+    if (!this.auth.isLoggedIn()) {
+      this._notifications$.next([]);
+      this._loading$.next(false);
+      this._activeRequests = 0; // Reset counter for institutional hygiene
+      return;
+    }
+    
+    this.startLoading();
+    this.api.get<Notification[]>(`/notifications?limit=${limit}`).pipe(
+      catchError(err => {
+        console.error('Institutional Notification Sync Failed:', err);
+        return of([]);
+      }),
+      finalize(() => this.stopLoading())
+    ).subscribe({
       next: (data) => {
         this._notifications$.next(Array.isArray(data) ? data : []);
-        this._loading$.next(false);
-      },
-      error: () => {
-        this._loading$.next(false);
       }
     });
   }
@@ -52,10 +75,8 @@ export class NotificationService {
     const index = current.findIndex(n => n.id === id);
     if (index === -1 || current[index].read) return;
 
-    // Save state for rollback
     const original = [...current];
     const updated = current.map((n, i) => i === index ? { ...n, read: true } : n);
-    
     this._notifications$.next(updated);
 
     this.api.put(`/notifications/${id}/read`, {}).pipe(
@@ -73,7 +94,6 @@ export class NotificationService {
 
     const original = [...current];
     const updated = current.map(n => ({ ...n, read: true }));
-    
     this._notifications$.next(updated);
 
     this.api.put('/notifications/mark-all-read', {}).pipe(
@@ -89,7 +109,6 @@ export class NotificationService {
     const current = this._notifications$.value;
     const original = [...current];
     const filtered = current.filter(n => n.id !== id);
-    
     this._notifications$.next(filtered);
 
     this.api.delete(`/notifications/${id}`).pipe(
@@ -103,11 +122,34 @@ export class NotificationService {
 
   public clearAll(): void {
     const original = this._notifications$.value;
-    this._notifications$.next([]);
+    const kept = original.filter(n => n.isSaved);
+    this._notifications$.next(kept);
 
     this.api.delete('/notifications/clear-all').pipe(
       catchError(err => {
         this.toast.error('Failed to clear notifications.');
+        this._notifications$.next(original);
+        return of(null);
+      })
+    ).subscribe({
+      next: () => {
+        this.toast.success('Your scholarly dispatch has been purged successfully.');
+      }
+    });
+  }
+
+  public toggleSave(id: number): void {
+    const current = this._notifications$.value;
+    const index = current.findIndex(n => n.id === id);
+    if (index === -1) return;
+
+    const original = [...current];
+    const updated = current.map((n, i) => i === index ? { ...n, isSaved: !n.isSaved } : n);
+    this._notifications$.next(updated);
+
+    this.api.patch(`/notifications/${id}/save`, {}).pipe(
+      catchError(err => {
+        this.toast.error('Failed to star the scholarly dispatch.');
         this._notifications$.next(original);
         return of(null);
       })

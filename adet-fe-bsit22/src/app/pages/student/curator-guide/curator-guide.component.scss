@@ -8,7 +8,11 @@
 .guide-main {
   padding: 4rem 1.5rem;
   background: radial-gradient(circle at top right, rgba(156, 124, 0, 0.03) 0%, transparent 40%),
-              radial-gradient(circle at bottom left, rgba(87, 0, 0, 0.02) 0%, transparent 40%);
+              radial-gradient(circle at bottom left, rgba(var(--primary-rgb), 0.02) 0%, transparent 40%);
+
+  @media (max-width: 640px) {
+    padding: 2.5rem 1rem;
+  }
 }
 
 .guide-inner {
@@ -20,6 +24,11 @@
   margin-bottom: 4.5rem;
   padding-left: 1.5rem;
   border-left: 2px solid var(--outline-variant);
+
+  @media (max-width: 640px) {
+    margin-bottom: 2.5rem;
+    padding-left: 1rem;
+  }
 
   .header-badge {
     display: flex;
@@ -38,9 +47,10 @@
 
   h1 {
     font-family: var(--font-headline);
-    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-size: clamp(2.2rem, 8vw, 3.5rem);
     color: var(--primary);
     margin-bottom: 1rem;
+    line-height: 1.1;
     
     .serif-italic { color: var(--secondary); }
   }
@@ -51,6 +61,10 @@
     max-width: 520px;
     line-height: 1.6;
     opacity: 0.9;
+
+    @media (max-width: 640px) {
+      font-size: 1rem;
+    }
   }
 }
 

@@ -16,13 +16,18 @@ model User {
   status         user_status     @default(pending)
   verificationToken     String?         @map("verification_token")
   verificationExpiresAt DateTime?       @map("verification_expires_at")
+  verificationAttempts  Int             @default(0) @map("verification_attempts")
+  verificationLastSent  DateTime?       @map("verification_last_sent")
   lastLogin      DateTime?       @map("last_login")
+  displayNameUpdatedAt DateTime? @map("display_name_updated_at")
   createdAt      DateTime        @default(now()) @map("created_at")
   contacts       Contact[]
   passwordResets PasswordReset[]
   posts          Post[]
   reports        PostReport[]    @relation("Reporter")
   notifications  Notification[]  @relation("UserNotifications")
+  savedPosts     PostSave[]
+  reveals        ContactReveal[]
 
   @@map("user")
 }
@@ -34,6 +39,8 @@ model Notification {
   text      String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   read      Boolean  @default(false)
+  isSaved   Boolean  @default(false) @map("is_saved")
+  type      String?  @db.VarChar(50)
   user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "notification_user_id_fkey")
@@ -74,6 +81,8 @@ model Post {
   category    Category     @relation(fields: [categoryId], references: [id])
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   reports     PostReport[]
+  saves       PostSave[]
+  reveals     ContactReveal[]
 
   @@index([categoryId], map: "post_category_id_fkey")
   @@index([userId], map: "post_user_id_fkey")
@@ -94,6 +103,28 @@ model PostReport {
   @@unique([postId, reporterId])
   @@index([reporterId], map: "post_report_reporter_id_fkey")
   @@map("post_report")
+}
+
+model PostSave {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_save")
+}
+
+model ContactReveal {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("contact_reveal")
 }
 
 model PasswordReset {
@@ -117,7 +148,17 @@ enum Role {
 enum ContactType {
   messenger
   phone
+  telegram
+  whatsapp
+  instagram
+  viber
   other
+}
+
+enum user_status {
+  pending
+  active
+  suspended
 }
 
 enum PostStatus {
@@ -131,9 +172,6 @@ enum ReportReason {
   inappropriate
   spam
   misleading
-  not_educational
-  duplicate
-  fake_contact
   other
 }
 
@@ -141,11 +179,4 @@ enum ReportStatus {
   pending
   reviewed
   dismissed
-}
-
-enum user_status {
-  active
-  pending
-  suspended
-  banned
 }

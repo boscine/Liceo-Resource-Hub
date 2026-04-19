@@ -79,7 +79,7 @@ const generateHtmlTemplate = (title: string, subtitle: string, content: string, 
   <div class="email-wrapper">
     <div class="institutional-banner"></div>
     <div class="header">
-      <div class="logo-text">LICEO HUB</div>
+      <div class="logo-text">LICEO RESOURCE HUB</div>
       <div class="logo-sub">The Academic Curator</div>
     </div>
     <div class="content-area">
@@ -122,7 +122,7 @@ export const sendOTPEmail = async (email: string, code: string) => {
     const response = await client.sendEmail({
       From: process.env.POSTMARK_FROM || 'noreply@liceo.edu.ph',
       To: email,
-      Subject: 'Institutional Access Code - Liceo Hub',
+      Subject: 'Institutional Access Code - Liceo Resource Hub',
       HtmlBody: html,
       MessageStream: 'outbound' // Recommended practice for transactional traffic
     });
@@ -156,7 +156,7 @@ export const sendPasswordResetEmail = async (email: string, name: string, url: s
     const response = await client.sendEmail({
       From: process.env.POSTMARK_FROM || 'noreply@liceo.edu.ph',
       To: email,
-      Subject: 'Restore your Liceo Hub password',
+      Subject: 'Restore your Liceo Resource Hub password',
       HtmlBody: html,
       MessageStream: 'outbound'
     });

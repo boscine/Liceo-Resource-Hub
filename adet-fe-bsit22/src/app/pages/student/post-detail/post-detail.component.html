@@ -1,5 +1,5 @@
 <div class="detail-page">
-  <app-navbar [active]="'feed'"></app-navbar>
+  <app-navbar [active]="'feed'" [showMenuButton]="true"></app-navbar>
 
   <main class="detail-main">
     <div class="detail-inner">
@@ -22,25 +22,68 @@
         <button class="btn-primary" routerLink="/feed">Return to Library</button>
       </div>
 
+      <!-- ADMIN OVERSIGHT BANNER -->
+      <div class="admin-oversight-banner" *ngIf="isLoggedIn && user.role === 'admin' && user.id !== post.authorId">
+        <div class="banner-content">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          <div>
+            <h3>Institutional Oversight</h3>
+            <p>You are viewing this record as an administrator. You may flag this content if it violates institutional standards.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="detail-grid" *ngIf="!loading && post">
 
         <!-- POST CARD -->
         <article class="post-card">
           <div class="post-top">
             <span class="post-status" [ngClass]="'status-' + post.status.toLowerCase()">{{ post.status }}</span>
-            <span class="post-meta">
-              <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">{{ getCategoryIcon(post.category) }}</span>
-              {{ post.category }} · {{ post.timeAgo }}
-            </span>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <button class="report-trigger-icon" (click)="toggleReport()" 
+                      *ngIf="isLoggedIn && user.id !== post.authorId && user.role !== 'admin'"
+                      [title]="showReportForm ? 'Return to Details' : 'Report this content'">
+                <span class="material-symbols-outlined">{{ showReportForm ? 'info' : 'flag' }}</span>
+              </button>
+              <span class="post-meta">
+                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">{{ getCategoryIcon(post.category) }}</span>
+                {{ post.category }} · {{ post.timeAgo }}
+              </span>
+            </div>
           </div>
           <h1 class="post-title serif-italic">{{ post.title }}</h1>
           
-          <div class="post-image-container" *ngIf="post.imageUrl">
+          <div class="report-form" *ngIf="showReportForm" style="margin-bottom: 2rem;">
+            <h4>Report Post</h4>
+            <div class="field">
+              <label class="field-label" for="reason">Reason</label>
+              <select class="input-academic" [(ngModel)]="reportReason" id="reason" name="reason">
+                <option value="" disabled selected>Select a reason</option>
+                <option *ngFor="let r of reasons" [value]="r.value">{{ r.label }}</option>
+              </select>
+            </div>
+            <div class="field" style="margin-top:1rem">
+              <label class="field-label" for="details">Additional Details (optional)</label>
+              <textarea class="input-academic" [(ngModel)]="reportDetails" id="details" name="details" rows="3" placeholder="Provide more context..."></textarea>
+            </div>
+            <div class="report-actions">
+              <button class="btn-cancel" (click)="toggleReport()" [disabled]="reporting">Cancel</button>
+              <button class="btn-report" (click)="submitReport()" [disabled]="reporting || !reportReason">
+                <span *ngIf="!reporting">Submit Report</span>
+                <span *ngIf="reporting" class="spinner"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="post-image-container" *ngIf="post.imageUrl" (click)="toggleImageViewer()">
             <img [src]="post.imageUrl" [alt]="post.title" class="post-image" />
+            <div class="image-overlay-hint">
+              <span class="material-symbols-outlined">zoom_in</span>
+              View full image            </div>
           </div>
 
           <div class="author-row" [class.clickable]="post.authorId" [routerLink]="post.authorId ? ['/profile', post.authorId] : null">
-            <div class="author-avatar">{{ post.author[0] }}</div>
+            <div class="author-avatar">{{ (post.author?.split(' ').length > 1 ? (post.author.split(' ')[0][0] + post.author.split(' ')[post.author.split(' ').length-1][0]) : (post.author?.slice(0,2)))?.toUpperCase() }}</div>
             <div>
               <p class="author-name">{{ post.author }}</p>
             </div>
@@ -59,13 +102,8 @@
           </p>
           <div class="divider"></div>
 
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button class="report-btn" (click)="toggleReport()" *ngIf="isLoggedIn && user.id !== post.authorId && user.role !== 'admin'">
-              <span class="material-symbols-outlined">flag</span>
-              Report this post
-            </button>
-
-            <a [routerLink]="['/post', post.id, 'edit']" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && user.id == post.authorId">
+          <div style="display:flex; justify-content:flex-end; align-items:center;">
+            <a [routerLink]="['/post', post.id, 'edit']" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && (user.id == post.authorId || user.role === 'admin')">
               <span class="material-symbols-outlined">edit</span> Edit Request Status
             </a>
           </div>
@@ -109,19 +147,20 @@
               </div>
               <button class="btn-primary" (click)="revealContact()">
                 <span class="material-symbols-outlined">handshake</span>
-                Offer Scholarly Cooperation
+                Access Author Credentials
               </button>
             </div>
             <div *ngIf="isLoggedIn && showContact" class="contact-revealed-list">
               <div class="contact-item" *ngFor="let c of post.contacts">
                 <span class="contact-type">{{ c.type }}</span>
-                <a class="contact-value" [href]="c.value.startsWith('http') ? c.value : 'https://' + c.value" target="_blank">
-                  {{ c.value }}
-                  <span class="material-symbols-outlined">open_in_new</span>
+                <a class="contact-value" 
+                   [href]="c.type === 'Phone' ? 'tel:+63' + (c.value.startsWith('0') ? c.value.substring(1) : (c.value.startsWith('9') ? c.value : c.value.replace(/[^0-9]/g, ''))) : (c.value.startsWith('http') ? c.value : 'https://' + c.value)"
+                   target="_blank">
+                  {{ c.type === 'Phone' ? (c.value.startsWith('0') ? '+63 ' + c.value.substring(1) : (c.value.startsWith('9') ? '+63 ' + c.value : c.value)) : c.value }}
+                  <span class="material-symbols-outlined">{{ c.type === 'Phone' ? 'call' : 'open_in_new' }}</span>
                 </a>
               </div>
-            </div>
-            <p class="contact-note">Contact details are only visible to verified Liceo students.</p>
+            </div>            <p class="contact-note">Contact details are only visible to verified Liceo students.</p>
           </div>
 
           <div class="privacy-notice">
@@ -135,4 +174,15 @@
   </main>
 
   <app-footer></app-footer>
+
+  <!-- Scholarly Image Viewer (Lightbox) -->
+  <div class="lightbox-overlay" *ngIf="isImageViewerOpen" (click)="toggleImageViewer()">
+    <button class="lightbox-close" (click)="toggleImageViewer()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <img [src]="post?.imageUrl" [alt]="post?.title" />
+      <p class="lightbox-caption">{{ post?.title }}</p>
+    </div>
+  </div>
 </div>

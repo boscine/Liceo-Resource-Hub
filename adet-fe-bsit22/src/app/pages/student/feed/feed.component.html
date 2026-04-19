@@ -143,8 +143,8 @@
         </div>
       </div>
 
-      <!-- Bulk Actions (Only for 'Your Requests') -->
-      <div class="bulk-actions-bar" *ngIf="viewMode === 'requests' && paginatedPosts.length > 0" role="toolbar" aria-label="Bulk actions">
+      <!-- Bulk Actions (Removed: Admin Purge moved to Dashboard) -->
+      <div class="bulk-actions-bar" *ngIf="false && viewMode === 'requests' && paginatedPosts.length > 0" role="toolbar" aria-label="Bulk actions">
         <div class="select-all-row">
           <label class="checkbox-container">
             <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()" aria-label="Select all displayed requests">
@@ -180,14 +180,13 @@
               </button>
               
               <!-- Selection Checkbox (Integrated into top actions) -->
-              <label class="checkbox-container" style="padding-left: 20px; font-size: 0;" *ngIf="viewMode === 'requests'">
-                <input type="checkbox" 
-                       [checked]="selectedPosts.has(post.id)" 
+              <label class="checkbox-container" style="padding-left: 0; width: 20px; height: 20px;" *ngIf="viewMode === 'requests'">
+                <input type="checkbox"
+                       [checked]="selectedPosts.has(post.id)"
                        (change)="toggleSelect(post.id); $event.stopPropagation()"
                        [attr.aria-label]="'Select request: ' + post.title">
-                <span class="checkmark" style="position: static; display: inline-block;"></span>
-              </label>
-            </div>
+                <span class="checkmark"></span>
+              </label>            </div>
           </div>
           
           <!-- Clickable Body Area -->
@@ -241,21 +240,19 @@
                   <span class="material-symbols-outlined">refresh</span>
                 </button>              </ng-container>
 
-              <!-- Regular Delete Button (Visible for Owner or Admin) -->
-              <button class="view-details academic-delete-trigger" 
-                      *ngIf="isMyPost(post) || isAdmin" 
-                      title="Purge Record" 
+              <!-- Regular Delete Button (Visible for Owner only) -->
+              <button class="view-details academic-delete-trigger"
+                      *ngIf="isMyPost(post)"
+                      title="Purge Record"
                       (click)="requestDelete(post); $event.stopPropagation()">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">delete_forever</span>
-              </button>
-            </div>
+              </button>            </div>
           </div>
 
           <!-- Standalone Detail Link -->
           <a [routerLink]="['/post', post.id]" class="full-details-link" style="position: relative; z-index: 5;">
-            View full post <span class="material-symbols-outlined">open_in_new</span>
-          </a>
-        </div>
+            View full post
+          </a>        </div>
       </div>
 
       <!-- EMPTY STATE COMPONENTS -->
@@ -508,9 +505,6 @@
 
             <div class="divider"></div>
 
-            <!-- Failsafe Close Button -->
-            <button class="btn-cancel" (click)="closeDetailModal()" style="width: 100%; margin-top: 1rem;">Close Details</button>
-
             <!-- 5. Contact Info -->
             <div class="modal-contact-box" *ngIf="!isMyPost(selectedPost) && !showReportForm">
               <h3 class="serif-italic">Author Contact Details</h3>
@@ -533,20 +527,19 @@
               <div class="contact-revealed-list" *ngIf="showContact">
                 <div class="contact-item" *ngFor="let c of selectedPost.contacts">
                   <span class="contact-type">{{ c.type }}</span>
-                  <a class="contact-value" 
-                     [href]="c.value.startsWith('http') ? c.value : (c.type === 'Phone' ? 'tel:' + c.value : 'https://' + c.value)" 
+                  <a class="contact-value"
+                     [href]="c.type === 'Phone' ? 'tel:+63' + (c.value.startsWith('0') ? c.value.substring(1) : (c.value.startsWith('9') ? c.value : c.value.replace(/[^0-9]/g, ''))) : (c.value.startsWith('http') ? c.value : 'https://' + c.value)"
                      target="_blank">
                     <span class="material-symbols-outlined">{{ c.type === 'Phone' ? 'call' : 'open_in_new' }}</span>
-                    {{ c.value }}
+                    {{ c.type === 'Phone' ? (c.value.startsWith('0') ? '+63 ' + c.value.substring(1) : (c.value.startsWith('9') ? '+63 ' + c.value : c.value)) : c.value }}
                   </a>
-                </div>
-              </div>
+                </div>              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="editor-footer" *ngIf="isLoggedIn && (user.id == selectedPost?.authorId)">
-        <button class="btn-primary" (click)="goToEdit(selectedPost)" *ngIf="user.id == selectedPost?.authorId">
+      <div class="editor-footer" *ngIf="isLoggedIn && selectedPost && isMyPost(selectedPost)">
+        <button class="btn-primary" (click)="goToEdit(selectedPost)">
           <span class="material-symbols-outlined">edit</span>
           Edit Request
         </button>

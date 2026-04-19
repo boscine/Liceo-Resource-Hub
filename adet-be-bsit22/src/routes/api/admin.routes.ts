@@ -33,7 +33,8 @@ router.get('/posts', async (c) => {
 
     return c.json(formattedPosts);
   } catch (error) {
-    return c.json({ message: 'Internal server error' }, 500);
+    console.error('Failed to fetch admin posts:', error);
+    return c.json({ message: 'Internal server error while fetching curator archive.' }, 500);
   }
 });
 
@@ -64,8 +65,8 @@ router.get('/reports', async (c) => {
 
     return c.json(formatted);
   } catch (error) {
-    console.error('Failed to fetch reports:', error);
-    return c.json({ message: 'Internal server error' }, 500);
+    console.error('Administrative System Failure: Failed to fetch scholarly reports:', error);
+    return c.json({ message: 'Internal server error while accessing the institutional reporting archive.' }, 500);
   }
 });
 
@@ -87,13 +88,32 @@ router.put('/reports/:id', async (c) => {
 
     const report = await prisma.postReport.update({
       where: { id },
-      data: { status }
+      data: { status },
+      include: { post: true }
     });
+
+    // ── Logic: If report is dismissed, potentially unflag the post if no other active reports ──
+    if (status === 'dismissed' && report.post.isFlagged) {
+       const otherActiveReports = await prisma.postReport.count({
+         where: { 
+           postId: report.postId,
+           id: { not: id },
+           status: { in: ['pending', 'reviewed'] }
+         }
+       });
+
+       if (otherActiveReports === 0) {
+         await prisma.post.update({
+           where: { id: report.postId },
+           data: { isFlagged: false }
+         });
+       }
+    }
 
     return c.json(report);
   } catch (error) {
-    console.error('Failed to update report:', error);
-    return c.json({ message: 'Internal server error' }, 500);
+    console.error('Administrative System Failure: Failed to update scholarly report status:', error);
+    return c.json({ message: 'Internal server error while modifying report records.' }, 500);
   }
 });
 
@@ -116,8 +136,8 @@ router.get('/users', async (c) => {
 
     return c.json(users);
   } catch (error) {
-    console.error('Failed to fetch users:', error);
-    return c.json({ message: 'Internal server error' }, 500);
+    console.error('Administrative System Failure: Failed to fetch user registry:', error);
+    return c.json({ message: 'Internal server error while accessing the scholarly user registry.' }, 500);
   }
 });
 
@@ -126,7 +146,13 @@ router.put('/users/:id/status', async (c) => {
   if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
 
   const id = parseInt(c.req.param('id'), 10);
+  const adminId = c.get('userId');
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
+
+  // Loophole Fix: Prevent Admin Self-Lockout
+  if (id === adminId) {
+    return c.json({ message: 'Institutional Safety: You cannot modify your own administrative status.' }, 403);
+  }
 
   try {
     const { status } = await c.req.json();

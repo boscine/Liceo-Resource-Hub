@@ -31,15 +31,13 @@
 
           <div class="notif-trigger-wrap" (click)="toggleNotifications($event)">
             <span class="material-symbols-outlined">notifications</span>
-            <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+            <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount > 20 ? '20+' : unreadCount }}</span>
           </div>
-
           <div class="notif-panel" *ngIf="notificationsOpen" id="notif-panel">
             <div class="notif-panel-header">
-              <span class="notif-panel-title">Notifications ({{ unreadCount }})</span>
+              <span class="notif-panel-title">Notifications ({{ unreadCount > 20 ? '20+' : unreadCount }})</span>
               <button class="mark-all-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">Mark all read</button>
             </div>
-
             <div class="notif-list">
               <div class="notif-item" *ngFor="let n of notifications"
                    [class.unread]="!n.read"
@@ -59,16 +57,15 @@
           </div>
         </div>
 
-        <!-- Avatar → Profile -->
-        <button class="icon-btn avatar-btn" routerLink="/profile" id="nav-profile-btn"
-                [class.active]="active === 'profile'">
-          {{ user.display_name?.charAt(0)?.toUpperCase() || user.displayName?.charAt(0)?.toUpperCase() || 'U' }}
-        </button>
+        <!-- Profile Avatar -->
+        <a routerLink="/profile" class="avatar-btn" [class.active]="active === 'profile'" [title]="user?.display_name || 'Your Profile'">
+          {{ getInitials() }}
+        </a>
 
         <!-- Improved Logout -->
         <button class="logout-btn-premium" (click)="logout()" title="Secure Logout" id="nav-logout-btn">
           <span class="material-symbols-outlined">logout</span>
-          Disconnect
+          <span class="btn-text">Disconnect</span>
         </button>
       </ng-container>
     </div>

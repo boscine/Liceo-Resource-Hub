@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private postSub?: Subscription;
   private reportSub?: Subscription;
+  private loadingSub?: Subscription;
 
   constructor(
     private api: ApiService, 
@@ -41,14 +42,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.postService.getAdminPosts();
     this.postService.getAdminReports();
 
+    this.loadingSub = this.postService.loading$.subscribe(l => {
+      this.loading = l;
+      this.cdr.detectChanges();
+    });
+
     this.postSub = this.postService.posts$.subscribe(data => {
       this.posts = data;
-      this.loading = false;
       this.cdr.detectChanges();
     });
 
     this.reportSub = this.postService.reports$.subscribe(data => {
-      // Show only pending reports in the urgent panel
       this.urgentReports = data.filter(r => r.status === 'pending').slice(0, 3);
       this.cdr.detectChanges();
     });
@@ -57,6 +61,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.postSub) this.postSub.unsubscribe();
     if (this.reportSub) this.reportSub.unsubscribe();
+    if (this.loadingSub) this.loadingSub.unsubscribe();
   }
 
   get stats() {

@@ -8,7 +8,7 @@ const router = new Hono<{ Variables: AuthVariables }>();
 router.get('/', async (c) => {
   try {
     const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' }
+      orderBy: { id: 'asc' }
     });
     return c.json(categories);
   } catch (error) {

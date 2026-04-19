@@ -9,39 +9,81 @@ export type AuthVariables = {
 
 export const authenticate = async (c: Context, next: Next) => {
   const authHeader = c.req.header('Authorization');
+  
+  if (!authHeader?.startsWith('Bearer ')) {
+    // Check if this route is explicitly allowed to be public
+    // By default, we now block if verifyToken is applied but no token is provided.
+    return c.json({ message: 'Authorization required. Please log in.' }, 401);
+  }
+
+  try {
+    const token = authHeader.slice(7);
+    if (!token) {
+      return c.json({ message: 'Invalid token format.' }, 401);
+    }
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const validUserId = Number(payload.id || payload.userId);
+    
+    if (isNaN(validUserId)) {
+      return c.json({ message: 'Invalid token payload.' }, 401);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: validUserId },
+      select: { status: true, role: true }
+    });
+
+    if (!user) {
+      return c.json({ message: 'User not found.' }, 401);
+    }
+
+    if (user.status === 'active') {
+      c.set('userId', validUserId);
+      c.set('role', user.role); // Use database role for extra security
+      await next();
+    } else {
+      // Institutional Security: Return 403 for restricted accounts
+      return c.json({ 
+        message: `Institutional Access Restricted: Your account status is currently ${user.status.toUpperCase()}.`,
+        status: user.status 
+      }, 403);
+    }
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      return c.json({ message: 'Session expired. Please log in again.' }, 401);
+    }
+    return c.json({ message: 'Invalid token.' }, 401);
+  }
+};
+
+export const adminOnly = async (c: Context, next: Next) => {
+  if (c.get('role') !== 'admin') {
+    return c.json({ message: 'Forbidden' }, 403);
+  }
+  await next();
+};
+
+/**
+ * Allows the request to proceed even without a token.
+ * If a token is provided and valid, it sets the userId and role.
+ */
+export const publicAccess = async (c: Context, next: Next) => {
+  const authHeader = c.req.header('Authorization');
   if (authHeader?.startsWith('Bearer ')) {
     try {
       const token = authHeader.slice(7);
       if (token) {
         const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
         const validUserId = Number(payload.id || payload.userId);
-        
         if (!isNaN(validUserId)) {
-          // Institutional Security: Check user status in DB to handle bans/suspensions immediately
-          const user = await prisma.user.findUnique({
-            where: { id: validUserId },
-            select: { status: true }
-          });
-
-          if (user && user.status === 'active') {
-            c.set('userId', validUserId);
-            c.set('role', payload.role);
-          } else if (user) {
-            // User exists but is not active (suspended/banned/pending)
-            console.warn(`[AuthMiddleware] Access denied for user ${validUserId} with status: ${user.status}`);
-          }
+          c.set('userId', validUserId);
+          c.set('role', payload.role);
         }
       }
     } catch (error) {
-      console.error(`[AuthMiddleware] JWT Verification Failed!`, error);
+      // Ignore errors for public routes, just don't set user context
     }
-  }
-  await next();
-};
-
-export const adminOnly = async (c: Context, next: Next) => {
-  if (c.get('role') !== 'admin') {
-    return c.json({ message: 'Forbidden' }, 403);
   }
   await next();
 };

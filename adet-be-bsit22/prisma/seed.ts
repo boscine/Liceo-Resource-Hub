@@ -69,9 +69,13 @@ async function main() {
   console.log('✅ Universal Categories synchronized and legacy records purged.');
 
   // ── Admin account ──────────────────────────────────────────────────────────
-  // Change email and password before deploying
-  const adminEmail = 'admin@liceo.edu.ph';
-  const adminPassword = 'Admin@1234';
+  // Secure Seeding: Prefer environment variables to avoid hardcoded credentials in source control
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@liceo.edu.ph';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin@1234';
+
+  if (!process.env.SEED_ADMIN_PASSWORD) {
+    console.warn('⚠️ WARNING: Using default hardcoded admin password. Set SEED_ADMIN_PASSWORD in .env for better security.');
+  }
 
   await prisma.user.upsert({
     where: { email: adminEmail },

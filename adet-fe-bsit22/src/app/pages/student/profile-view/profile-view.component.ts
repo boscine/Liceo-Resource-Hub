@@ -5,6 +5,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/footer/footer.component';
+import { getInitials } from '../../../core/utils';
 
 @Component({
   selector: 'app-profile-view',
@@ -77,6 +78,6 @@ export class ProfileViewComponent implements OnInit {
   }
 
   getAvatarInitial(name: string): string {
-    return name ? name.charAt(0).toUpperCase() : '?';
+    return getInitials(name);
   }
 }
