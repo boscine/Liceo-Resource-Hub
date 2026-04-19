@@ -47,7 +47,7 @@
             <button class="action-btn resolve" (click)="resolveReport(report.id)">
               <span class="material-symbols-outlined">check</span> Resolve
             </button>
-            <button class="view-btn" [routerLink]="['/admin/reports', report.id]">Details</button>
+            <button class="view-btn" [routerLink]="['/post', report.postId]">Details</button>
           </div>
         </div>
 
@@ -80,7 +80,7 @@
 
         <!-- Post List -->
         <div class="post-list" *ngIf="!loading">
-          <div class="post-row" *ngFor="let post of getFilteredPosts()" 
+          <div class="post-row" *ngFor="let post of paginatedPosts" 
                [class.flagged]="post.isFlagged" 
                [class.removed]="post.status === 'REMOVED'">
             <div class="post-info">
@@ -123,11 +123,14 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination-row" *ngIf="!loading">
-          <span class="showing-text">SHOWING 1-{{ getFilteredPosts().length }} OF {{ posts.length }} POSTS</span>
-          <div class="page-btns">
-            <button class="page-btn"><span class="material-symbols-outlined">chevron_left</span></button>
-            <button class="page-btn active-page">
+        <div class="pagination-row" *ngIf="!loading && getFilteredPosts().length > 0">
+          <span class="showing-text">SHOWING {{ showingStart }}-{{ showingEnd }} OF {{ getFilteredPosts().length }} POSTS</span>
+          <div class="page-btns" style="display: flex; align-items: center; gap: 0.5rem;">
+            <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1" [class.dimmed]="currentPage === 1">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <span class="page-indicator" style="font-size: 0.7rem; font-weight: 600; color: var(--on-surface-variant);">PAGE {{ currentPage }} OF {{ totalPages }}</span>
+            <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages" [class.dimmed]="currentPage === totalPages">
               <span class="material-symbols-outlined">chevron_right</span>
             </button>
           </div>

@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import { sendOTPEmail } from '../lib/mail.service';
+import { containsInappropriateContent } from '../lib/moderation';
 
 export const getProfile = async (c: Context) => {
   // Use the 'userId' field set by our custom authenticate middleware
@@ -15,12 +16,18 @@ export const getProfile = async (c: Context) => {
     const user = await prisma.user.findUnique({
       where: { id: Number(userId) },
       select: {
+        id: true,
         displayName: true,
         email: true,
         role: true,
         status: true,
         contacts: {
           select: { type: true, value: true }
+        },
+        _count: {
+          select: {
+            posts: true
+          }
         }
       },
     });
@@ -29,7 +36,21 @@ export const getProfile = async (c: Context) => {
       return c.json({ message: 'User not found' }, 404);
     }
 
-    return c.json(user);
+    // Get counts by status
+    const statusCounts = await prisma.post.groupBy({
+      by: ['status'],
+      where: { userId: Number(userId) },
+      _count: true
+    });
+
+    const stats = {
+      open: statusCounts.find(s => s.status === 'open')?._count || 0,
+      fulfilled: statusCounts.find(s => s.status === 'fulfilled')?._count || 0,
+      closed: statusCounts.find(s => s.status === 'closed')?._count || 0,
+      removed: statusCounts.find(s => s.status === 'removed')?._count || 0
+    };
+
+    return c.json({ ...user, stats });
   } catch (error) {
     console.error('getProfile Error:', error);
     return c.json({ message: 'Internal Server Error' }, 500);
@@ -62,6 +83,11 @@ export const updateProfile = async (c: Context) => {
 
     // ── NAME CHANGE COOLDOWN LOGIC ──────────────────────────────────────────
     if (displayName && displayName !== user.displayName) {
+      // Moderation Check
+      if (containsInappropriateContent(displayName)) {
+        return c.json({ message: 'Scholarly Integrity Violation: The requested display name contains inappropriate content prohibited by HUB standards.' }, 400);
+      }
+
       if (user.displayNameUpdatedAt) {
         const lastUpdate = new Date(user.displayNameUpdatedAt);
         const diffDays = (new Date().getTime() - lastUpdate.getTime()) / (1000 * 3600 * 24);

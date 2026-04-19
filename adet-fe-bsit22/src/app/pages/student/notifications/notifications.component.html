@@ -17,23 +17,11 @@
         Return to Feed
       </a>
 
-      <!-- Sidebar header removed per institutional request -->
-
       <nav class="portal-nav">
-        <a class="nav-item" [class.active]="filterModes.includes('all')" (click)="setFilter('all')">
+        <a class="nav-item active">
           <span class="material-symbols-outlined">inbox</span>
-          All Notifications
+          Activity Log
           <span class="count-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
-        </a>
-        <a class="nav-item" [class.active]="filterModes.includes('resolved')" (click)="setFilter('resolved')">
-          <span class="material-symbols-outlined">check_circle</span>
-          Resolved
-          <span class="type-count-badge" *ngIf="filterModes.includes('resolved')">{{ notifications.length }}</span>
-        </a>
-        <a class="nav-item" [class.active]="filterModes.includes('saved')" (click)="setFilter('saved')">
-          <span class="material-symbols-outlined">bookmark</span>
-          Saved Alerts
-          <span class="type-count-badge" *ngIf="filterModes.includes('saved')">{{ notifications.length }}</span>
         </a>
 
         <!-- Mobile Only Account Actions -->
@@ -53,10 +41,7 @@
 
       <div class="portal-info">
         <span class="material-symbols-outlined">info</span>
-        <p *ngIf="filterModes.includes('all') && filterModes.length === 1">Keep your feed clean by clearing out old notifications. Pinned items won't be deleted.</p>
-        <p *ngIf="filterModes.includes('resolved') && filterModes.length === 1">Notifications about completed requests and scholarly cooperation.</p>
-        <p *ngIf="filterModes.includes('saved') && filterModes.length === 1">Your personally bookmarked notifications for easy access.</p>
-        <p *ngIf="filterModes.length > 1">Showing filtered activity records.</p>
+        <p>Monitor the institutional status of your academic requests and scholarly cooperation history.</p>
       </div>
     </aside>
 
@@ -69,19 +54,19 @@
               <span class="material-symbols-outlined">menu_open</span>
             </button>
             <h1 class="serif-italic">
-              <span>{{ filterModes.length > 1 ? 'Filtered Activity' : (filterModes.includes('all') ? 'Activity Log' : (filterModes.includes('resolved') ? 'Resolved Log' : 'Saved Alerts')) }}</span>
+              <span>Overall Activity Log</span>
             </h1>
           </div>
-          <p>Monitor your academic requests, community interaction, and scholarly cooperation.</p>
+          <p>Real-time status updates for your scholarly archive and institutional interactions.</p>
         </div>
         <div class="header-actions" *ngIf="notifications.length > 0">
-          <button class="header-btn" (click)="markAllAsRead()" [disabled]="unreadCount === 0" [class.dimmed]="unreadCount === 0" *ngIf="filterModes.includes('all')">
+          <button class="header-btn" (click)="markAllAsRead()" [disabled]="unreadCount === 0" [class.dimmed]="unreadCount === 0">
             <span class="material-symbols-outlined">done_all</span>
             Mark all read
           </button>
           <button class="header-btn clear-btn" (click)="clearAll()" [disabled]="archiving">
             <span class="material-symbols-outlined">{{ archiving ? 'sync' : 'delete_sweep' }}</span>
-            {{ archiving ? 'Purging...' : (filterModes.includes('all') ? 'Clear All' : 'Clear View') }}
+            {{ archiving ? 'Purging...' : 'Clear All' }}
           </button>
         </div>
       </header>
@@ -113,11 +98,9 @@
         </div>
 
         <div class="empty-state" *ngIf="notifications.length === 0">
-          <span class="material-symbols-outlined">
-            {{ filterModes.includes('saved') ? 'bookmark_border' : (filterModes.includes('resolved') ? 'done_all' : 'drafts') }}
-          </span>
-          <p>No records found</p>
-          <span class="empty-sub">Your activity filter returned no matching records.</span>
+          <span class="material-symbols-outlined">drafts</span>
+          <p>Scholarly Archive Empty</p>
+          <span class="empty-sub">Your overall activity log currently contains no records.</span>
         </div>
       </div>
       

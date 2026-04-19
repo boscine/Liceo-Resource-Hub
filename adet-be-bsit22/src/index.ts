@@ -18,6 +18,13 @@ app.use('*', cors({
 }));
 
 // 1.1 Serve Static Files (Post Images)
+app.use('/api/uploads/*', async (c, next) => {
+  // Set cache control to prevent aggressive caching, especially of 404s
+  c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  c.header('Pragma', 'no-cache');
+  c.header('Expires', '0');
+  await next();
+});
 app.use('/api/uploads/*', serveStatic({ root: './public' }));
 
 // 2. Public Authentication Routes

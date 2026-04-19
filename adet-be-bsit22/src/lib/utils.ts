@@ -9,3 +9,16 @@ export function getTimeAgo(date: Date): string {
   if (days < 7) return `${days}d ago`;
   return date.toLocaleDateString();
 }
+
+/**
+ * Escapes HTML characters to prevent stored XSS when data is rendered via [innerHTML]
+ */
+export function escapeHtml(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

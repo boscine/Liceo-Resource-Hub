@@ -19,7 +19,6 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   loading = true;
   unreadCount = 0;
-  filterModes: ('all' | 'resolved' | 'saved')[] = ['all'];
   sidebarOpen = false;
   
   private subs = new Subscription();
@@ -45,7 +44,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     
     this.subs.add(this.notifService.notifications$.subscribe(data => {
       this.allNotifications = data;
-      this.applyFilter();
+      this.notifications = data;
       this.unreadCount = data.filter(n => !n.read).length;
       this.cdr.detectChanges();
     }));
@@ -54,36 +53,6 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       this.loading = loading;
       this.cdr.detectChanges();
     }));
-  }
-
-  setFilter(mode: 'all' | 'resolved' | 'saved'): void {
-    if (mode === 'all') {
-      this.filterModes = ['all'];
-    } else {
-      const index = this.filterModes.indexOf(mode);
-      if (index > -1) {
-        this.filterModes.splice(index, 1);
-        if (this.filterModes.length === 0) this.filterModes = ['all'];
-      } else {
-        const allIndex = this.filterModes.indexOf('all');
-        if (allIndex > -1) this.filterModes.splice(allIndex, 1);
-        this.filterModes.push(mode);
-      }
-    }
-    this.applyFilter();
-  }
-
-  private applyFilter(): void {
-    if (this.filterModes.includes('all')) {
-      this.notifications = this.allNotifications;
-    } else {
-      this.notifications = this.allNotifications.filter(n => {
-        let match = false;
-        if (this.filterModes.includes('resolved') && n.type === 'resolved') match = true;
-        if (this.filterModes.includes('saved') && n.isSaved) match = true;
-        return match;
-      });
-    }
   }
 
   toggleStar(e: Event, n: Notification): void {

@@ -23,7 +23,7 @@
       </div>
 
       <!-- ADMIN OVERSIGHT BANNER -->
-      <div class="admin-oversight-banner" *ngIf="isLoggedIn && user.role === 'admin' && user.id !== post.authorId">
+      <div class="admin-oversight-banner" *ngIf="isLoggedIn && user.role === 'admin' && post && user.id !== post.authorId">
         <div class="banner-content">
           <span class="material-symbols-outlined">admin_panel_settings</span>
           <div>
@@ -104,7 +104,7 @@
 
           <div style="display:flex; justify-content:flex-end; align-items:center;">
             <a [routerLink]="['/post', post.id, 'edit']" class="btn-primary" style="text-decoration: none" *ngIf="isLoggedIn && (user.id == post.authorId || user.role === 'admin')">
-              <span class="material-symbols-outlined">edit</span> Edit Request Status
+              <span class="material-symbols-outlined">edit</span> Edit Request
             </a>
           </div>
 

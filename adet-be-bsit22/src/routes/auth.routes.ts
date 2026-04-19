@@ -3,8 +3,9 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
 import { zValidator } from '@hono/zod-validator';
-import { loginSchema, registerSchema, verifySchema, forgotPasswordSchema, resetPasswordSchema } from '../lib/validation';
+import { loginSchema, registerSchema, verifySchema, resendSchema, forgotPasswordSchema, resetPasswordSchema } from '../lib/validation';
 import { sendOTPEmail, sendPasswordResetEmail } from '../lib/mail.service';
+import { containsInappropriateContent } from '../lib/moderation';
 import crypto from 'crypto';
 
 const auth = new Hono();
@@ -66,6 +67,11 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
 auth.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
     const { email, password, displayName, phone } = c.req.valid('json');
+
+    // ── Moderation Check ───────────────────────────────────────────
+    if (containsInappropriateContent(displayName)) {
+      return c.json({ message: 'Scholarly Integrity Violation: The requested display name contains inappropriate content prohibited by HUB standards.' }, 400);
+    }
     
     const emailLower = email.toLowerCase();
     const existing = await prisma.user.findUnique({ where: { email: emailLower } });

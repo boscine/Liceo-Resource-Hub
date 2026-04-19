@@ -66,7 +66,7 @@ export const adminOnly = async (c: Context, next: Next) => {
 
 /**
  * Allows the request to proceed even without a token.
- * If a token is provided and valid, it sets the userId and role.
+ * If a token is provided and valid, it sets the userId and role if the user is active.
  */
 export const publicAccess = async (c: Context, next: Next) => {
   const authHeader = c.req.header('Authorization');
@@ -76,9 +76,18 @@ export const publicAccess = async (c: Context, next: Next) => {
       if (token) {
         const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
         const validUserId = Number(payload.id || payload.userId);
+        
         if (!isNaN(validUserId)) {
-          c.set('userId', validUserId);
-          c.set('role', payload.role);
+          // Extra security: Verify user status even for public routes if token is present
+          const user = await prisma.user.findUnique({
+            where: { id: validUserId },
+            select: { status: true, role: true }
+          });
+
+          if (user && user.status === 'active') {
+            c.set('userId', validUserId);
+            c.set('role', user.role);
+          }
         }
       }
     } catch (error) {

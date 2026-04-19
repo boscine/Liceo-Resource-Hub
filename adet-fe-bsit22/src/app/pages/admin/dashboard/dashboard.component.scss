@@ -809,36 +809,42 @@
 }
 .report-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1rem;
-  
-  .action-btn {
-    flex: 1;
+
+  .action-btn, .view-btn {
+    flex: 1 1 calc(33.333% - 0.5rem);
+    min-width: fit-content;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
     padding: 0.5rem;
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn {
     border: 1px solid var(--outline-variant);
     background: var(--surface);
-    transition: all 0.2s;
 
     &:hover { background: var(--surface-container-high); }
-    
+
     &.flag { color: var(--error); border-color: var(--error); }
     &.resolve { color: var(--primary); border-color: var(--primary); }
   }
-  
+
   .view-btn {
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
     background: var(--primary);
     color: var(--on-primary);
     border: none;
-    cursor: pointer;
+
+    &:hover { background: var(--primary-container); color: var(--on-primary-container); }
   }
 }

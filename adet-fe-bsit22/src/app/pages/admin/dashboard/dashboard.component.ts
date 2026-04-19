@@ -21,6 +21,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   posts: any[] = [];
   urgentReports: any[] = [];
   loading = true;
+
+  // Pagination State
+  currentPage = 1;
+  pageSize = 12;
   
   // Moderation Reason State
   reasonModalOpen = false;
@@ -72,12 +76,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ];
   }
 
-  setTab(tab: string) { this.activeTab = tab; }
+  setTab(tab: string) { 
+    this.activeTab = tab; 
+    this.currentPage = 1;
+  }
 
   getFilteredPosts() {
     if (this.activeTab === 'FLAGGED') return this.posts.filter(p => !!p.isFlagged);
     if (this.activeTab === 'REMOVED') return this.posts.filter(p => p.status === 'REMOVED');
     return this.posts.filter(p => p.status !== 'REMOVED');
+  }
+
+  get totalPages() {
+    return Math.ceil(this.getFilteredPosts().length / this.pageSize) || 1;
+  }
+
+  get paginatedPosts() {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.getFilteredPosts().slice(startIndex, startIndex + this.pageSize);
+  }
+
+  get showingStart() {
+    if (this.getFilteredPosts().length === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get showingEnd() {
+    return Math.min(this.currentPage * this.pageSize, this.getFilteredPosts().length);
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.currentPage--;
   }
 
   approvePost(id: any) {

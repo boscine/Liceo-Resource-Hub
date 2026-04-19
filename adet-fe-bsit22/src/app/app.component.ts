@@ -38,11 +38,10 @@ export class AppComponent {
 
     // Watch for route changes to re-sync (in case of login/logout redirects)
     this.router.events.subscribe(event => {
-      // Diagnostic logging to track all navigation events
-      if (event && (event as any).url) {
-        console.log(`[Router] ${event.constructor.name}:`, (event as any).url, '| ID:', (event as any).id);
+      // Diagnostic logging to track all navigation events (reduced noise)
+      if (event && (event as any).url && !(event as any).reason) {
+        // console.log(`[Router] ${event.constructor.name}:`, (event as any).url, '| ID:', (event as any).id);
       }
-      if ((event as any).reason) console.warn('[Router Cancel Reason]:', (event as any).reason);
 
       if (event instanceof NavigationEnd) {
         this.themeService.syncAuthState(this.authService.isLoggedIn());

@@ -24,7 +24,7 @@
   display: none;
   @media (min-width: 768px) {
     display: flex; flex-direction: column; justify-content: space-between;
-    width: 42%; 
+    width: 42%;
     background: linear-gradient(rgba(var(--primary-rgb), 0.8), rgba(var(--primary-rgb), 0.8)), url('/login-bg.jpeg');
     background-size: cover;
     background-position: center;

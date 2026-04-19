@@ -93,7 +93,7 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.isLoggedIn = this.auth.isLoggedIn();
     this.isAdmin = this.auth.isAdmin();
     if (this.isLoggedIn) {
-      this.user = this.auth.getUser() || {};
+      this.fetchUserStats();
     }
 
     const localSaved = localStorage.getItem('ac_savedPosts');
@@ -142,6 +142,18 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.postService.getPosts(this.currentPage, this.pageSize, force, categories, this.viewMode, savedIds, this.sortBy);
   }
 
+  fetchUserStats() {
+    this.api.get<any>('/profile').subscribe({
+      next: (user) => {
+        this.user = user;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.user = this.auth.getUser() || {};
+      }
+    });
+  }
+
   ngOnDestroy() {
     if (this.postSub) this.postSub.unsubscribe();
     if (this.catSub) this.catSub.unsubscribe();
@@ -184,12 +196,12 @@ export class FeedComponent implements OnInit, OnDestroy {
   }
 
   private getCountByStatus(statuses: string[]): string | number {
-    if (!this.isLoggedIn || !this.user?.id) return 0;
-    const count = this.posts.filter(p => 
-      p.authorId === this.user.id && 
-      statuses.includes((p.status || '').toLowerCase())
-    ).length;
-    return count > 0 && count < 10 ? '0' + count : count;
+    if (!this.isLoggedIn || !this.user?.stats) return '00';
+    let total = 0;
+    statuses.forEach(s => {
+      total += (this.user.stats[s] || 0);
+    });
+    return total > 0 && total < 10 ? '0' + total : total;
   }
 
   get activeCount(): string | number {

@@ -4,7 +4,8 @@ import prisma from '../../lib/prisma';
 import { zValidator } from '@hono/zod-validator';
 import { postSchema, updatePostSchema, reportSchema } from '../../lib/validation';
 import { containsInappropriateContent } from '../../lib/moderation';
-import { getTimeAgo } from '../../lib/utils';
+import { analyzePostContent } from '../../lib/ai.moderation';
+import { getTimeAgo, escapeHtml } from '../../lib/utils';
 
 const router = new Hono<{ Variables: AuthVariables }>();
 
@@ -204,6 +205,9 @@ router.post('/', zValidator('json', postSchema, (result, c) => {
       return c.json({ message: 'Scholarly Integrity Violation: Your post contains inappropriate or unprofessional language prohibited by HUB standards.' }, 400);
     }
 
+    const aiResult = await analyzePostContent(title, description);
+    const isAutoFlagged = !aiResult.isAppropriate;
+
     const catId = categoryId;
 
     const categoryExists = await prisma.category.findUnique({ where: { id: catId } });
@@ -218,18 +222,41 @@ router.post('/', zValidator('json', postSchema, (result, c) => {
         title,
         description,
         imageUrl: imageUrl?.trim() ? imageUrl.trim() : null,
-        status: 'open'
+        status: isAutoFlagged ? 'closed' : 'open',
+        isFlagged: isAutoFlagged
       }
     });
 
     // ── Create Notification ───────────────────────────────────────────
-    await prisma.notification.create({
-      data: {
-        userId,
-        icon: 'check_circle',
-        text: `Your request "<b>${title}</b>" has been published successfully.`
-      }
-    });
+    if (isAutoFlagged) {
+      await prisma.notification.create({
+        data: {
+          userId,
+          icon: 'report_problem',
+          text: `Scholarly Alarm: Your request "<b>${escapeHtml(title)}</b>" was auto-flagged for curator review. ${aiResult.reason || ''}`
+        }
+      });
+      
+      // Also create a system report for the admin
+      await prisma.postReport.create({
+        data: {
+          postId: post.id,
+          reporterId: userId, // Self-report as trigger
+          reason: 'inappropriate',
+          details: `AI AUTO-MODERATION: ${aiResult.reason}`,
+          status: 'pending'
+        }
+      });
+
+    } else {
+      await prisma.notification.create({
+        data: {
+          userId,
+          icon: 'check_circle',
+          text: `Your request "<b>${escapeHtml(title)}</b>" has been published successfully.`
+        }
+      });
+    }
 
     return c.json(post, 201);
   } catch (error: any) {
@@ -351,28 +378,29 @@ router.put('/:id', zValidator('json', updatePostSchema, (result, c) => {
 
     // ── Create Dynamic Notification (Only on significant changes) ─────────────────
     if (statusChanged || flagChanged || (role === 'admin' && (title !== undefined || description !== undefined))) {
-      let notifText = `Changes to your request "<b>${updatedPost.title}</b>" have been saved.`;
+      const escapedTitle = escapeHtml(updatedPost.title);
+      let notifText = `Changes to your request "<b>${escapedTitle}</b>" have been saved.`;
       let notifIcon = 'edit';
 
       if (statusChanged) {
         if (data.status === 'fulfilled') {
-          notifText = `Scholar! Your request "<b>${updatedPost.title}</b>" is now marked as FULFILLED.`;
+          notifText = `Scholar! Your request "<b>${escapedTitle}</b>" is now marked as FULFILLED.`;
           notifIcon = 'auto_awesome';
         } else if (data.status === 'closed') {
-          notifText = `Your request "<b>${updatedPost.title}</b>" has been closed.`;
+          notifText = `Your request "<b>${escapedTitle}</b>" has been closed.`;
           notifIcon = 'do_not_disturb_on';
         } else if (data.status === 'removed' && role === 'admin') {
-          notifText = `Your request "<b>${updatedPost.title}</b>" was removed by an administrator.`;
+          notifText = `Your request "<b>${escapedTitle}</b>" was removed by an administrator.`;
           notifIcon = 'delete_forever';
         }
       } else if (flagChanged && updatedPost.isFlagged) {
-        notifText = `Your request "<b>${updatedPost.title}</b>" is currently under moderation review.`;
+        notifText = `Your request "<b>${escapedTitle}</b>" is currently under moderation review.`;
         notifIcon = 'flag';
       }
 
       // Append reason if provided by admin
       if (moderationReason && role === 'admin' && (flagChanged || statusChanged)) {
-        notifText += ` Reason: ${moderationReason}`;
+        notifText += ` Reason: ${escapeHtml(moderationReason)}`;
       }
 
       let notifType = 'system';
@@ -461,7 +489,7 @@ router.post('/:id/report', zValidator('json', reportSchema, (result, c) => {
         data: {
           userId: post.userId,
           icon: 'flag',
-          text: `Scholarly Alarm: Your request "<b>${post.title}</b>" has been auto-flagged for moderation review after multiple reports.`
+          text: `Scholarly Alarm: Your request "<b>${escapeHtml(post.title)}</b>" has been auto-flagged for moderation review after multiple reports.`
         }
       });
     }
@@ -517,7 +545,7 @@ router.post('/bulk-delete', async (c) => {
           data: othersPosts.map(p => ({
             userId: p.userId,
             icon: 'delete_sweep',
-            text: `Your request "<b>${p.title}</b>" has been permanently removed by an administrator.${reason ? ' Reason: ' + reason : ''}`
+            text: `Your request "<b>${escapeHtml(p.title)}</b>" has been permanently removed by an administrator.${reason ? ' Reason: ' + escapeHtml(reason) : ''}`
           }))
         });
       }
@@ -564,7 +592,7 @@ router.delete('/:id', async (c) => {
         data: {
           userId: post.userId,
           icon: 'delete_sweep',
-          text: `Your request "<b>${post.title}</b>" has been permanently removed by a HUB administrator.${reason ? ' Reason: ' + reason : ''}`
+          text: `Your request "<b>${escapeHtml(post.title)}</b>" has been permanently removed by a HUB administrator.${reason ? ' Reason: ' + escapeHtml(reason) : ''}`
         }
       });
     }
@@ -606,7 +634,7 @@ router.post('/:id/cooperate', async (c) => {
         return c.json({ message: 'Institutional Limit: Too many cooperation requests sent for this archive record.' }, 429);
       }
 
-      const notifText = `A fellow scholar is interested in cooperating on your request: "<b>${post.title}</b>".`;
+      const notifText = `A fellow scholar is interested in cooperating on your request: "<b>${escapeHtml(post.title)}</b>".`;
       await prisma.notification.create({
         data: {
           userId: post.userId,
@@ -651,7 +679,8 @@ router.post('/:id/save', async (c) => {
       });
 
       if (totalUserSaveNotifs < 10) {
-        const notifText = `A fellow scholar has saved your request: "<b>${post.title}</b>".`;
+        const escapedTitle = escapeHtml(post.title);
+        const notifText = `A fellow scholar has saved your request: "<b>${escapedTitle}</b>".`;
         const recentNotif = await prisma.notification.findFirst({
           where: {
             userId: post.userId,

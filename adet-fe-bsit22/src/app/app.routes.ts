@@ -23,6 +23,7 @@ export const routes: Routes = [
   },
   {
     path: 'verify',
+    canActivate: [GuestGuard],
     loadComponent: () => import('./pages/auth/verify').then(m => m.VerifyComponent)
   },
   {

@@ -193,7 +193,7 @@
           <div class="post-clickable-area" (click)="openDetail(post)">
             <!-- Image Preview -->
             <div class="post-preview-img" *ngIf="post.imageUrl">
-              <img [src]="post.imageUrl" alt="Preview" (error)="post.imageUrl = null">
+              <img [src]="post.imageUrl" alt="Preview">
             </div>
 
             <h3 class="post-title serif-italic">{{ post.title }}</h3>
@@ -489,7 +489,7 @@
 
             <!-- 3. Image -->
             <div class="selected-image-container" *ngIf="selectedPost.imageUrl">
-              <img [src]="selectedPost.imageUrl" alt="Scholarly material image" class="selected-image" (error)="selectedPost.imageUrl = ''">
+              <img [src]="selectedPost.imageUrl" alt="Scholarly material image" class="selected-image">
             </div>
 
             <!-- 4. Description -->
