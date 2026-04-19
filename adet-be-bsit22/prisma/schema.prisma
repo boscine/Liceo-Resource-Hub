@@ -43,6 +43,7 @@ model Notification {
   type      String?  @db.VarChar(50)
   user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, read, createdAt])
   @@index([userId], map: "notification_user_id_fkey")
   @@map("notification")
 }
@@ -84,6 +85,7 @@ model Post {
   saves       PostSave[]
   reveals     ContactReveal[]
 
+  @@index([status, isFlagged])
   @@index([categoryId], map: "post_category_id_fkey")
   @@index([userId], map: "post_user_id_fkey")
   @@map("post")
@@ -172,6 +174,9 @@ enum ReportReason {
   inappropriate
   spam
   misleading
+  not_educational
+  duplicate
+  fake_contact
   other
 }
 

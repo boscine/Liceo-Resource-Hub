@@ -3,7 +3,62 @@ import { AuthVariables } from '../../middleware/auth.middleware';
 import prisma from '../../lib/prisma';
 import { getTimeAgo } from '../../lib/utils';
 
+import { purgeExpiredNotifications } from '../../lib/cleanup';
+import { broadcastSchema } from '../../lib/validation';
+import { z } from 'zod';
+
 const router = new Hono<{ Variables: AuthVariables }>();
+
+// ── POST /api/v1/admin/notifications/broadcast ─────────────────────────────
+router.post('/notifications/broadcast', async (c) => {
+  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
+
+  try {
+    const body = await c.req.json();
+    const { icon, text, type } = broadcastSchema.parse(body);
+
+    const users = await prisma.user.findMany({
+      select: { id: true }
+    });
+
+    const notifications = users.map(user => ({
+      userId: user.id,
+      icon,
+      text,
+      type: type || 'global_announcement'
+    }));
+
+    await prisma.notification.createMany({
+      data: notifications
+    });
+
+    return c.json({ 
+      message: `Scholarly Broadcast Dispatched: Successfully notified ${users.length} institutional members.`,
+      recipientCount: users.length
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return c.json({ message: 'Validation Error', errors: error.errors }, 400);
+    }
+    console.error('Administrative System Failure during broadcast:', error);
+    return c.json({ message: 'Internal server error while dispatching broadcast.' }, 500);
+  }
+});
+
+// ── DELETE /api/v1/admin/notifications/purge-global ────────────────────────
+router.delete('/notifications/purge-global', async (c) => {
+  if (c.get('role') !== 'admin') return c.json({ message: 'Forbidden' }, 403);
+
+  try {
+    const count = await purgeExpiredNotifications();
+    return c.json({ 
+      message: `Institutional Cleanup Successful: ${count} expired records purged.`,
+      count 
+    });
+  } catch (error) {
+    return c.json({ message: 'Administrative System Failure during global purge.' }, 500);
+  }
+});
 
 // ── GET /api/v1/admin/posts (Admin Dashboard - Show EVERYTHING) ───────────────
 router.get('/posts', async (c) => {

@@ -21,6 +21,10 @@ export const verifySchema = z.object({
   code: z.string().length(6, 'Verification code must be exactly 6 digits.')
 });
 
+export const resendSchema = z.object({
+  email: z.string().email('Invalid institutional email format.').toLowerCase()
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email format.').toLowerCase()
 });
@@ -57,4 +61,10 @@ export const profileSchema = z.object({
 export const reportSchema = z.object({
   reason: z.enum(['inappropriate', 'spam', 'misleading', 'not_educational', 'duplicate', 'fake_contact', 'other']),
   details: z.string().max(500).optional()
+});
+
+export const broadcastSchema = z.object({
+  icon: z.string().min(1, 'Icon is required.'),
+  text: z.string().min(10, 'Scholarly announcement must be at least 10 characters.'),
+  type: z.string().optional()
 });

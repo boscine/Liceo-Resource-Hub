@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { AuthVariables } from '../../middleware/auth.middleware';
 import prisma from '../../lib/prisma';
 import { getTimeAgo } from '../../lib/utils';
+import { purgeExpiredNotifications } from '../../lib/cleanup';
 
 const router = new Hono<{ Variables: AuthVariables }>();
 
@@ -93,13 +94,14 @@ router.put('/:id/read', async (c) => {
     return c.json({ message: 'Failed to update notification' }, 500);
   }
 });
+
 // ── DELETE /api/v1/notifications/purge-old ──────────────────────────────────
 router.delete('/purge-old', async (c) => {
   const userId = c.get('userId');
   if (!userId) return c.json({ message: 'Unauthorized' }, 401);
 
   try {
-    // Scholarly Cleanup: Delete read notifications older than 7 days that aren't starred
+    // Note: This endpoint is for user-initiated purge of their own old records
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
